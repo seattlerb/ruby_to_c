@@ -500,6 +500,14 @@ typedef struct { unsigned long length; str * contents; } str_array;
   end
 
   ##
+  # Nil, currently ruby nil, not C NULL (0).
+
+  def process_not(exp)
+    term = process exp.shift
+    return "!(#{term})"
+  end
+
+  ##
   # Or assignment (||=), currently unsupported, but only because of
   # laziness.
 

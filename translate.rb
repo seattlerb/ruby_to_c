@@ -17,6 +17,7 @@ ObjectSpace.each_object(Class) do |klass|
 end
 
 new_classes -= old_classes
+new_classes = [ eval($c)] if defined? $c
 
 puts RubyToC.preamble
 
