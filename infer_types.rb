@@ -1,12 +1,5 @@
 require 'parse_tree'
-
-# REFACTOR: dup code
-
-class Object
-  def deep_clone
-    Marshal.load(Marshal.dump(self))
-  end
-end
+require 'sexp_processor'
 
 class Handle
 

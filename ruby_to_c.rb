@@ -1,11 +1,5 @@
 require 'infer_types'
-
-# REFACTOR: dup code
-class Object
-  def deep_clone
-    Marshal.load(Marshal.dump(self))
-  end
-end
+require 'sexp_processor'
 
 module TypeMap
 
@@ -22,13 +16,14 @@ module TypeMap
         "void"
       when :value, :unknown then
         "VALUE"
-# HACK      when :unknown then
+# HACK: uncomment this and fix the above when you want to have good tests
+#      when :unknown then
 #        raise "You should not have unknown types by now!"
       else
         raise "Bug! Unknown type #{typ.inspect}"
       end
 
-    base_type += "[]" if typ.list? # HACK - nuke me
+    base_type += "[]" if typ.list? # HACK - nuke me - and figure out why
 
     base_type
   end
