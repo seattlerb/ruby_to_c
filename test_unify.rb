@@ -38,15 +38,15 @@ class TestFunctionType < Test::Unit::TestCase
 
   def test_equal
     funs = []
-    funs << FunctionType.new([], Type.unknown)
-    funs << FunctionType.new([Type.unknown], Type.unknown)
-    funs << FunctionType.new([], Type.long)
-    funs << FunctionType.new([Type.long], Type.unknown)
-    funs << FunctionType.new([Type.long], Type.long)
-    funs << FunctionType.new([Type.unknown, Type.unknown], Type.unknown)
-    funs << FunctionType.new([Type.long, Type.unknown], Type.unknown)
-    funs << FunctionType.new([Type.long, Type.long], Type.long)
-    #funs << FunctionType.new([], Type.long)
+    funs << FunctionType.new(Type.unknown, [], Type.unknown)
+    funs << FunctionType.new(Type.unknown, [Type.unknown], Type.unknown)
+    funs << FunctionType.new(Type.unknown, [], Type.long)
+    funs << FunctionType.new(Type.unknown, [Type.long], Type.unknown)
+    funs << FunctionType.new(Type.unknown, [Type.long], Type.long)
+    funs << FunctionType.new(Type.unknown, [Type.unknown, Type.unknown], Type.unknown)
+    funs << FunctionType.new(Type.unknown, [Type.long, Type.unknown], Type.unknown)
+    funs << FunctionType.new(Type.unknown, [Type.long, Type.long], Type.long)
+    #funs << FunctionType.new(Type.unknown, [], Type.long)
 
     funs.each_with_index do |fun1, i|
       funs.each_with_index do |fun2, j|
@@ -60,53 +60,59 @@ class TestFunctionType < Test::Unit::TestCase
   end
 
   def test_unify_components
-    fun1 = FunctionType.new([Type.unknown], Type.unknown)
-    fun2 = FunctionType.new([Type.long], Type.long)
+    fun1 = FunctionType.new(Type.unknown, [Type.unknown], Type.unknown)
+    fun2 = FunctionType.new(Type.long, [Type.long], Type.long)
     fun1.unify_components fun2
     assert_equal fun2, fun1
 
-    fun3 = FunctionType.new([Type.long], Type.unknown)
-    fun4 = FunctionType.new([Type.unknown], Type.long)
+    fun3 = FunctionType.new(Type.unknown, [Type.long], Type.unknown)
+    fun4 = FunctionType.new(Type.long, [Type.unknown], Type.long)
     fun3.unify_components fun4
     assert_equal fun4, fun3
 
-    fun5 = FunctionType.new([], Type.unknown)
-    fun6 = FunctionType.new([], Type.long)
+    fun5 = FunctionType.new(Type.unknown, [], Type.unknown)
+    fun6 = FunctionType.new(Type.long, [], Type.long)
     fun5.unify_components fun6
     assert_equal fun6, fun5
   end
 
   def test_new_fail
     assert_raises(RuntimeError) do
-      FunctionType.new(nil, Type.long)
+      FunctionType.new(Type.unknown, nil, Type.long)
     end
 
     assert_raises(RuntimeError)do
-      FunctionType.new([], nil)
+      FunctionType.new(Type.unknown, [], nil)
     end
   end
 
   def test_unify_components_fail
-    fun1 = FunctionType.new([Type.str], Type.unknown)
-    fun2 = FunctionType.new([Type.long], Type.long)
+    fun1 = FunctionType.new(Type.long, [Type.str], Type.unknown)
+    fun2 = FunctionType.new(Type.unknown, [Type.long], Type.long)
     assert_raises(RuntimeError) do
       fun1.unify_components fun2
     end
 
-    fun3 = FunctionType.new([], Type.unknown)
-    fun4 = FunctionType.new([Type.unknown], Type.long)
+    fun3 = FunctionType.new(Type.long, [], Type.unknown)
+    fun4 = FunctionType.new(Type.unknown, [Type.unknown], Type.long)
     assert_raises(RuntimeError) do
       fun3.unify_components fun4
     end
 
-    fun5 = FunctionType.new([Type.unknown], Type.unknown)
-    fun6 = FunctionType.new([], Type.long)
+    fun5 = FunctionType.new(Type.long, [Type.unknown], Type.unknown)
+    fun6 = FunctionType.new(Type.unknown, [], Type.long)
     assert_raises(RuntimeError) do
       fun5.unify_components fun6
     end
 
-    fun7 = FunctionType.new([], Type.str)
-    fun8 = FunctionType.new([], Type.long)
+    fun7 = FunctionType.new(Type.long, [], Type.str)
+    fun8 = FunctionType.new(Type.unknown, [], Type.long)
+    assert_raises(RuntimeError) do
+      fun7.unify_components fun8
+    end
+
+    fun9 = FunctionType.new(Type.long, [], Type.str)
+    funa = FunctionType.new(Type.str, [], Type.unknown)
     assert_raises(RuntimeError) do
       fun7.unify_components fun8
     end

@@ -1,6 +1,7 @@
 
 class Environment
 
+  attr_accessor :env
   def initialize
     @env = []
   end
@@ -26,7 +27,7 @@ class Environment
       return closure[id] if closure.has_key? id
     end
 
-    raise "Unbound var #{id}"
+    raise "Unbound var: #{id}"
   end
 
   def current
@@ -37,11 +38,13 @@ end
 
 class FunctionType
 
+  attr_accessor :receiver_type
   attr_accessor :formal_types
   attr_accessor :return_type
 
-  def initialize(formal_types, return_type)
+  def initialize(receiver_type, formal_types, return_type)
     raise "nil not allowed" if formal_types.nil? or return_type.nil?
+    @receiver_type = receiver_type
     @formal_types = formal_types
     @return_type = return_type
   end
@@ -49,21 +52,24 @@ class FunctionType
   def ==(other)
     return nil unless other.class == self.class
 
+    return false unless other.receiver_type == self.receiver_type
     return false unless other.return_type == self.return_type
     return false unless other.formal_types == self.formal_types
     return true
   end
 
   def unify_components(other)
-    raise unless @formal_types.length == other.formal_types.length
+    raise "Unable to unify: different number of args #{self.inspect} vs #{other.inspect}" unless
+      @formal_types.length == other.formal_types.length
 
     @formal_types.each_with_index do |type, i|
       type.unify other.formal_types[i]
     end
 
+    @receiver_type.unify other.receiver_type
     @return_type.unify other.return_type
   rescue RuntimeError # print more complete warning message
-    raise "Unable to unify #{self} with #{other}"
+    raise "Unable to unify\n#{self}\nwith\n#{other}"
   end
 
   def to_s
@@ -71,7 +77,7 @@ class FunctionType
       t.inspect
     end
 
-    "function([#{formals.join ', '}], #{return_type.inspect})"
+    "function(#{receiver_type.inspect}, [#{formals.join ', '}], #{return_type.inspect})"
   end
 
 end
@@ -128,6 +134,10 @@ class Type
     when :unknown then
       return self.new(type)
     when :function then
+      if args.size == 2 then
+        $stderr.puts "\nWARNING: adding Type.unknown for #{caller[0]}" if $DEBUG
+        args.unshift Type.unknown
+      end
       return self.new(FunctionType.new(*args))
     else
       if type.to_s =~ /(.*)_list$/ then
@@ -190,15 +200,15 @@ class Type
     return self if other.nil?
     if self.unknown? and other.unknown? then
       # link types between unknowns
-      @type = other.type
-      @list = other.list? or self.list? # HACK may need to be tri-state
+      self.type = other.type
+      self.list = other.list? or self.list? # HACK may need to be tri-state
     elsif self.unknown? then
       # other's type is now my type
-      @type.contents = other.type.contents
-      @list = other.list?
+      self.type.contents = other.type.contents
+      self.list = other.list?
     elsif other.unknown? then
       # my type is now other's type
-      other.type.contents = @type.contents
+      other.type.contents = self.type.contents
       other.list = self.list?
     elsif self.function? and other.function? then
       self_fun = self.type.contents

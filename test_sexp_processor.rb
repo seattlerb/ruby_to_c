@@ -66,7 +66,8 @@ class TestSexp < Test::Unit::TestCase # ZenTest FULL
 
   def test_sexp_type=
     assert_equal(42, @sexp.sexp_type)
-    @sexp.sexp_type = 24
+    # FIX: we can't set sexp_type a second time, please expand tests
+    @sexp._set_sexp_type 24
     assert_equal(24, @sexp.sexp_type)
   end
 
@@ -93,7 +94,7 @@ class TestSexp < Test::Unit::TestCase # ZenTest FULL
 
   def test_equals_array
     # can't use assert_equals because it uses array as receiver
-    @sexp.sexp_type = Type.str
+    @sexp._set_sexp_type Type.str
     assert_not_equal(@sexp, [1, 2, 3, Type.str],
                      "Sexp must not be equal to equivalent array")
     # both directions just in case

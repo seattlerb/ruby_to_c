@@ -4,21 +4,21 @@ require 'type_checker'
 require 'test/unit'
 
 class RandomCode # ZenTest SKIP
-  def generic_method(x, y)
-    specific_method(x, y)
-  end
-
   def specific_method(x, y)
     c = x = y = 0 # make x and y to be longs
     return c.to_i > 0
   end
 
-  def meth_a(x)
-    meth_b(x)
+  def generic_method(x, y)
+    specific_method(x, y)
   end
 
   def meth_b(x)
     # nothing to do so we don't hint what x is
+  end
+
+  def meth_a(x)
+    meth_b(x)
   end
 
 end
@@ -42,11 +42,44 @@ class TestExtraTypeChecker < Test::Unit::TestCase # ZenTest SKIP
     return result
   end
 
+  def util_unify_function
+    a = Type.function(Type.unknown, [ Type.unknown ], Type.unknown)
+    b = Type.function(Type.long, [ Type.str ], Type.void)
+    a.unify b
+    act = a.list_type
+    bct = b.list_type
+    return act, bct
+  end
+
+  def test_unify_function_whole
+    act, bct = util_unify_function
+    assert_equal act, bct
+  end
+
+  def test_unify_function_receiver
+    act, bct = util_unify_function
+    assert_equal act.receiver_type.list_type, bct.receiver_type.list_type
+    assert_equal act.receiver_type.list_type.object_id, bct.receiver_type.list_type.object_id
+    assert_equal act, bct
+  end
+
+  def test_unify_function_args
+    act, bct = util_unify_function.map { |x| x.formal_types }
+    assert_equal act.first.list_type, bct.first.list_type
+    assert_equal act.first.list_type.object_id, bct.first.list_type.object_id
+  end
+
+  def test_unify_function_return
+    act, bct = util_unify_function
+    assert_equal act.return_type.list_type, bct.return_type.list_type
+    assert_equal act.return_type.list_type.object_id, bct.return_type.list_type.object_id
+  end
+
   def test_type_inference_across_args_known
     generic  = process(RandomCode, :generic_method).first
     specific = process(RandomCode, :specific_method).first
 
-    args_g = generic[2] # FIX FUCK this is horrid
+    args_g = generic[2]  # FIX FUCK this is horrid
     args_s = specific[2] # FIX FUCK this is horrid
 
     assert_equal(args_s[1].sexp_type.list_type.object_id, # FIX demeter
@@ -79,9 +112,13 @@ class TestExtraTypeChecker < Test::Unit::TestCase # ZenTest SKIP
     args_a = meth_a[2][1] # FIX FUCK this is horrid
     args_b = meth_b[2][1] # FIX FUCK this is horrid
 
+    assert_equal(args_a.sexp_type.list_type,
+                 args_b.sexp_type.list_type,
+                 "#meth_a and meth_b arguments are the same after unification")
+
     assert_equal(args_a.sexp_type.list_type.object_id,
                  args_b.sexp_type.list_type.object_id,
-                 "#meth_a and meth_b arguments are unified")
+                 "#meth_a and meth_b arguments are unified by object_id")
   end
 
   def test_process_defn_return_val
@@ -90,7 +127,7 @@ class TestExtraTypeChecker < Test::Unit::TestCase # ZenTest SKIP
 
     assert_equal("meth_b", result[1])
     # FIX: this is the worst API in my codebase - demeter
-    assert_equal(Type.unknown, result.sexp_type.type.contents.return_type)
+    assert_equal(Type.void, result.sexp_type.list_type.return_type)
   end
 
   def test_wtf?

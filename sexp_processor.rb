@@ -53,9 +53,15 @@ class Sexp < Array # ZenTest FULL
     end
   end
 
+  def _set_sexp_type(o)
+    @sexp_type = o
+  end
+
   def sexp_type=(o)
     raise "You shouldn't call this on an #{first}" if array_type?
-    @sexp_type = o
+    raise "You shouldn't call this a second time, ever" unless
+      @sexp_type.nil? or @sexp_type == Type.unknown
+    _set_sexp_type(o)
   end
 
   def sexp_types

@@ -2,12 +2,37 @@ require 'sexp_processor'
 require 'parse_tree'
 require 'rewriter'
 require 'support'
+require 'pp'
 
 # TODO: calls to sexp_type should probably be replaced w/ better Sexp API
 
-class TypeChecker < SexpProcessor
+$bootstrap = {
+  # :sym => [:reciever, :args, :return]
+  "<"  => [:long, :long, :bool],
+  "<=" => [:long, :long, :bool],
+  "==" => [:long, :long, :bool],
+  ">"  => [:long, :long, :bool],
+  ">=" => [:long, :long, :bool],
 
-  require 'bootstrap'
+  "+"  => [:long, :long, :long],
+  "-"  => [:long, :long, :long],
+  "*"  => [:long, :long, :long],
+
+  # polymorphics:
+  "nil?" => [:value, :bool],
+  "to_s" => [:long, :str], # HACK - should be :void, :str
+  "to_i" => [:long, :long], # HACK - should be :void, :str
+
+  "print" => [:void, :str, :void],
+  "puts" => [:void, :str, :void],
+
+  # get rid of these
+  "case_equal_str" => [:str, :str, :bool],
+  "case_equal_long" => [:long, :long, :bool],
+
+}
+
+class TypeChecker < SexpProcessor
 
   attr_reader :tree
   attr_reader :env
@@ -54,21 +79,20 @@ class TypeChecker < SexpProcessor
     self.strict = true
 
     @env.extend
+    @genv.extend
 
     bootstrap
   end
 
   def bootstrap
-    @genv.extend
     @genv.add "$stderr", Type.file
 
-    parser = ParseTree.new
-    rewriter = Rewriter.new
-    # TODO use the chain
-    TypeChecker::Bootstrap.instance_methods(false).each do |meth|
-      parsed = parser.parse_tree TypeChecker::Bootstrap, meth
-      rewritten = rewriter.process parsed
-      process rewritten
+    $bootstrap.each_key do |name|
+      signature = $bootstrap[name] # .deep_clone
+      lhs_type = Type.new(signature[0])
+      return_type = Type.new(signature[-1])
+      arg_types = signature[1..-2].map { |t| Type.new(t) }
+      @functions[name] = Type.function(lhs_type, arg_types, return_type)
     end
   end
 
@@ -127,6 +151,7 @@ class TypeChecker < SexpProcessor
   # Unifies the arguments according to the method name.
 
   def process_call(exp)
+    orig_exp = exp.deep_clone
     name = exp.shift
     lhs = process exp.shift     # can be nil
     args = process exp.shift
@@ -154,14 +179,14 @@ class TypeChecker < SexpProcessor
     function_type = @functions[name]
     return_type = Type.unknown
 
-    unless lhs.nil? or lhs.sexp_type.nil? then
-      arg_types.unshift lhs.sexp_type
-    end
-
+    lhs_type = lhs.nil? ? Type.unknown : lhs.sexp_type # TODO: maybe void instead of unknown
     if function_type.nil?  then
-      @functions[name] = Type.function arg_types, return_type
+      function_type = Type.function(lhs_type, arg_types, return_type)
+      @functions[name] = function_type
+      $stderr.puts "\nWARNING: function #{name} is not defined. Registering #{function_type.inspect}" if $DEBUG
     else
-      function_type.unify Type.function(arg_types, return_type)
+      call_type = Type.function(lhs_type, arg_types, return_type)
+      function_type.unify call_type
       return_type = function_type.list_type.return_type
     end
 
@@ -184,28 +209,34 @@ class TypeChecker < SexpProcessor
   # expression and the function type.
 
   def process_defn(exp)
-    return_type = Type.unknown
-    function_type = nil
     name = exp.shift
 
-    @current_function_name = name
+    @current_function_name = name # TODO: nuke this
     @env.extend
 
     args = process exp.shift
 
+    # It might already have the name as defined by a :call node.
     unless @functions.has_key? name then
-      @functions[name] = Type.function args.sexp_types, return_type
+      # TODO: figure out the receiver type? Is that possible at this stage?
+      function_type = Type.function Type.unknown, args.sexp_types, Type.unknown
+      @functions[name] = function_type
+      $stderr.puts "\nWARNING: function #{name} is not defined. Registering #{function_type.inspect}" if $DEBUG
     end
     body = process exp.shift
-    body_type = body.sexp_type
 
     @env.unextend
-    @current_function_name = nil
+    @current_function_name = nil # TODO: nuke this
 
     function_type = @functions[name]
+    return_type = function_type.list_type.return_type
 
-    return_type.unify Type.void if return_type == Type.unknown
+    if return_type == Type.unknown then
+      return_type.unify Type.void
+    end
 
+    # TODO: bad API, clean
+    raise "wrong" if args.sexp_types.size != function_type.list_type.formal_types.size
     args.sexp_types.each_with_index do |type, i|
       type.unify function_type.list_type.formal_types[i]
     end
@@ -387,7 +418,7 @@ class TypeChecker < SexpProcessor
     raise "Definition of #{@current_function_name.inspect} not found in function list" if fun_type.nil?
     return_type = fun_type.list_type.return_type # HACK UGLY
     return_type.unify body.sexp_type
-    return Sexp.new(:return, body, Type.void)
+    return Sexp.new(:return, body, Type.void) # TODO: why void?!?
   end
 
   ##
