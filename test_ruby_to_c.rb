@@ -13,11 +13,15 @@ class TestTypeMap < Test::Unit::TestCase
   end
 
   def test_c_type_long_list
-    assert_equal "long[]", TypeMap.c_type(Type.long_list)
+    assert_equal "long_array", TypeMap.c_type(Type.long_list)
   end
 
   def test_c_type_str
-    assert_equal "char *", TypeMap.c_type(Type.str)
+    assert_equal "str", TypeMap.c_type(Type.str)
+  end
+
+  def test_c_type_str_list
+    assert_equal "str_array", TypeMap.c_type(Type.str_list)
   end
 
   def test_c_type_bool
@@ -330,7 +334,7 @@ puts(to_s(x));
                  t(:str, "bar", Type.str)),
                Type.str_list)
     output = "var.length = 2;
-var.contents = (long*) malloc(sizeof(long) * var.length);
+var.contents = (str*) malloc(sizeof(str) * var.length);
 var.contents[0] = \"foo\";
 var.contents[1] = \"bar\""
 
@@ -416,7 +420,7 @@ bar", Type.str)
                            t(:str, "declare me"),
                            Type.str),
                          t(:return, t(:nil))))
-    output = "{\nchar * arg;\narg = \"declare me\";\nreturn Qnil;\n}"
+    output = "{\nstr arg;\narg = \"declare me\";\nreturn Qnil;\n}"
 
     assert_equal output, @ruby_to_c.process(input)
   end
@@ -476,7 +480,7 @@ Qnil;
   # TODO: this test is not good... the args should type-resolve or raise
   # TODO: this test is good, we should know that print takes objects... or something
   @@simple = "void
-simple(char * arg1) {
+simple(str arg1) {
 print(arg1);
 puts(to_s(4 + 2));
 }"
@@ -543,16 +547,16 @@ puts(to_s(x));
 }"
   @@iteration2 = "void
 iteration2() {
-long_array array;
+str_array array;
 array.length = 3;
-array.contents = (long*) malloc(sizeof(long) * array.length);
-array.contents[0] = 1;
-array.contents[1] = 2;
-array.contents[2] = 3;
+array.contents = (str*) malloc(sizeof(str) * array.length);
+array.contents[0] = \"a\";
+array.contents[1] = \"b\";
+array.contents[2] = \"c\";
 unsigned long index_x;
 for (index_x = 0; index_x < array.length; ++index_x) {
-long x = array.contents[index_x];
-puts(to_s(x));
+str x = array.contents[index_x];
+puts(x);
 }
 }"
   @@iteration3 = "void
@@ -608,7 +612,7 @@ puts(\"hello\");
 temp_var1 = temp_var1 - 1;
 }
 }"
-  @@multi_args = "char *
+  @@multi_args = "str
 multi_args(long arg1, long arg2) {
 long arg3;
 arg3 = arg1 * arg2 * 7;
@@ -624,9 +628,9 @@ return Qtrue;
 }
 }"
 # HACK: I don't like the semis after the if blocks, but it is a compromise right now
-  @@case_stmt = "char *
+  @@case_stmt = "str
 case_stmt() {
-char * result;
+str result;
 long var;
 var = 2;
 result = \"\";
@@ -658,10 +662,10 @@ var = 3;
 return result;
 }"
 # HACK fputs emits arguments in the wrong order
-  @@eric_is_stubborn = "char *
+  @@eric_is_stubborn = "str
 eric_is_stubborn() {
 long var;
-char * var2;
+str var2;
 var = 42;
 var2 = to_s(var);
 fputs(stderr, var2);
@@ -672,7 +676,7 @@ determine_args() {
 5 == unknown_args(4, \"known\");
 }"
   @@unknown_args = "long
-unknown_args(long arg1, char * arg2) {
+unknown_args(long arg1, str arg2) {
 return arg1;
 }"
 

@@ -29,7 +29,7 @@ module TypeMap
       when :long then
         "long"
       when :str then
-        "char *"
+        "str"
       when :bool then # TODO: subject to change
         "long"
       when :void then
@@ -45,7 +45,7 @@ module TypeMap
         raise "Bug! Unknown type #{typ.inspect} in c_type"
       end
 
-    base_type += "[]" if typ.list?
+    base_type += "_array" if typ.list?
 
     base_type
   end
@@ -98,7 +98,9 @@ class RubyToC < SexpProcessor
     "// BEGIN METARUBY PREAMBLE
 #include <ruby.h>
 #define RB_COMPARE(x, y) (x) == (y) ? 0 : (x) < (y) ? -1 : 1
+typedef char * str;
 typedef struct { unsigned long length; long * contents; } long_array;
+typedef struct { unsigned long length; str * contents; } str_array;
 #define case_equal_long(x, y) ((x) == (y))
 // END METARUBY PREAMBLE
 "
@@ -443,15 +445,22 @@ typedef struct { unsigned long length; long * contents; } long_array;
     arg_count = value.length - 1 if value.first == :array
     args = value
 
-    var_type = exp.sexp_type
-    @env.add var.to_sym, var_type
-    var_type = c_type var_type
+    exp_type = exp.sexp_type
+    @env.add var.to_sym, exp_type
+    var_type = c_type exp_type
 
-    if var_type =~ /\[\]$/ then
+    if exp_type.list? then
       assert_type args, :array
+
+      raise "array must be of one type" unless args.sexp_type == Type.homo
+
+      # HACK: until we figure out properly what to do w/ zarray
+      # before we know what its type is, we will default to long.
+      array_type = args.sexp_types.empty? ? 'long' : c_type(args.sexp_types.first)
+
       args.shift
       out << "#{var}.length = #{arg_count};\n"
-      out << "#{var}.contents = (long*) malloc(sizeof(long) * #{var}.length);\n"
+      out << "#{var}.contents = (#{array_type}*) malloc(sizeof(#{array_type}) * #{var}.length);\n"
       args.each_with_index do |o,i|
         out << "#{var}.contents[#{i}] = #{process o};\n"
       end
@@ -528,11 +537,7 @@ typedef struct { unsigned long length; long * contents; } long_array;
       body = process exp.shift unless exp.empty?
       @env.current.sort_by { |v,t| v.to_s }.each do |var, var_type|
         var_type = c_type var_type
-        if var_type =~ /(.*)(?: \*)?\[\]/ then # TODO: readability
-          declarations << "#{$1}_array #{var};\n"
-        else
-          declarations << "#{var_type} #{var};\n"
-        end
+        declarations << "#{var_type} #{var};\n"
       end
     end
     return "{\n#{declarations}#{body}}"

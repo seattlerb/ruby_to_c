@@ -128,8 +128,8 @@ class Something
   end
 
   def iteration2
-    array = [1, 2, 3]
-    array.each { |x| puts(x.to_s) }
+    array = ['a', 'b', 'c']
+    array.each { |x| puts(x) }
   end
 
   def iteration3

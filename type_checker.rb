@@ -30,9 +30,9 @@ $bootstrap = {
   :>= => [[:long, :long, :bool],],
 
   :+  => ([
-             [:long, :long, :long],
-             [:str, :str, :str],
-           ]),
+            [:long, :long, :long],
+            [:str, :str, :str],
+          ]),
   :-  => [[:long, :long, :long],],
   :*  => [[:long, :long, :long],],
 
@@ -44,9 +44,9 @@ $bootstrap = {
   :print => [[:void, :str, :void],],
 
   :[]   => ([
-               [:long_list, :long, :long],
-               [:str, :long, :long],
-             ]),
+              [:long_list, :long, :long],
+              [:str, :long, :long],
+            ]),
 
   # TODO: get rid of these
   :case_equal_str => [[:str, :str, :bool],],
