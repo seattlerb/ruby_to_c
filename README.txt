@@ -1,5 +1,5 @@
 ruby_to_c
-    http://www.zenspider.com/
+    http://rubyforge.org/projects/ruby2c/
     ryand-ruby@zenspider.com
     ruby2c@zenspider.com - mailing list
 
@@ -40,7 +40,8 @@ TODO:
 
 REQUIREMENTS:
 
-+ RubyInline 3 - http://sourceforge.net/projects/rubyinline/
++ ParseTree - http://rubyforge.org/projects/parsetree/
++ RubyInline - http://rubyforge.org/projects/rubyinline/
 
 INSTALL:
 
