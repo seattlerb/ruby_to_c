@@ -17,12 +17,57 @@ class Something
     puts((4 + 2).to_s)
   end
 
-  def global
-    $stderr.fputs("blah")
+  ############################################################
+  # sorted from here on down:
+
+  def bbegin
+    begin
+      1+1
+    rescue SyntaxError => e1
+      2
+    rescue Exception => e2
+      3
+    else
+      4
+    ensure
+      5
+    end
   end
 
-  def lasgn_call
-    c = 2 + 3
+  def bools(arg1)
+    unless arg1.nil? then
+      return true
+    else
+      return false
+    end
+  end
+
+  def case_stmt
+    var = 2
+    result = ""
+    case var
+    when 1 then
+      # block
+      puts "something"
+      result = "red"
+    when 2, 3 then
+      result = "yellow"
+    when 4 then
+      # nothing
+    else
+      result = "green"
+    end
+
+    case result
+    when "red" then
+      var = 1
+    when "yellow" then
+      var = 2
+    when "green" then
+      var = 3
+    end
+
+    return result
   end
 
   def conditional1(arg1)
@@ -53,6 +98,26 @@ class Something
     else
       return 4
     end
+  end
+
+  def determine_args
+    5 == unknown_args(4, "known")
+  end
+
+  def eric_is_stubborn
+    var = 42
+    var2 = var.to_s
+    $stderr.fputs(var2)
+    return var2
+  end
+
+  def global
+    $stderr.fputs("blah")
+  end
+
+  def interpolated
+    var = 14
+    var2 = "var is #{var}. So there."
   end
 
   def iteration1
@@ -90,35 +155,9 @@ class Something
     end
   end
 
-  def case_stmt
-    var = 2
-    result = ""
-    case var
-    when 1 then
-      # block
-      puts "something"
-      result = "red"
-    when 2, 3 then
-      result = "yellow"
-    when 4 then
-      # nothing
-    else
-      result = "green"
-    end
-
-    case result
-    when "red" then
-      var = 1
-    when "yellow" then
-      var = 2
-    when "green" then
-      var = 3
-    end
-
-    return result
+  def lasgn_call
+    c = 2 + 3
   end
-
-  # Other edge cases:
 
   def multi_args(arg1, arg2)
     arg3 = arg1 * arg2 * 7
@@ -126,37 +165,25 @@ class Something
     return "foo"
   end
 
-  def bools(arg1)
-    unless arg1.nil? then
-      return true
-    else
-      return false
-    end
-  end
-
-  def eric_is_stubborn
-    var = 42
-    var2 = var.to_s
-    $stderr.fputs(var2)
-    return var2
-  end
-
-  def interpolated
-    var = 14
-    var2 = "var is #{var}. So there."
-  end
-
   def unknown_args(arg1, arg2)
     # does nothing
     return arg1
-  end
-
-  def determine_args
-    5 == unknown_args(4, "known")
   end
 
   def zarray
     a = []
   end
 
+  def self.bmethod_maker
+    define_method(:bmethod_added) do |x|
+      x + 1
+    end
+  end
+  
+  def self.dmethod_maker
+    define_method :dmethod_added, self.method(:bmethod_maker)
+  end
+  
+  bmethod_maker
+  dmethod_maker
 end

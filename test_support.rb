@@ -345,7 +345,7 @@ class TestEnvironment < Test::Unit::TestCase
       assert_equal 42, @env.lookup('var')
     end
 
-    assert_raises RuntimeError do
+    assert_raises NameError do
       @env.lookup('var')
     end
   end
@@ -389,7 +389,7 @@ class TestEnvironment < Test::Unit::TestCase
   end
 
   def test_lookup_raises
-    assert_raises RuntimeError do
+    assert_raises NameError do
       @env.lookup('var')
     end
   end
@@ -424,7 +424,7 @@ class TestEnvironment < Test::Unit::TestCase
 
     @env.unextend
 
-    assert_raises RuntimeError do
+    assert_raises NameError do
       @env.lookup 'var'
     end
   end

@@ -223,6 +223,12 @@ class TestRewriter < Test::Unit::TestCase
     assert_equal expected, @rewrite.process(input)
   end
 
+  def test_process_until
+    input = [:until, [:call, [:lvar, :a], :==, [:array, [:lvar, :b]]], [:fcall, :puts, [:array, [:lit, 2]]]]
+    output = s(:while, s(:not, s(:call, s(:lvar, :a), :==, s(:array, s(:lvar, :b)))), s(:call, nil, :puts, s(:array, s(:lit, 2))))
+    assert_equal output, @rewrite.process(input)
+  end
+
   def test_process_when
     input = [:when, [:array, [:lit, 1]], [:str, "1"]]
 
@@ -581,6 +587,41 @@ class TestRewriter_2 < Test::Unit::TestCase
                           s(:block,
                             s(:return,
                               s(:iasgn, :@accessor, s(:lvar, :arg))))))
+
+  # TODO: sort all vars
+
+  @@bbegin = s(:defn,
+               :bbegin,
+               s(:args),
+               s(:scope,
+                 s(:block,
+                   s(:begin,
+                     s(:ensure,
+                       s(:rescue,
+                         s(:call, s(:lit, 1), :+, s(:array, s(:lit, 1))),
+                         s(:resbody,
+                           s(:array, s(:const, :SyntaxError)),
+                           s(:block, s(:lasgn, :e1, s(:gvar, :$!)),
+                             s(:lit, 2)),
+                           s(:resbody,
+                             s(:array, s(:const, :Exception)),
+                             s(:block, s(:lasgn, :e2, s(:gvar, :$!)),
+                               s(:lit, 3)))),
+                         s(:lit, 4)),
+                       s(:lit, 5))))))
+
+  @@bmethod_added = s(:defn,
+                      :bmethod_added,
+                      s(:args, :x),
+                      s(:scope,
+                        s(:block,
+                          s(:call, s(:lvar, :x), :+, s(:array, s(:lit, 1))))))
+  @@dmethod_added = s(:defn,
+                      :dmethod_added,
+                      s(:args, :x),
+                      s(:scope,
+                        s(:block,
+                          s(:call, s(:lvar, :x), :+, s(:array, s(:lit, 1))))))
 
   @@__all = []
 

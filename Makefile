@@ -1,8 +1,29 @@
 RUBY?=ruby
-RUBY_FLAGS?=-w -I.:../../ParseTree/dev/lib
+RUBY_FLAGS?=-w -I.:../../ParseTree/dev/lib:../../ParseTree/dev/test
 
 all test:
 	GEM_SKIP=ParseTree $(RUBY) $(RUBY_FLAGS) test_all.rb
+
+docs:
+	rdoc -d -I png --main RubyToC -x test_\* -x something.rb
+
+VAL=./validate.sh
+FILE?=../../ZenTest/dev/TestOrderedHash.rb
+
+valx:
+	$(VAL)    $(FILE) > x
+
+val:
+	$(VAL) -q $(FILE) | head -20
+
+valno:
+	$(VAL)    $(FILE) | grep no:
+
+valstat:
+	BAD=$$(wc -l rb.bad.txt | perl -pe 's/\s*(\d+)\s+.*/$$1/'); GOOD=$$(wc -l rb.good.txt | perl -pe 's/\s*(\d+)\s+.*/$$1/'); echo "1 - $$BAD / ($$GOOD + $$BAD)" | bc -l
+
+valoccur:
+	egrep "ERROR|no:" rb.err.txt | perl -pe 's/ in .*//; s/(translating \S+):/$$1/; s/(is not an Array \w+):.*/$$1/; s/.* (is not a supported node type)/blah $$1/; s/(Unable to unify).*/$$1/; s/(Unknown literal) \S+/$$1/;' | occur 
 
 trouble: trouble.o
 	@exit 0

@@ -4,19 +4,24 @@ $TESTING = false unless defined? $TESTING
 begin
   require 'rubygems'
   require_gem 'ParseTree'
-  require 'sexp_processor'
-  require 'composite_sexp_processor'
 rescue LoadError
   require 'parse_tree'
-  require 'sexp_processor'
-  require 'composite_sexp_processor'
 end
 
+require 'sexp_processor'
+require 'composite_sexp_processor'
 require 'type_checker'
 require 'rewriter'
 require 'pp'
 
+##
+# Maps a sexp type to a C counterpart.
+
 module TypeMap
+
+  ##
+  # Returns a textual version of a C type that corresponds to a sexp
+  # type.
 
   def c_type(typ)
     base_type = 
@@ -37,7 +42,7 @@ module TypeMap
 #      when :unknown then
 #        raise "You should not have unknown types by now!"
       else
-        raise "Bug! Unknown type #{typ.inspect}"
+        raise "Bug! Unknown type #{typ.inspect} in c_type"
       end
 
     base_type += "[]" if typ.list?
@@ -49,12 +54,43 @@ module TypeMap
 
 end
 
+##
+# The whole point of this project! RubyToC is an actually very simple
+# SexpProcessor that does the final conversion from Sexp to C code.
+# This class has more unsupported nodes than any other (on
+# purpose--we'd like TypeChecker and friends to be as generally useful
+# as possible), and as a result, supports a very small subset of ruby.
+#
+# NOT SUPPORTED: (keep in sync w/ initialize)
+# 
+# :begin, :block_arg, :case, :const, :dstr, :iasgn, :ivar, :rescue,
+# :self, :super, :when
+
+
 class RubyToC < SexpProcessor
+
+  # TODO: remove me
+  def no(exp) # :nodoc:
+    raise "no: #{caller[0].split[1]} #{exp.inspect}"
+  end
 
   include TypeMap
 
+  ##
+  # Provides access to the variable scope.
+
   attr_reader :env
+
+  ##
+  # Provides access to the method signature prototypes that are needed
+  # at the top of the C file.
+
   attr_reader :prototypes
+
+  ##
+  # Provides a (rather bogus) preamble. Put your includes and defines
+  # here. It really should be made to be much more clean and
+  # extendable.
 
   def self.preamble
     "// BEGIN METARUBY PREAMBLE
@@ -65,6 +101,9 @@ typedef struct { unsigned long length; long * contents; } long_array;
 // END METARUBY PREAMBLE
 "
   end
+
+  ##
+  # Lazy initializer for the composite RubytoC translator chain.
 
   def self.translator
     unless defined? @@translator then
@@ -77,14 +116,23 @@ typedef struct { unsigned long length; long * contents; } long_array;
     @@translator
   end
 
-  # REFACTOR: rename to self.process
+  ##
+  # Front-end utility method for translating an entire class or a
+  # specific method from that class.
+
   def self.translate(klass, method=nil)
+    # REFACTOR: rename to self.process
     unless method.nil? then
       self.translator.process(ParseTree.new.parse_tree_for_method(klass, method))
     else
       self.translator.process(ParseTree.new.parse_tree(klass))
     end
   end
+
+  ##
+  # (Primary) Front-end utility method for translating an entire
+  # class. Has special error handlers that convert errors into C++
+  # comments (//...).
 
   def self.translate_all_of(klass)
     result = []
@@ -93,10 +141,12 @@ typedef struct { unsigned long length; long * contents; } long_array;
       result << 
         begin
           self.translate(klass, method)
+        rescue UnsupportedNodeError => err
+          "// NOTE: #{err} in #{klass}##{method}"
+        rescue UnknownNodeError => err
+          "// ERROR: #{err} in #{klass}##{method}: #{ParseTree.new.parse_tree_for_method(klass, method).inspect}"
         rescue Exception => err
-          [ "// ERROR translating #{method}: #{err}",
-          "//   #{err.backtrace.join("\n//   ")}",
-          "//   #{ParseTree.new.parse_tree_for_method(klass, method).inspect}" ]
+          "// ERROR: #{err} in #{klass}##{method}: #{ParseTree.new.parse_tree_for_method(klass, method).inspect} #{err.backtrace.join(', ')}"
         end
     end
 
@@ -104,18 +154,19 @@ typedef struct { unsigned long length; long * contents; } long_array;
     "#{prototypes.join('')}\n\n#{result.join("\n\n")}"
   end
 
-  # attr_accessor :prototypes # TODO is this needed anymore?
-
-  def initialize
+  def initialize # :nodoc:
     super
     @env = Environment.new
     self.auto_shift_type = true
-    self.unsupported = [:case, :when, :rescue, :const, :dstr]
+    self.unsupported = [ :begin, :block_arg, :case, :const, :dstr, :iasgn, :ivar, :rescue, :self, :super, :when, ]
     self.strict = true
     self.expected = String
 
     @prototypes = []
   end
+
+  ##
+  # Logical And. Nothing exciting here
 
   def process_and(exp)
     lhs = process exp.shift
@@ -123,6 +174,9 @@ typedef struct { unsigned long length; long * contents; } long_array;
 
     return "#{lhs} && #{rhs}"
   end
+
+  ##
+  # Argument List including variable types.
 
   def process_args(exp)
     args = []
@@ -135,6 +189,9 @@ typedef struct { unsigned long length; long * contents; } long_array;
     return "(#{args.join ', '})"
   end
 
+  ##
+  # Array is used as call arg lists and as initializers for variables.
+
   def process_array(exp)
     code = []
 
@@ -144,6 +201,10 @@ typedef struct { unsigned long length; long * contents; } long_array;
 
     return "#{code.join ', '}"
   end
+
+  ##
+  # Block doesn't have an analog in C, except maybe as a functions's
+  # outer braces.
 
   def process_block(exp)
     code = []
@@ -158,6 +219,13 @@ typedef struct { unsigned long length; long * contents; } long_array;
     return body
   end
 
+  ##
+  # Call, both unary and binary operators and regular function calls.
+  #
+  # TODO: This needs a lot of work. We've cheated with the case
+  # statement below. We need a real function signature lookup like we
+  # have in R2CRewriter.
+
   def process_call(exp)
     receiver = exp.shift
     name = exp.shift
@@ -170,8 +238,9 @@ typedef struct { unsigned long length; long * contents; } long_array;
     receiver = process receiver
 
     case name
-    when :==, :<, :>, :<=, :>=, # TODO: these need to be numerics
-         :-, :+, :*, :/, :% then
+      # TODO: these need to be numerics
+      # emacs gets confused by :/ below, need quotes to fix indentation
+    when :==, :<, :>, :<=, :>=, :-, :+, :*, :"/", :% then
       return "#{receiver} #{name} #{args}"
     when :<=>
       return "RB_COMPARE(#{receiver}, #{args})"
@@ -201,11 +270,32 @@ typedef struct { unsigned long length; long * contents; } long_array;
     end
   end
 
+  ##
+  # Constants, must be defined in the global env.
+  #
+  # TODO: This will cause a lot of errors with the built in classes
+  # until we add them to the bootstrap phase.
+
+  def process_cvar(exp)
+    # TODO: we should treat these as globals and have them in the top scope
+    name = exp.shift
+    return name.to_s
+  end
+
+  ##
+  # Iterator variables.
+  # 
+  # TODO: check to see if this is the least bit relevant anymore. We
+  # might have rewritten them all.
+
   def process_dasgn_curr(exp)
     var = exp.shift
     @env.add var.to_sym, exp.sexp_type
     return var.to_s
   end
+
+  ##
+  # Function definition
 
   def process_defn(exp)
 
@@ -220,15 +310,37 @@ typedef struct { unsigned long length; long * contents; } long_array;
     "#{ret_type}\n#{name}#{args} #{body}"
   end
 
+  ##
+  # Generic handler. Ignore me, I'm not here.
+  #
+  # TODO: nuke dummy nodes by using new SexpProcessor rewrite rules.
+
+  def process_dummy(exp)
+    process_block(exp).chomp
+  end
+
+  ##
+  # Dynamic variables, should be the same as lvar at this stage.
+  #
+  # TODO: remove / rewrite?
+
   def process_dvar(exp)
     var = exp.shift
     @env.add var.to_sym, exp.sexp_type
     return var.to_s
   end
 
+  ##
+  # False. Pretty straightforward. Currently we output ruby Qfalse
+
   def process_false(exp)
-    return "Qfalse"
+         return "Qfalse"
   end
+
+  ##
+  # Global variables, evil but necessary.
+  #
+  # TODO: get the case statement out by using proper bootstrap in genv.
 
   def process_gvar(exp)
     name = exp.shift
@@ -240,6 +352,18 @@ typedef struct { unsigned long length; long * contents; } long_array;
       raise "Bug! Unhandled gvar #{name.inspect} (type = #{type})"
     end
   end
+
+  ##
+  # Hash values, currently unsupported, but plans are in the works.
+
+  def process_hash(exp)
+    no(exp)
+  end
+
+  ##
+  # Conditional statements
+  #
+  # TODO: implementation is ugly as hell... PLEASE try to clean
 
   def process_if(exp)
     cond_part = process exp.shift
@@ -275,6 +399,11 @@ typedef struct { unsigned long length; long * contents; } long_array;
     result
   end
 
+  ##
+  # Iterators for loops. After rewriter nearly all iter nodes
+  # should be able to be interpreted as a for loop. If not, then you
+  # are doing something not supported by C in the first place.
+
   def process_iter(exp)
     out = []
     @env.scope do
@@ -296,6 +425,11 @@ typedef struct { unsigned long length; long * contents; } long_array;
 
     return out.join("\n")
   end
+
+  ##
+  # Assignment to a local variable.
+  #
+  # TODO: figure out array issues and clean up.
 
   def process_lasgn(exp)
     out = ""
@@ -328,19 +462,42 @@ typedef struct { unsigned long length; long * contents; } long_array;
     return out
   end
 
+  ##
+  # Literals, numbers for the most part. Will probably cause
+  # compilation errors if you try to translate bignums and other
+  # values that don't have analogs in the C world. Sensing a pattern?
+
   def process_lit(exp)
     return exp.shift.to_s # TODO what about floats and big numbers?
   end
 
+  ##
+  # Local variable
+
   def process_lvar(exp)
     name = exp.shift
-    # HACK: wtf??? there is no code! do nothing? if so, comment that!
+    # do nothing at this stage, var should have been checked for
+    # existance already.
     return name.to_s
   end
+
+  ##
+  # Nil, currently ruby nil, not C NULL (0).
 
   def process_nil(exp)
     return "Qnil"
   end
+
+  ##
+  # Or assignment (||=), currently unsupported, but only because of
+  # laziness.
+
+  def process_op_asgn_or(exp)
+    no(exp)
+  end
+
+  ##
+  # Logical or. Nothing exciting here
 
   def process_or(exp)
     lhs = process exp.shift
@@ -349,9 +506,18 @@ typedef struct { unsigned long length; long * contents; } long_array;
     return "#{lhs} || #{rhs}"
   end
 
+  ##
+  # Return statement. Nothing exciting here
+
   def process_return(exp)
     return "return #{process exp.shift}"
   end
+
+  ##
+  # Scope has no real equivalent in C-land, except that like
+  # process_block above. We put variable declarations here before the
+  # body and use this as our opportunity to open a variable
+  # scope. Crafty, no?
 
   def process_scope(exp)
     declarations = []
@@ -370,22 +536,27 @@ typedef struct { unsigned long length; long * contents; } long_array;
     return "{\n#{declarations}#{body}}"
   end
 
+  ##
+  # Strings. woot.
+
   def process_str(exp)
     return "\"#{exp.shift}\""
   end
+
+  ##
+  # Truth... what is truth? In this case, Qtrue.
 
   def process_true(exp)
     return "Qtrue"
   end
 
+  ##
+  # While block. Nothing exciting here.
+
   def process_while(exp)
     cond = process exp.shift
     body = process exp.shift
     return "while (#{cond}) {\n#{body.strip}\n}"
-  end
-
-  def process_dummy(exp)
-    process_block(exp).chomp
   end
 
 end

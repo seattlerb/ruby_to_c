@@ -669,22 +669,32 @@ a.length = 0;
 a.contents = (long*) malloc(sizeof(long) * a.length);
 }"
 
+  # TODO: sort all vars
+
+  @@bmethod_added = "void\nbmethod_added(long x) {\nx + 1;\n}"
+  @@dmethod_added = "void\ndmethod_added(long x) {\nx + 1;\n}"
+
   @@__all = []
-  @@__expect_raise = [ "interpolated" ]
+  @@__expect_raise = [ "interpolated", "bbegin" ]
   @@__skip = [ "accessor", "accessor=" ]
+
+  @@__ruby_to_c = RubyToC.translator
+  @@__ruby_to_c.processors[1].genv
+  @@__ruby_to_c.processors[1].genv.add :SyntaxError, Type.fucked
+  @@__ruby_to_c.processors[1].genv.add :Exception, Type.fucked
 
   Something.instance_methods(false).sort.each do |meth|
     next if @@__skip.include? meth                     
     if class_variables.include?("@@#{meth}") then
       @@__all << eval("@@#{meth}")
       eval "def test_#{meth}
-        exp = RubyToC.translate Something, :#{meth}
+        exp = @@__ruby_to_c.process ParseTree.new.parse_tree_for_method(Something, :#{meth})
         assert_equal @@#{meth}, exp
       end"
     else
       if @@__expect_raise.include? meth then
         eval "def test_#{meth}
-        assert_raise(UnsupportedNodeError) { RubyToC.translate Something, :#{meth} }; end"
+        assert_raise(UnsupportedNodeError) { @@__ruby_to_c.process ParseTree.new.parse_tree_for_method(Something, :#{meth}) }; end"
       else
         eval "def test_#{meth}; flunk \"You haven't added @@#{meth} yet\"; end"
       end

@@ -28,7 +28,7 @@ class Environment
       return closure[id] if closure.has_key? id
     end
 
-    raise "Unbound var: #{id.inspect} in #{@env.inspect}"
+    raise NameError, "Unbound var: #{id.inspect} in #{@env.inspect}"
   end
 
   def current
@@ -167,6 +167,8 @@ class Type
     :value_list => "Value list",
     :function => "Function",
     :file => "File",
+    :symbol => "Symbol",
+    :zclass => "Class",
     :homo => "Homogenous",
     :hetero => "Heterogenous",
     :fucked => "Untranslatable type",
@@ -175,7 +177,7 @@ class Type
   TYPES = {}
 
   def self.method_missing(type, *args)
-    raise "Unknown type #{type}" unless KNOWN_TYPES.has_key?(type)
+    raise "Unknown type Type.#{type}" unless KNOWN_TYPES.has_key?(type)
     case type 
     when :unknown then
       return self.new(type)
@@ -206,7 +208,7 @@ class Type
   def initialize(type, list=false)
     # HACK
     unless KNOWN_TYPES.has_key? type or type.class.name =~ /Type$/ then
-      raise "Unknown type #{type.inspect}"
+      raise "Unknown type Type.new(#{type.inspect})"
     end
     @type = Handle.new type
     @list = list

@@ -1,13 +1,13 @@
 ruby_to_c
     http://www.zenspider.com/
     ryand-ruby@zenspider.com
+    ruby2c@zenspider.com - mailing list
 
 NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE
 
-                   THIS IS ALPHA SOFTWARE!
+                   THIS IS BETA SOFTWARE!
 
 NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE
-
 
 DESCRIPTION:
   
@@ -26,17 +26,20 @@ and the following tools:
 
 FEATURES/PROBLEMS:
   
-+ This is a preview release! ALPHA ALPHA ALPHA! Do NOT use this!
-+ Please contact me if you have any feedback!
-+ Please contact me if you have any changes!
-+ Please contact me if you want to work on this!
-+ Please do _NOT_ contact me if you want to speed up your ruby code!
-  That is not the intent of this project. See RubyInline if that is
-  your goal.
++ This is a preview release! BETA BETA BETA! Do NOT use this!
++ Please contact me if you:
+	+ have any feedback!
+	+ have any changes!
+	+ want to work on this!
 
 SYNOPSYS:
 
   ./translate.rb blah.rb > blah.c; gcc -c -I /rubylib/1.8/platform blah.c
+
+TODO:
+
++ Numerous, but we are trying to get them in here... sorry...
++ Want to move to a gem directory structure (lib/ test/ bin/ etc)
 
 REQUIREMENTS:
 
@@ -44,7 +47,7 @@ REQUIREMENTS:
 
 INSTALL:
 
-+ Um. Please don't install this crap yet. We just want feedback at this stage.
++ Um. Please don't install this crap yet...
 
 LICENSE:
 
