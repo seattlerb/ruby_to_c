@@ -463,7 +463,7 @@ bar", Type.str)
                     :+,
                     t(:array,
                       t(:lit, 1))),
-                  Type.long))) # NOTE Type.long needed but not used
+                  Type.long)), true) # NOTE Type.long needed but not used
 
     expected = "while (n <= 3) {\nputs(to_s(n));\nn = n + 1;\n}"
 

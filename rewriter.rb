@@ -190,7 +190,7 @@ class Rewriter < SexpProcessor
                        body,
                        s(:lasgn, var_name,
                          s(:call, s(:lvar, var_name), :-,
-                           s(:array, s(:lit, 1)))))))
+                           s(:array, s(:lit, 1))))), true))
       when :upto then
         # REFACTOR: completely duped from above and direction changed
         var.shift # 
@@ -207,7 +207,7 @@ class Rewriter < SexpProcessor
                        body,
                        s(:lasgn, var_name,
                          s(:call, s(:lvar, var_name), :+,
-                           s(:array, s(:lit, 1)))))))
+                           s(:array, s(:lit, 1))))), true))
       when :define_method then
         # BEFORE: [:iter, [:call, nil, :define_method, [:array, [:lit, :bmethod_added]]], [:dasgn_curr, :x], [:call, [:dvar, :x], :+, [:array, [:lit, 1]]]]
         # we want to get it rewritten for the scope/block context, so:
@@ -232,7 +232,9 @@ class Rewriter < SexpProcessor
   def process_until(exp)
     cond = process s(:not, exp.shift)
     body = process exp.shift
-    s(:while, cond, body)
+    raise "boo" if exp.empty?
+    is_precondition = exp.shift
+    s(:while, cond, body, is_precondition)
   end
 
   ##

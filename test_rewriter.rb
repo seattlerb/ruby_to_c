@@ -150,7 +150,7 @@ class TestRewriter < Test::Unit::TestCase
                      s(:lasgn, :n, s(:call,
                                       s(:lvar, :n),
                                       :-,
-                                      s(:array, s(:lit, 1)))))))
+                                      s(:array, s(:lit, 1))))), true))
     
     assert_equal expected, @rewrite.process(input)
   end
@@ -181,10 +181,10 @@ class TestRewriter < Test::Unit::TestCase
                              s(:nil),
                              s(:lasgn, :j,
                                s(:call, s(:lvar, :j), :-,
-                                 s(:array, s(:lit, 1))))))),
+                                 s(:array, s(:lit, 1))))), true)),
                        s(:lasgn, :i,
                          s(:call, s(:lvar, :i), :-,
-                           s(:array, s(:lit, 1))))))))
+                           s(:array, s(:lit, 1))))), true)))
 
     assert_equal expected, @rewrite.process(input)
   end
@@ -215,17 +215,17 @@ class TestRewriter < Test::Unit::TestCase
                              s(:nil),
                              s(:lasgn, :j,
                                s(:call, s(:lvar, :j), :+,
-                                 s(:array, s(:lit, 1))))))),
+                                 s(:array, s(:lit, 1))))), true)),
                        s(:lasgn, :i,
                          s(:call, s(:lvar, :i), :+,
-                           s(:array, s(:lit, 1))))))))
+                           s(:array, s(:lit, 1))))), true)))
 
     assert_equal expected, @rewrite.process(input)
   end
 
   def test_process_until
-    input = [:until, [:call, [:lvar, :a], :==, [:array, [:lvar, :b]]], [:fcall, :puts, [:array, [:lit, 2]]]]
-    output = s(:while, s(:not, s(:call, s(:lvar, :a), :==, s(:array, s(:lvar, :b)))), s(:call, nil, :puts, s(:array, s(:lit, 2))))
+    input = [:until, [:call, [:lvar, :a], :==, [:array, [:lvar, :b]]], [:fcall, :puts, [:array, [:lit, 2]]], true]
+    output = s(:while, s(:not, s(:call, s(:lvar, :a), :==, s(:array, s(:lvar, :b)))), s(:call, nil, :puts, s(:array, s(:lit, 2))), true)
     assert_equal output, @rewrite.process(input)
   end
 
@@ -435,7 +435,7 @@ class TestRewriter_2 < Test::Unit::TestCase
                                s(:call,
                                  s(:lvar, :n),
                                  :+,
-                                 s(:array, s(:lit, 1))))))))))
+                                 s(:array, s(:lit, 1))))), true)))))
   @@iteration5 = s(:defn,
                    :iteration5,
                    s(:args),
@@ -447,7 +447,7 @@ class TestRewriter_2 < Test::Unit::TestCase
                            s(:call, s(:lvar, :n), :>=, s(:array, s(:lit, 1))),
                            s(:block,
                              s(:call, nil, :puts, s(:array, s(:call, s(:lvar, :n), :to_s, nil))),
-                             s(:lasgn, :n, s(:call, s(:lvar, :n), :-, s(:array, s(:lit, 1))))))))))
+                             s(:lasgn, :n, s(:call, s(:lvar, :n), :-, s(:array, s(:lit, 1))))), true)))))
   @@iteration6 = s(:defn,
                    :iteration6,
                    s(:args),
@@ -461,7 +461,7 @@ class TestRewriter_2 < Test::Unit::TestCase
                              s(:call, nil, :puts, s(:array, s(:str, "hello"))),
                              s(:lasgn,
                                :temp_var1,
-                               s(:call, s(:lvar, :temp_var1), :-, s(:array, s(:lit, 1))))))))))
+                               s(:call, s(:lvar, :temp_var1), :-, s(:array, s(:lit, 1))))), true)))))
   @@multi_args = s(:defn, :multi_args,
                    s(:args, :arg1, :arg2),
                    s(:scope,
@@ -617,11 +617,12 @@ class TestRewriter_2 < Test::Unit::TestCase
                  s(:block,
                    s(:while,
                      s(:false),
-                     s(:call, nil, :puts, s(:array, s(:str, "false")))),
+                     s(:call, nil, :puts, s(:array, s(:str, "false"))),
+                     true),
                    s(:while,
                      s(:false),
                      s(:call, nil, :puts, s(:array, s(:str, "true"))),
-                     :post))))
+                     false))))
 
   @@bbegin = s(:defn,
                :bbegin,

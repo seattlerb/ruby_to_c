@@ -668,11 +668,11 @@ class TestTypeChecker < Test::Unit::TestCase
   end
 
   def test_process_while
-    input    = t(:while, t(:true), t(:call, t(:lit, 1), :to_s, nil))
+    input    = t(:while, t(:true), t(:call, t(:lit, 1), :to_s, nil), true)
     expected = t(:while,
                  t(:true, Type.bool),
                  t(:call, t(:lit, 1, Type.long), :to_s, nil,
-                   Type.str))
+                   Type.str), true)
 
     assert_equal expected, @type_checker.process(input)
   end
@@ -1013,7 +1013,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                                :+,
                                t(:array,
                                  t(:lit,
-                                   1, Type.long)), Type.long), Type.long), Type.unknown))), Type.unknown), Type.void),
+                                   1, Type.long)), Type.long), Type.long), Type.unknown), true)), Type.unknown), Type.void),
                    Type.function(Type.unknown, [], Type.void))
   @@iteration5 = t(:defn,
                    :iteration5,
@@ -1046,7 +1046,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                                      1, Type.long)),
                                  Type.long),
                                Type.long),
-                           Type.unknown))),
+                           Type.unknown), true)),
                        Type.unknown),
                      Type.void),
                    Type.function(Type.unknown, [], Type.void))
@@ -1074,7 +1074,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                                :-,
                                t(:array, t(:lit, 1, Type.long)), Type.long),
                                  Type.long),
-                         Type.unknown))),
+                         Type.unknown), true)),
                        Type.unknown),
                      Type.void),
                    Type.function(Type.unknown, [], Type.void))
@@ -1384,14 +1384,15 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                      t(:call,
                        nil,
                        :puts,
-                       t(:array, t(:str, "false", Type.str)), Type.void)),
+                       t(:array, t(:str, "false", Type.str)), Type.void),
+                     true),
                    t(:while,
                      t(:false, Type.bool),
                      t(:call,
                        nil,
                        :puts,
                        t(:array, t(:str, "true", Type.str)), Type.void),
-                     :post),
+                     false),
                    Type.unknown),
                  Type.void),
                Type.function(Type.unknown, [], Type.void))

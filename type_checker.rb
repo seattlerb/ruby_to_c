@@ -806,10 +806,9 @@ class TypeChecker < SexpProcessor
   def process_while(exp)
     cond = process exp.shift
     body = process exp.shift
+    is_precondition = exp.shift
     Type.bool.unify cond.sexp_type
-    result = t(:while, cond, body)
-    result << exp.shift unless exp.empty?
-    return result
+    return t(:while, cond, body, is_precondition)
   end
 
   ##
