@@ -151,6 +151,10 @@ class Tree
     @root.first
   end
 
+  def tree
+    @root
+  end
+
   # shifts onto the last item in stack,
   # which is also owned by (eventually) root
   def add(node)
@@ -182,10 +186,11 @@ class InferTypes
     @genv = Environment.new
     @genv.extend
     @genv.add "$stderr", :file
+    @tree = Tree.new
   end
 
   def augment(klass, method=nil)
-    tree = Tree.new
+    tree = @tree
     sexp = ParseTree.new.parse_tree(klass, method)
 
     sexp = [sexp] unless Array === sexp.first
