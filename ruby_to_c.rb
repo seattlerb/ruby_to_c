@@ -26,10 +26,14 @@ module TypeMap
   def c_type(typ)
     base_type = 
       case typ.type.contents # HACK this is breaking demeter
+      when :float then
+     	"double"
       when :long then
         "long"
       when :str then
         "str"
+      when :symbol then
+        "symbol"
       when :bool then # TODO: subject to change
         "long"
       when :void then
@@ -194,6 +198,13 @@ typedef struct { unsigned long length; str * contents; } str_array;
   end
 
   ##
+  # Arglist is used by call arg lists.
+
+  def process_arglist(exp)
+		return process_array(exp)
+  end
+
+  ##
   # Array is used as call arg lists and as initializers for variables.
 
   def process_array(exp)
@@ -203,7 +214,10 @@ typedef struct { unsigned long length; str * contents; } str_array;
       code << process(exp.shift) 
     end
 
-    return "#{code.join ', '}"
+    s = code.join ', '
+    s = "[]" if s.empty?
+
+    return s
   end
 
   ##
@@ -233,7 +247,6 @@ typedef struct { unsigned long length; str * contents; } str_array;
   def process_call(exp)
     receiver = exp.shift
     name = exp.shift
-    args = process exp.shift
 
     receiver_type = Type.unknown
     unless receiver.nil? then
@@ -245,19 +258,25 @@ typedef struct { unsigned long length; str * contents; } str_array;
       # TODO: these need to be numerics
       # emacs gets confused by :/ below, need quotes to fix indentation
     when :==, :<, :>, :<=, :>=, :-, :+, :*, :"/", :% then
+      args = process exp.shift[1]
       return "#{receiver} #{name} #{args}"
     when :<=>
+      args = process exp.shift[1]
       return "RB_COMPARE(#{receiver}, #{args})"
     when :equal?
+      args = process exp.shift
       return "#{receiver} == #{args}" # equal? == address equality
     when :[]
       if receiver_type.list? then
+        args = process exp.shift
         return "#{receiver}.contents[#{args}]"
       else
         # FIX: not sure about this one... hope for the best.
+        args = process exp.shift
         return "#{receiver}[#{args}]"
       end
     else
+      args = process exp.shift
       name = "NIL_P" if name == :nil?
 
       if receiver.nil? and args.nil? then
@@ -479,7 +498,18 @@ typedef struct { unsigned long length; str * contents; } str_array;
   # values that don't have analogs in the C world. Sensing a pattern?
 
   def process_lit(exp)
-    return exp.shift.to_s # TODO what about floats and big numbers?
+    # TODO what about floats and big numbers?
+
+    value = exp.shift
+    sexp_type = exp.sexp_type
+    case sexp_type
+    when Type.long, Type.float then
+      return value.to_s
+    when Type.symbol then
+      return ":" + value.to_s
+    else
+      raise "Bug! no: Unknown literal #{value}:#{value.class}"
+    end
   end
 
   ##

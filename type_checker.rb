@@ -189,6 +189,16 @@ class TypeChecker < SexpProcessor
   end
 
   ##
+	# Arg list stuff
+
+	def process_arglist(exp)
+		args = process_array exp
+		args[0] = :arglist
+
+		args
+	end
+
+  ##
   # Array processes each item in the array, then returns an untyped sexp.
 
   def process_array(exp)
@@ -279,7 +289,7 @@ class TypeChecker < SexpProcessor
     arg_types = if args.nil? then
                   []
                 else
-                  if args.first == :array then
+                  if args.first == :arglist then
                     args.sexp_types
                   elsif args.first == :splat then
                     [args.sexp_type]
@@ -628,6 +638,8 @@ class TypeChecker < SexpProcessor
     case value
     when Fixnum then
       type = Type.long
+    when Float then
+      type = Type.float
     when Symbol then
       type = Type.symbol
     else
@@ -823,4 +835,5 @@ class TypeChecker < SexpProcessor
   end
 
 end
+
 

@@ -8,6 +8,11 @@ end
 
 require 'typed_sexp_processor'
 
+class Sexp
+	# add arglist because we introduce the new array type in this file
+  @@array_types << :arglist
+end
+
 ##
 # Rewriter (probably should be renamed) is a first-pass filter that
 # normalizes some of ruby's ASTs to make them more processable later
@@ -32,6 +37,7 @@ class Rewriter < SexpProcessor
     lhs = process exp.shift
     name = exp.shift
     args = process exp.shift
+		args[0] = :arglist unless args.nil?
 
     s(:call, lhs, name, args)
   end
@@ -58,7 +64,7 @@ class Rewriter < SexpProcessor
       vars = vars.map { |v| s(:call,
                               var.deep_clone,
                               :===,
-                              s(:array, process(v)))}
+                              s(:arglist, process(v)))}
       if vars.size > 1 then
         new_exp << s(:or, *vars)
       else
@@ -101,7 +107,7 @@ class Rewriter < SexpProcessor
       # AFTER:  [:defn, :bmethod_added, [:args, :x], [:scope, [:block, ...]]]
       body.shift # :bmethod
       # [:dasgn_curr, :x],
-      # [:call, [:dvar, :x], :+, [:array, [:lit, 1]]]]]
+      # [:call, [:dvar, :x], :+, [:arglist, [:lit, 1]]]]]
       dasgn = body.shift
       assert_type dasgn, :dasgn_curr
       dasgn.shift # type
@@ -139,6 +145,7 @@ class Rewriter < SexpProcessor
   def process_fcall(exp)
     name = exp.shift
     args = process exp.shift
+		args[0] = :arglist
 
     return s(:call, nil, name, args)
   end
@@ -185,12 +192,12 @@ class Rewriter < SexpProcessor
                    s(:lasgn, var_name, start_value),
                    s(:while,
                      s(:call, s(:lvar, var_name), :>=,
-                       s(:array, finish_value)),
+                       s(:arglist, finish_value)),
                      s(:block,
                        body,
                        s(:lasgn, var_name,
                          s(:call, s(:lvar, var_name), :-,
-                           s(:array, s(:lit, 1))))), true))
+                           s(:arglist, s(:lit, 1))))), true))
       when :upto then
         # REFACTOR: completely duped from above and direction changed
         var.shift # 
@@ -202,19 +209,19 @@ class Rewriter < SexpProcessor
                    s(:lasgn, var_name, start_value),
                    s(:while,
                      s(:call, s(:lvar, var_name), :<=,
-                       s(:array, finish_value)),
+                       s(:arglist, finish_value)),
                      s(:block,
                        body,
                        s(:lasgn, var_name,
                          s(:call, s(:lvar, var_name), :+,
-                           s(:array, s(:lit, 1))))), true))
+                           s(:arglist, s(:lit, 1))))), true))
       when :define_method then
         # BEFORE: [:iter, [:call, nil, :define_method, [:array, [:lit, :bmethod_added]]], [:dasgn_curr, :x], [:call, [:dvar, :x], :+, [:array, [:lit, 1]]]]
         # we want to get it rewritten for the scope/block context, so:
         #   - throw call away
         #   - rewrite to args
         #   - plop body into a scope
-        # AFTER:  [:block, [:args, :x], [:call, [:lvar, :x], :+, [:array, [:lit, 1]]]]
+        # AFTER:  [:block, [:args, :x], [:call, [:lvar, :x], :+, [:arglist, [:lit, 1]]]]
         var.find_and_replace_all(:dasgn_curr, :args)
         body.find_and_replace_all(:dvar, :lvar)
         result = s(:block, var, body)

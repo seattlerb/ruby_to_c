@@ -168,6 +168,8 @@ class Type
     :value_list => "Value list",
     :function => "Function",
     :file => "File",
+    :float => "Float",
+    :float_list => "Float list",
     :symbol => "Symbol",
     :zclass => "Class",
     :homo => "Homogenous",

@@ -4,7 +4,7 @@ $TESTING = true
 
 require 'test/unit'
 require 'type_checker'
-require 'something'
+require 'r2c_something'
 
 # Test::Unit::Assertions.use_pp = false
 
@@ -110,11 +110,11 @@ class TestTypeChecker < Test::Unit::TestCase
     input  = t(:call,
                nil,
                :name,
-               t(:array, t(:str, "foo")))
+               t(:arglist, t(:str, "foo")))
     output = t(:call,
                nil,
                :name,
-               t(:array, t(:str, "foo", Type.str)),
+               t(:arglist, t(:str, "foo", Type.str)),
                Type.long)
 
     assert_equal output, @type_checker.process(input)
@@ -125,11 +125,11 @@ class TestTypeChecker < Test::Unit::TestCase
     input  = t(:call,
                t(:lit, 1),
                :name3,
-               t(:array, t(:str, "foo")))
+               t(:arglist, t(:str, "foo")))
     output = t(:call,
                t(:lit, 1, Type.long),
                :name3,
-               t(:array, t(:str, "foo", Type.str)),
+               t(:arglist, t(:str, "foo", Type.str)),
                Type.long)
 
     assert_equal output, @type_checker.process(input)
@@ -150,12 +150,12 @@ class TestTypeChecker < Test::Unit::TestCase
     input  = t(:call,
                t(:lit, 1),
                :==,
-               t(:array,
+               t(:arglist,
                  t(:lvar, :number)))
     output = t(:call,
                t(:lit, 1, Type.long),
                :==,
-               t(:array,
+               t(:arglist,
                  t(:lvar, :number, Type.long)),
                Type.bool)
 
@@ -169,11 +169,11 @@ class TestTypeChecker < Test::Unit::TestCase
     input  = t(:call,
                t(:lit, 1),
                :==,
-               t(:array, t(:lvar, :number1)))
+               t(:arglist, t(:lvar, :number1)))
     output = t(:call,
                t(:lit, 1, Type.long),
                :==,
-               t(:array,
+               t(:arglist,
                  t(:lvar, :number1, Type.long)),
                Type.bool)
 
@@ -182,11 +182,11 @@ class TestTypeChecker < Test::Unit::TestCase
     input  = t(:call,
                t(:lvar, :number2),
                :==,
-               t(:array, t(:lit, 1)))
+               t(:arglist, t(:lit, 1)))
     output = t(:call,
                t(:lvar, :number2, Type.long),
                :==,
-               t(:array,
+               t(:arglist,
                  t(:lit, 1, Type.long)),
                Type.bool)
 
@@ -222,7 +222,7 @@ class TestTypeChecker < Test::Unit::TestCase
 
     @type_checker.process(t(:call, t(:nil),
                             :unify_3_inner,
-                            t(:array, t(:lvar, :a))))
+                            t(:arglist, t(:lvar, :a))))
 
     assert_equal a_type, @type_checker.env.lookup(:a)
     assert_equal(@type_checker.env.lookup(:a),
@@ -281,11 +281,11 @@ class TestTypeChecker < Test::Unit::TestCase
     input  = t(:call,
                t(:lit, 1),
                :===,
-               t(:array, t(:lvar, :number)))
+               t(:arglist, t(:lvar, :number)))
     output = t(:call,
                t(:lit, 1, Type.long),
                :case_equal_long,
-               t(:array,
+               t(:arglist,
                  t(:lvar, :number, Type.long)),
                Type.bool)
 
@@ -298,11 +298,11 @@ class TestTypeChecker < Test::Unit::TestCase
     input  = t(:call,
                t(:str, 'foo'),
                :===,
-               t(:array, t(:lvar, :string)))
+               t(:arglist, t(:lvar, :string)))
     output = t(:call,
                t(:str, 'foo', Type.str),
                :case_equal_str,
-               t(:array,
+               t(:arglist,
                  t(:lvar, :string, Type.str)),
                Type.bool)
 
@@ -438,14 +438,14 @@ class TestTypeChecker < Test::Unit::TestCase
                t(:call,
                  t(:lit, 1),
                  :==,
-                 t(:array, t(:lit, 2))),
+                 t(:arglist, t(:lit, 2))),
                t(:str, "not equal"),
                nil)
     output = t(:if,
                t(:call,
                  t(:lit, 1, Type.long),
                  :==,
-                 t(:array,
+                 t(:arglist,
                    t(:lit, 2, Type.long)),
                  Type.bool),
                t(:str, "not equal", Type.str),
@@ -460,14 +460,14 @@ class TestTypeChecker < Test::Unit::TestCase
                t(:call,
                  t(:lit, 1),
                  :==,
-                 t(:array, t(:lit, 2))),
+                 t(:arglist, t(:lit, 2))),
                t(:str, "not equal"),
                t(:str, "equal"))
     output = t(:if,
                t(:call,
                  t(:lit, 1, Type.long),
                  :==,
-                 t(:array, t(:lit, 2, Type.long)),
+                 t(:arglist, t(:lit, 2, Type.long)),
                  Type.bool),
                t(:str, "not equal", Type.str),
                t(:str, "equal", Type.str),
@@ -489,7 +489,7 @@ class TestTypeChecker < Test::Unit::TestCase
                t(:call,
                  nil,
                  :puts,
-                 t(:array,
+                 t(:arglist,
                    t(:call,
                      t(:dvar, :x),
                      :to_s,
@@ -504,7 +504,7 @@ class TestTypeChecker < Test::Unit::TestCase
                t(:call,
                  nil,
                  :puts,
-                 t(:array,
+                 t(:arglist,
                    t(:call,
                      t(:dvar, :x, Type.long),
                      :to_s,
@@ -552,9 +552,23 @@ class TestTypeChecker < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_process_lit
+  def test_process_lit_long
     input  = t(:lit, 1)
     output = t(:lit, 1, Type.long)
+
+    assert_equal output, @type_checker.process(input)
+  end
+
+  def test_process_lit_sym
+    input  = t(:lit, :sym)
+    output = t(:lit, :sym, Type.symbol)
+
+    assert_equal output, @type_checker.process(input)
+  end
+
+  def test_process_lit_float
+    input  = t(:lit, 1.0)
+    output = t(:lit, 1.0, Type.float)
 
     assert_equal output, @type_checker.process(input)
   end
@@ -650,14 +664,14 @@ class TestTypeChecker < Test::Unit::TestCase
                t(:call,
                  t(:lit, 1),
                  :==,
-                 t(:array, t(:lit, 2))),
+                 t(:arglist, t(:lit, 2))),
                nil,
                t(:str, "equal"))
     output = t(:if,
                t(:call,
                  t(:lit, 1, Type.long),
                  :==, 
-                 t(:array,
+                 t(:arglist,
                    t(:lit, 2, Type.long)),
                  Type.bool),
                nil,
@@ -723,7 +737,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                    t(:call,
                      nil,
                      :print,
-                     t(:array,
+                     t(:arglist,
                        t(:lvar,
                          :arg1,
                          Type.str)),
@@ -731,12 +745,12 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                    t(:call,
                      nil,
                      :puts,
-                     t(:array,
+                     t(:arglist,
                        t(:call,
                          t(:call,
                            t(:lit, 4, Type.long),
                            :+,
-                           t(:array,
+                           t(:arglist,
                              t(:lit, 2, Type.long)),
                            Type.long),
                          :to_s,
@@ -753,7 +767,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                    t(:call,
                      t(:gvar, :$stderr, Type.file),
                      :fputs,
-                     t(:array,
+                     t(:arglist,
                        t(:str, "blah", Type.str)),
                      Type.unknown),
                    Type.unknown),
@@ -768,7 +782,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                          t(:call,
                            t(:lit, 2, Type.long),
                            :+,
-                           t(:array,
+                           t(:arglist,
                              t(:lit, 3, Type.long)),
                            Type.long),
                          Type.long),
@@ -785,7 +799,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
             t(:call,
               t(:lvar, :arg1, Type.long),
               :==,
-              t(:array,
+              t(:arglist,
                 t(:lit, 0, Type.long)),
               Type.bool),
             t(:return,
@@ -802,7 +816,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                            t(:call,
                              t(:lvar, :arg1, Type.long),
                              :==,
-                             t(:array,
+                             t(:arglist,
                                t(:lit, 0, Type.long)),
                              Type.bool),
                            nil,
@@ -822,7 +836,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                            t(:call,
                              t(:lvar, :arg1, Type.long),
                              :==,
-                             t(:array,
+                             t(:arglist,
                                t(:lit, 0, Type.long)),
                              Type.bool),
                            t(:return,
@@ -844,7 +858,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                            t(:call,
                              t(:lvar, :arg1, Type.long),
                              :==,
-                             t(:array,
+                             t(:arglist,
                                t(:lit, 0, Type.long)),
                              Type.bool),
                            t(:return,
@@ -854,7 +868,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                              t(:call,
                                t(:lvar, :arg1, Type.long),
                                :<,
-                               t(:array,
+                               t(:arglist,
                                  t(:lit, 0, Type.long)),
                                Type.bool),
                              t(:return,
@@ -888,7 +902,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                          t(:call,
                            nil,
                            :puts,
-                           t(:array,
+                           t(:arglist,
                              t(:call,
                                t(:dvar, :x, Type.long),
                                :to_s,
@@ -919,7 +933,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                          t(:call,
                            nil,
                            :puts,
-                           t(:array, t(:dvar, :x, Type.str)),
+                           t(:arglist, t(:dvar, :x, Type.str)),
                            Type.void),
                          Type.void),
                        Type.unknown),
@@ -961,7 +975,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                              t(:call,
                                nil,
                                :puts,
-                               t(:array,
+                               t(:arglist,
                                  t(:call,
                                    t(:dvar, :x, Type.long),
                                    :to_s,
@@ -971,7 +985,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                              t(:call,
                                nil,
                                :puts,
-                               t(:array,
+                               t(:arglist,
                                  t(:call,
                                    t(:dvar, :y, Type.long),
                                    :to_s,
@@ -996,12 +1010,12 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                          t(:call,
                            t(:lvar, :n, Type.long),
                            :<=,
-                           t(:array, t(:lit, 3, Type.long)), Type.bool),
+                           t(:arglist, t(:lit, 3, Type.long)), Type.bool),
                          t(:block,
                            t(:call,
                              nil,
                              :puts,
-                             t(:array,
+                             t(:arglist,
                                t(:call,
                                  t(:lvar, :n, Type.long),
                                  :to_s,
@@ -1011,7 +1025,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                              t(:call,
                                t(:lvar, :n, Type.long),
                                :+,
-                               t(:array,
+                               t(:arglist,
                                  t(:lit,
                                    1, Type.long)), Type.long), Type.long), Type.unknown), true)), Type.unknown), Type.void),
                    Type.function(Type.unknown, [], Type.void))
@@ -1026,12 +1040,12 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                            t(:call,
                              t(:lvar, :n, Type.long),
                              :>=,
-                             t(:array, t(:lit, 1, Type.long)), Type.bool),
+                             t(:arglist, t(:lit, 1, Type.long)), Type.bool),
                            t(:block,
                              t(:call,
                                nil,
                                :puts,
-                               t(:array,
+                               t(:arglist,
                                  t(:call,
                                    t(:lvar, :n, Type.long),
                                    :to_s,
@@ -1041,7 +1055,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                                t(:call,
                                  t(:lvar, :n, Type.long),
                                  :-,
-                                 t(:array,
+                                 t(:arglist,
                                    t(:lit,
                                      1, Type.long)),
                                  Type.long),
@@ -1063,16 +1077,16 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                          t(:while,
                            t(:call, t(:lvar, :temp_var1, Type.long),
                            :>=,
-                           t(:array, t(:lit, 1, Type.long)), Type.bool),
+                           t(:arglist, t(:lit, 1, Type.long)), Type.bool),
                            t(:block,
                              t(:call, nil, :puts,
-                               t(:array, t(:str, "hello", Type.str)),
+                               t(:arglist, t(:str, "hello", Type.str)),
                              Type.void),
                              t(:lasgn,
                                :temp_var1,
                                t(:call, t(:lvar, :temp_var1, Type.long),
                                :-,
-                               t(:array, t(:lit, 1, Type.long)), Type.long),
+                               t(:arglist, t(:lit, 1, Type.long)), Type.long),
                                  Type.long),
                          Type.unknown), true)),
                        Type.unknown),
@@ -1091,20 +1105,20 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                            t(:call,
                              t(:lvar, :arg1, Type.long),
                              :*,
-                             t(:array,
+                             t(:arglist,
                                t(:lvar,
                                  :arg2,
                                  Type.long)),
                              Type.long),
                            :*,
-                           t(:array,
+                           t(:arglist,
                              t(:lit, 7, Type.long)),
                            Type.long),
                          Type.long),
                        t(:call,
                          nil,
                          :puts,
-                         t(:array,
+                         t(:arglist,
                            t(:call,
                              t(:lvar, :arg3, Type.long),
                              :to_s,
@@ -1155,13 +1169,13 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                         t(:call,
                           t(:lvar, :var, Type.long),
                           :case_equal_long,
-                          t(:array, t(:lit, 1, Type.long)),
+                          t(:arglist, t(:lit, 1, Type.long)),
                           Type.bool),
                         t(:block,
                           t(:call,
                             nil,
                             :puts,
-                            t(:array,
+                            t(:arglist,
                               t(:str, "something", Type.str)),
                             Type.void),
                           t(:lasgn,
@@ -1174,12 +1188,12 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                             t(:call,
                               t(:lvar, :var, Type.long),
                               :case_equal_long,
-                              t(:array, t(:lit, 2, Type.long)),
+                              t(:arglist, t(:lit, 2, Type.long)),
                               Type.bool),
                             t(:call,
                               t(:lvar, :var, Type.long),
                               :case_equal_long,
-                              t(:array, t(:lit, 3, Type.long)),
+                              t(:arglist, t(:lit, 3, Type.long)),
                               Type.bool),
                             Type.bool),
                           t(:lasgn,
@@ -1190,7 +1204,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                             t(:call,
                               t(:lvar, :var, Type.long),
                               :case_equal_long,
-                              t(:array, t(:lit, 4, Type.long)),
+                              t(:arglist, t(:lit, 4, Type.long)),
                               Type.bool),
                             nil,
                             t(:lasgn,
@@ -1204,21 +1218,21 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                         t(:call,
                           t(:lvar, :result, Type.str),
                           :case_equal_str,
-                          t(:array, t(:str, "red", Type.str)),
+                          t(:arglist, t(:str, "red", Type.str)),
                           Type.bool),
                         t(:lasgn, :var, t(:lit, 1, Type.long), Type.long),
                         t(:if,
                           t(:call,
                             t(:lvar, :result, Type.str),
                             :case_equal_str,
-                            t(:array, t(:str, "yellow", Type.str)),
+                            t(:arglist, t(:str, "yellow", Type.str)),
                             Type.bool),
                           t(:lasgn, :var, t(:lit, 2, Type.long), Type.long),
                           t(:if,
                             t(:call,
                               t(:lvar, :result, Type.str),
                               :case_equal_str,
-                              t(:array,
+                              t(:arglist,
                                 t(:str, "green", Type.str)),
                               Type.bool),
                             t(:lasgn,
@@ -1260,7 +1274,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                                  :$stderr,
                                  Type.file),
                                :fputs,
-                               t(:array,
+                               t(:arglist,
                                  t(:lvar, :var2, Type.str)),
                                Type.unknown),
                              t(:return,
@@ -1316,11 +1330,11 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                                5,
                                Type.long),
                              :==,
-                             t(:array,
+                             t(:arglist,
                                t(:call,
                                  nil,
                                  :unknown_args,
-                                 t(:array,
+                                 t(:arglist,
                                    t(:lit, 4, Type.long),
                                    t(:str, "known", Type.str)),
                                  Type.long)),
@@ -1349,7 +1363,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                           t(:call,
                             t(:lvar, :x, Type.long),
                             :+,
-                            t(:array,
+                            t(:arglist,
                               t(:lit,
                                 1, Type.long)),
                             Type.long),
@@ -1364,7 +1378,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                           t(:call,
                             t(:lvar, :x, Type.long),
                             :+,
-                            t(:array,
+                            t(:arglist,
                               t(:lit,
                                 1, Type.long)),
                             Type.long),
@@ -1384,14 +1398,14 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                      t(:call,
                        nil,
                        :puts,
-                       t(:array, t(:str, "false", Type.str)), Type.void),
+                       t(:arglist, t(:str, "false", Type.str)), Type.void),
                      true),
                    t(:while,
                      t(:false, Type.bool),
                      t(:call,
                        nil,
                        :puts,
-                       t(:array, t(:str, "true", Type.str)), Type.void),
+                       t(:arglist, t(:str, "true", Type.str)), Type.void),
                      false),
                    Type.unknown),
                  Type.void),
@@ -1407,7 +1421,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                          t(:call,
                            t(:lit, 1, Type.long),
                            :+,
-                           t(:array, t(:lit, 1, Type.long)), Type.long),
+                           t(:arglist, t(:lit, 1, Type.long)), Type.long),
                          t(:resbody,
                            t(:array, t(:const, :SyntaxError, Type.fucked)),
                            t(:block,

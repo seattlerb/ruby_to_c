@@ -3,7 +3,7 @@
 $TESTING = true
 
 require 'test/unit'
-require 'something'
+require 'r2c_something'
 require 'rewriter'
 
 begin
@@ -20,7 +20,7 @@ class TestRewriter < Test::Unit::TestCase
   end
 
   def test_process_call
-    input  = [:call, [:lit, 1], :+, [:array, [:lit, 1]]]
+    input  = [:call, [:lit, 1], :+, [:arglist, [:lit, 1]]]
     expect = input.deep_clone
 
     assert_equal expect, @rewrite.process(input)
@@ -49,7 +49,7 @@ class TestRewriter < Test::Unit::TestCase
 
   def test_process_fcall
     input  = [:fcall, :puts, [:array, [:lit, 1]]]
-    expect = [:call, nil, :puts, [:array, [:lit, 1]]]
+    expect = [:call, nil, :puts, [:arglist, [:lit, 1]]]
     assert_equal expect, @rewrite.process(input)
   end
 
@@ -72,24 +72,24 @@ class TestRewriter < Test::Unit::TestCase
       [:call,
         [:lvar, :var],
         :===,
-        [:array, [:lit, 1]]],
+        [:arglist, [:lit, 1]]],
       [:str, "1"],
       [:if,
         [:or,
           [:call,
             [:lvar, :var],
             :===,
-            [:array, [:lit, 2]]],
+            [:arglist, [:lit, 2]]],
           [:call,
             [:lvar, :var],
             :===,
-            [:array, [:lit, 3]]]],
+            [:arglist, [:lit, 3]]]],
         [:str, "2, 3"],
         [:if,
           [:call,
             [:lvar, :var],
             :===,
-            [:array, [:lit, 4]]],
+            [:arglist, [:lit, 4]]],
           [:str, "4"],
           [:str, "else"]]]]
 
@@ -110,16 +110,16 @@ class TestRewriter < Test::Unit::TestCase
       [:call,
         [:lvar, :var],
         :===,
-        [:array, [:lit, 1]]],
+        [:arglist, [:lit, 1]]],
       [:lasgn, :ret, [:str, "1"]],
       [:if,
         [:or,
-          [:call, [:lvar, :var], :===, [:array, [:lit, 2]]],
-          [:call, [:lvar, :var], :===, [:array, [:lit, 3]]],
-          [:call, [:lvar, :var], :===, [:array, [:lit, 5]]]],
+          [:call, [:lvar, :var], :===, [:arglist, [:lit, 2]]],
+          [:call, [:lvar, :var], :===, [:arglist, [:lit, 3]]],
+          [:call, [:lvar, :var], :===, [:arglist, [:lit, 5]]]],
         [:lasgn, :ret, [:str, "2, 3"]],
         [:if,
-          [:call, [:lvar, :var], :===, [:array, [:lit, 4]]],
+          [:call, [:lvar, :var], :===, [:arglist, [:lit, 4]]],
           [:lasgn, :ret, [:str, "4"]],
           [:lasgn, :ret, [:str, "else"]]]]]
     
@@ -137,12 +137,12 @@ class TestRewriter < Test::Unit::TestCase
                    s(:call,
                      s(:lvar, :n),
                      :>=,
-                     s(:array, s(:lit, 1))),
+                     s(:arglist, s(:lit, 1))),
                    s(:block,
                      s(:call,
                        nil,
                        :puts,
-                       s(:array,
+                       s(:arglist,
                          s(:call,
                            s(:lvar, :n),
                            :to_s,
@@ -150,7 +150,7 @@ class TestRewriter < Test::Unit::TestCase
                      s(:lasgn, :n, s(:call,
                                       s(:lvar, :n),
                                       :-,
-                                      s(:array, s(:lit, 1))))), true))
+                                      s(:arglist, s(:lit, 1))))), true))
     
     assert_equal expected, @rewrite.process(input)
   end
@@ -170,21 +170,21 @@ class TestRewriter < Test::Unit::TestCase
                    s(:lasgn, :i, s(:lvar, :n)),
                    s(:while,
                      s(:call, s(:lvar, :i), :>=,
-                       s(:array, s(:lit, 0))),
+                       s(:arglist, s(:lit, 0))),
                      s(:block,
                        s(:dummy,
                          s(:lasgn, :j, s(:lvar, :i)),
                          s(:while,
                            s(:call, s(:lvar, :j), :>=,
-                             s(:array, s(:lit, 0))),
+                             s(:arglist, s(:lit, 0))),
                            s(:block,
                              s(:nil),
                              s(:lasgn, :j,
                                s(:call, s(:lvar, :j), :-,
-                                 s(:array, s(:lit, 1))))), true)),
+                                 s(:arglist, s(:lit, 1))))), true)),
                        s(:lasgn, :i,
                          s(:call, s(:lvar, :i), :-,
-                           s(:array, s(:lit, 1))))), true)))
+                           s(:arglist, s(:lit, 1))))), true)))
 
     assert_equal expected, @rewrite.process(input)
   end
@@ -204,28 +204,46 @@ class TestRewriter < Test::Unit::TestCase
                    s(:lasgn, :i, s(:lvar, :n)),
                    s(:while,
                      s(:call, s(:lvar, :i), :<=,
-                       s(:array, s(:lit, 0))),
+                       s(:arglist, s(:lit, 0))),
                      s(:block,
                        s(:dummy,
                          s(:lasgn, :j, s(:lvar, :i)),
                          s(:while,
                            s(:call, s(:lvar, :j), :<=,
-                             s(:array, s(:lit, 0))),
+                             s(:arglist, s(:lit, 0))),
                            s(:block,
                              s(:nil),
                              s(:lasgn, :j,
                                s(:call, s(:lvar, :j), :+,
-                                 s(:array, s(:lit, 1))))), true)),
+                                 s(:arglist, s(:lit, 1))))), true)),
                        s(:lasgn, :i,
                          s(:call, s(:lvar, :i), :+,
-                           s(:array, s(:lit, 1))))), true)))
+                           s(:arglist, s(:lit, 1))))), true)))
 
     assert_equal expected, @rewrite.process(input)
   end
 
   def test_process_until
-    input = [:until, [:call, [:lvar, :a], :==, [:array, [:lvar, :b]]], [:fcall, :puts, [:array, [:lit, 2]]], true]
-    output = s(:while, s(:not, s(:call, s(:lvar, :a), :==, s(:array, s(:lvar, :b)))), s(:call, nil, :puts, s(:array, s(:lit, 2))), true)
+    input = [:until,
+      [:call,
+        [:lvar, :a],
+        :==,
+        [:array, [:lvar, :b]]],
+      [:fcall,
+        :puts,
+        [:array, [:lit, 2]]],
+      true]
+    output = s(:while,
+               s(:not,
+                 s(:call,
+                   s(:lvar, :a),
+                   :==,
+                   s(:arglist, s(:lvar, :b)))),
+               s(:call,
+                 nil,
+                 :puts,
+                 s(:arglist, s(:lit, 2))),
+               true)
     assert_equal output, @rewrite.process(input)
   end
 
@@ -256,13 +274,13 @@ class TestRewriter_2 < Test::Unit::TestCase
     s(:args, :arg1),
     s(:scope,
       s(:block,
-        s(:call, nil, :print, s(:array, s(:lvar, :arg1))),
+        s(:call, nil, :print, s(:arglist, s(:lvar, :arg1))),
         s(:call,
           nil,
           :puts,
-          s(:array,
+          s(:arglist,
             s(:call,
-              s(:call, s(:lit, 4), :+, s(:array, s(:lit, 2))),
+              s(:call, s(:lit, 4), :+, s(:arglist, s(:lit, 2))),
               :to_s,
               nil))))))
   @@global = s(:defn, :global,
@@ -272,7 +290,7 @@ class TestRewriter_2 < Test::Unit::TestCase
         s(:call,
           s(:gvar, :$stderr),
           :fputs,
-          s(:array, s(:str, "blah"))))))
+          s(:arglist, s(:str, "blah"))))))
   @@lasgn_call = s(:defn, :lasgn_call,
     s(:args),
     s(:scope,
@@ -281,7 +299,7 @@ class TestRewriter_2 < Test::Unit::TestCase
           s(:call,
             s(:lit, 2),
             :+,
-            s(:array, s(:lit, 3)))))))
+            s(:arglist, s(:lit, 3)))))))
   @@conditional1 = s(:defn, :conditional1,
     s(:args, :arg1),
     s(:scope,
@@ -290,7 +308,7 @@ class TestRewriter_2 < Test::Unit::TestCase
           s(:call,
             s(:lvar, :arg1),
             :==,
-            s(:array, s(:lit, 0))),
+            s(:arglist, s(:lit, 0))),
           s(:return, s(:lit, 1)),
           nil))))
   @@conditional2 = s(:defn, :conditional2,
@@ -301,7 +319,7 @@ class TestRewriter_2 < Test::Unit::TestCase
           s(:call,
             s(:lvar, :arg1),
             :==,
-            s(:array, s(:lit, 0))),
+            s(:arglist, s(:lit, 0))),
           nil,
           s(:return, s(:lit, 2))))))
   @@conditional3 = s(:defn, :conditional3,
@@ -312,7 +330,7 @@ class TestRewriter_2 < Test::Unit::TestCase
           s(:call,
             s(:lvar, :arg1),
             :==,
-            s(:array, s(:lit, 0))),
+            s(:arglist, s(:lit, 0))),
           s(:return, s(:lit, 3)),
           s(:return, s(:lit, 4))))))
   @@conditional4 = s(:defn, :conditional4,
@@ -323,13 +341,13 @@ class TestRewriter_2 < Test::Unit::TestCase
           s(:call,
             s(:lvar, :arg1),
             :==,
-            s(:array, s(:lit, 0))),
+            s(:arglist, s(:lit, 0))),
           s(:return, s(:lit, 2)),
           s(:if,
             s(:call,
               s(:lvar, :arg1),
               :<,
-              s(:array, s(:lit, 0))),
+              s(:arglist, s(:lit, 0))),
             s(:return, s(:lit, 3)),
             s(:return, s(:lit, 4)))))))
   @@iteration1 = s(:defn, :iteration1,
@@ -347,7 +365,7 @@ class TestRewriter_2 < Test::Unit::TestCase
                          s(:call,
                            nil,
                            :puts,
-                           s(:array,
+                           s(:arglist,
                              s(:call,
                                s(:dvar, :x),
                                :to_s,
@@ -368,7 +386,7 @@ class TestRewriter_2 < Test::Unit::TestCase
                          s(:call,
                            nil,
                            :puts,
-                           s(:array,
+                           s(:arglist,
                              s(:dvar, :x)
                              ))))))
 
@@ -396,7 +414,7 @@ class TestRewriter_2 < Test::Unit::TestCase
               s(:call,
                 nil,
                 :puts,
-                s(:array,
+                s(:arglist,
                   s(:call,
                     s(:dvar, :x),
                     :to_s,
@@ -404,7 +422,7 @@ class TestRewriter_2 < Test::Unit::TestCase
               s(:call,
                 nil,
                 :puts,
-                s(:array,
+                s(:arglist,
                   s(:call,
                     s(:dvar, :y),
                     :to_s,
@@ -420,12 +438,12 @@ class TestRewriter_2 < Test::Unit::TestCase
                            s(:call,
                              s(:lvar, :n),
                              :<=,
-                             s(:array, s(:lit, 3))),
+                             s(:arglist, s(:lit, 3))),
                            s(:block,
                              s(:call,
                                nil,
                                :puts,
-                               s(:array,
+                               s(:arglist,
                                  s(:call,
                                    s(:lvar, :n),
                                    :to_s,
@@ -435,7 +453,7 @@ class TestRewriter_2 < Test::Unit::TestCase
                                s(:call,
                                  s(:lvar, :n),
                                  :+,
-                                 s(:array, s(:lit, 1))))), true)))))
+                                 s(:arglist, s(:lit, 1))))), true)))))
   @@iteration5 = s(:defn,
                    :iteration5,
                    s(:args),
@@ -444,10 +462,10 @@ class TestRewriter_2 < Test::Unit::TestCase
                        s(:dummy,
                          s(:lasgn, :n, s(:lit, 3)),
                          s(:while,
-                           s(:call, s(:lvar, :n), :>=, s(:array, s(:lit, 1))),
+                           s(:call, s(:lvar, :n), :>=, s(:arglist, s(:lit, 1))),
                            s(:block,
-                             s(:call, nil, :puts, s(:array, s(:call, s(:lvar, :n), :to_s, nil))),
-                             s(:lasgn, :n, s(:call, s(:lvar, :n), :-, s(:array, s(:lit, 1))))), true)))))
+                             s(:call, nil, :puts, s(:arglist, s(:call, s(:lvar, :n), :to_s, nil))),
+                             s(:lasgn, :n, s(:call, s(:lvar, :n), :-, s(:arglist, s(:lit, 1))))), true)))))
   @@iteration6 = s(:defn,
                    :iteration6,
                    s(:args),
@@ -456,12 +474,12 @@ class TestRewriter_2 < Test::Unit::TestCase
                        s(:dummy,
                          s(:lasgn, :temp_var1, s(:lit, 3)),
                          s(:while,
-                           s(:call, s(:lvar, :temp_var1), :>=, s(:array, s(:lit, 1))),
+                           s(:call, s(:lvar, :temp_var1), :>=, s(:arglist, s(:lit, 1))),
                            s(:block,
-                             s(:call, nil, :puts, s(:array, s(:str, "hello"))),
+                             s(:call, nil, :puts, s(:arglist, s(:str, "hello"))),
                              s(:lasgn,
                                :temp_var1,
-                               s(:call, s(:lvar, :temp_var1), :-, s(:array, s(:lit, 1))))), true)))))
+                               s(:call, s(:lvar, :temp_var1), :-, s(:arglist, s(:lit, 1))))), true)))))
   @@multi_args = s(:defn, :multi_args,
                    s(:args, :arg1, :arg2),
                    s(:scope,
@@ -471,13 +489,13 @@ class TestRewriter_2 < Test::Unit::TestCase
                            s(:call,
                              s(:lvar, :arg1),
                              :*,
-                             s(:array, s(:lvar, :arg2))),
+                             s(:arglist, s(:lvar, :arg2))),
                            :*,
-                           s(:array, s(:lit, 7)))),
+                           s(:arglist, s(:lit, 7)))),
                        s(:call,
                          nil,
                          :puts,
-                         s(:array,
+                         s(:arglist,
                            s(:call,
                              s(:lvar, :arg3),
                              :to_s,
@@ -504,48 +522,48 @@ class TestRewriter_2 < Test::Unit::TestCase
                         s(:call,
                           s(:lvar, :var),
                           :===,
-                          s(:array, s(:lit, 1))),
+                          s(:arglist, s(:lit, 1))),
                         s(:block,
                           s(:call,
                             nil,
                             :puts,
-                            s(:array, s(:str, "something"))),
+                            s(:arglist, s(:str, "something"))),
                           s(:lasgn, :result, s(:str, "red"))),
                         s(:if,
                           s(:or,
                             s(:call,
                               s(:lvar, :var),
                               :===,
-                              s(:array, s(:lit, 2))),
+                              s(:arglist, s(:lit, 2))),
                             s(:call,
                               s(:lvar, :var),
                               :===,
-                              s(:array, s(:lit, 3)))),
+                              s(:arglist, s(:lit, 3)))),
                           s(:lasgn, :result, s(:str, "yellow")),
                           s(:if,
                             s(:call,
                               s(:lvar, :var),
                               :===,
-                              s(:array, s(:lit, 4))),
+                              s(:arglist, s(:lit, 4))),
                             nil,
                             s(:lasgn, :result, s(:str, "green"))))),
                       s(:if,
                         s(:call,
                           s(:lvar, :result),
                           :===,
-                          s(:array, s(:str, "red"))),
+                          s(:arglist, s(:str, "red"))),
                         s(:lasgn, :var, s(:lit, 1)),
                         s(:if,
                           s(:call,
                             s(:lvar, :result),
                             :===,
-                            s(:array, s(:str, "yellow"))),
+                            s(:arglist, s(:str, "yellow"))),
                           s(:lasgn, :var, s(:lit, 2)),
                           s(:if,
                             s(:call,
                               s(:lvar, :result),
                               :===,
-                              s(:array, s(:str, "green"))),
+                              s(:arglist, s(:str, "green"))),
                             s(:lasgn, :var, s(:lit, 3)),
                             nil))),
                       s(:return, s(:lvar, :result)))))
@@ -563,7 +581,7 @@ class TestRewriter_2 < Test::Unit::TestCase
         s(:call,
           s(:gvar, :$stderr),
           :fputs,
-          s(:array, s(:lvar, :var2))),
+          s(:arglist, s(:lvar, :var2))),
         s(:return, s(:lvar, :var2)))))
   @@interpolated = s(:defn, :interpolated,
     s(:args),
@@ -583,11 +601,11 @@ class TestRewriter_2 < Test::Unit::TestCase
                            s(:call,
                              s(:lit, 5),
                              :==,
-                             s(:array,
+                             s(:arglist,
                                s(:call,
                                  nil,
                                  :unknown_args,
-                                 s(:array,
+                                 s(:arglist,
                                    s(:lit, 4), s(:str, "known"))))))))
 
   @@zarray = s(:defn, :zarray,
@@ -617,11 +635,11 @@ class TestRewriter_2 < Test::Unit::TestCase
                  s(:block,
                    s(:while,
                      s(:false),
-                     s(:call, nil, :puts, s(:array, s(:str, "false"))),
+                     s(:call, nil, :puts, s(:arglist, s(:str, "false"))),
                      true),
                    s(:while,
                      s(:false),
-                     s(:call, nil, :puts, s(:array, s(:str, "true"))),
+                     s(:call, nil, :puts, s(:arglist, s(:str, "true"))),
                      false))))
 
   @@bbegin = s(:defn,
@@ -632,7 +650,7 @@ class TestRewriter_2 < Test::Unit::TestCase
                    s(:begin,
                      s(:ensure,
                        s(:rescue,
-                         s(:call, s(:lit, 1), :+, s(:array, s(:lit, 1))),
+                         s(:call, s(:lit, 1), :+, s(:arglist, s(:lit, 1))),
                          s(:resbody,
                            s(:array, s(:const, :SyntaxError)),
                            s(:block, s(:lasgn, :e1, s(:gvar, :$!)),
@@ -649,13 +667,13 @@ class TestRewriter_2 < Test::Unit::TestCase
                       s(:args, :x),
                       s(:scope,
                         s(:block,
-                          s(:call, s(:lvar, :x), :+, s(:array, s(:lit, 1))))))
+                          s(:call, s(:lvar, :x), :+, s(:arglist, s(:lit, 1))))))
   @@dmethod_added = s(:defn,
                       :dmethod_added,
                       s(:args, :x),
                       s(:scope,
                         s(:block,
-                          s(:call, s(:lvar, :x), :+, s(:array, s(:lit, 1))))))
+                          s(:call, s(:lvar, :x), :+, s(:arglist, s(:lit, 1))))))
 
   @@__all = []
 

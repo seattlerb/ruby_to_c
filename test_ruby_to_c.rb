@@ -4,7 +4,7 @@ $TESTING = true
 
 require 'test/unit'
 require 'ruby_to_c'
-require 'something'
+require 'r2c_something'
 
 class TestTypeMap < Test::Unit::TestCase
 
@@ -32,6 +32,14 @@ class TestTypeMap < Test::Unit::TestCase
     assert_equal "void", TypeMap.c_type(Type.void)
   end
 
+  def test_c_type_float
+    assert_equal "double", TypeMap.c_type(Type.float)
+  end
+
+  def test_c_type_symbol
+    assert_equal "symbol", TypeMap.c_type(Type.symbol)
+  end
+
   def test_c_type_value
     assert_equal "VALUE", TypeMap.c_type(Type.value)
   end
@@ -49,7 +57,7 @@ class TestRubyToC < Test::Unit::TestCase
   end
 
   def test_and
-    input  = t(:and, t(:lit, 1), t(:lit, 2))
+    input  = t(:and, t(:lit, 1, Type.long), t(:lit, 2, Type.long))
     output = "1 && 2"
 
     assert_equal output, @ruby_to_c.process(input)
@@ -87,6 +95,13 @@ class TestRubyToC < Test::Unit::TestCase
     assert_equal output, @ruby_to_c.process(input)
   end
 
+  def test_process_array_empty
+    input  = t(:array)
+    output = "[]"
+
+    assert_equal output, @ruby_to_c.process(input)
+  end
+
   def test_process_array_single
     input  = t(:array,
                t(:lvar, :arg1, Type.long))
@@ -112,7 +127,7 @@ class TestRubyToC < Test::Unit::TestCase
   end
 
   def test_process_call_lhs
-    input  = t(:call, t(:lit, 1), :name, nil)
+    input  = t(:call, t(:lit, 1, Type.long), :name, nil)
     output = "name(1)"
 
     assert_equal output, @ruby_to_c.process(input)
@@ -120,7 +135,7 @@ class TestRubyToC < Test::Unit::TestCase
 
   def test_process_call_lhs_rhs
     input  = t(:call,
-               t(:lit, 1),
+               t(:lit, 1, Type.long),
                :name,
                t(:array, t(:str, "foo")))
     output = "name(1, \"foo\")"
@@ -154,9 +169,9 @@ class TestRubyToC < Test::Unit::TestCase
 
     methods.each do |method|
       input  = t(:call,
-                 t(:lit, 1),
+                 t(:lit, 1, Type.long),
                  method,
-                 t(:array, t(:lit, 2)))
+                 t(:array, t(:lit, 2, Type.long)))
       output = "1 #{method} 2"
 
       assert_equal output, @ruby_to_c.process(input)
@@ -209,7 +224,7 @@ class TestRubyToC < Test::Unit::TestCase
                  t(:bar, Type.long)),
                t(:scope,
                  t(:block,
-                   t(:lit, 5))),
+                   t(:lit, 5, Type.long))),
                Type.function([], Type.void))
     output = "void\nempty(long foo, long bar) {\n5;\n}"
 
@@ -254,9 +269,9 @@ class TestRubyToC < Test::Unit::TestCase
   def test_process_if
     input  = t(:if,
                t(:call,
-                 t(:lit, 1),
+                 t(:lit, 1, Type.long),
                  :==,
-                 t(:array, t(:lit, 2))),
+                 t(:array, t(:lit, 2, Type.long))),
                t(:str, "not equal"),
                nil)
     output = "if (1 == 2) {\n\"not equal\";\n}"
@@ -267,9 +282,9 @@ class TestRubyToC < Test::Unit::TestCase
   def test_process_if_else
     input  = t(:if,
                t(:call,
-                 t(:lit, 1),
+                 t(:lit, 1, Type.long),
                  :==,
-                 t(:array, t(:lit, 2))),
+                 t(:array, t(:lit, 2, Type.long))),
                t(:str, "not equal"),
                t(:str, "equal"))
     output = "if (1 == 2) {\n\"not equal\";\n} else {\n\"equal\";\n}"
@@ -280,11 +295,11 @@ class TestRubyToC < Test::Unit::TestCase
   def test_process_if_block
     input  = t(:if,
                t(:call,
-                 t(:lit, 1),
+                 t(:lit, 1, Type.long),
                  :==,
-                 t(:array, t(:lit, 2))),
+                 t(:array, t(:lit, 2, Type.long))),
                t(:block,
-                 t(:lit, 5),
+                 t(:lit, 5, Type.long),
                  t(:str, "not equal")),
                nil)
     output = "if (1 == 2) {\n5;\n\"not equal\";\n}"
@@ -341,9 +356,23 @@ var.contents[1] = \"bar\""
     assert_equal output, @ruby_to_c.process(input)
   end
 
-  def test_process_lit
-    input  = t(:lit, 1)
+  def test_process_lit_float
+    input  = t(:lit, 1.0, Type.float)
+    output = "1.0"
+
+    assert_equal output, @ruby_to_c.process(input)
+  end
+
+  def test_process_lit_long
+    input  = t(:lit, 1, Type.long)
     output = "1"
+
+    assert_equal output, @ruby_to_c.process(input)
+  end
+
+  def test_process_lit_sym
+    input  = t(:lit, :sym, Type.symbol)
+    output = ":sym"
 
     assert_equal output, @ruby_to_c.process(input)
   end
@@ -362,8 +391,15 @@ var.contents[1] = \"bar\""
     assert_equal output, @ruby_to_c.process(input)
   end
 
+  def test_process_not
+    input  = t(:not, t(:true, Type.bool), Type.bool)
+    output = "!(Qtrue)"
+
+    assert_equal output, @ruby_to_c.process(input)
+  end
+
   def test_process_or
-    input  = t(:or, t(:lit, 1), t(:lit, 2))
+    input  = t(:or, t(:lit, 1, Type.long), t(:lit, 2, Type.long))
     output = "1 || 2"
 
     assert_equal output, @ruby_to_c.process(input)
@@ -435,9 +471,9 @@ bar", Type.str)
   def test_process_unless
     input  = t(:if,
                t(:call,
-                 t(:lit, 1),
+                 t(:lit, 1, Type.long),
                  :==,
-                 t(:array, t(:lit, 2))),
+                 t(:array, t(:lit, 2, Type.long))),
                nil,
                t(:str, "equal"))
     output = "if (1 == 2) {\n;\n} else {\n\"equal\";\n}"
@@ -447,7 +483,7 @@ bar", Type.str)
 
   def test_process_while
     input = t(:while,
-              t(:call, t(:lvar, :n), :<=, t(:array, t(:lit, 3))),
+              t(:call, t(:lvar, :n), :<=, t(:array, t(:lit, 3, Type.long))),
               t(:block,
                 t(:call,
                   nil,
@@ -462,7 +498,7 @@ bar", Type.str)
                     t(:lvar, :n),
                     :+,
                     t(:array,
-                      t(:lit, 1))),
+                      t(:lit, 1, Type.long))),
                   Type.long)), true) # NOTE Type.long needed but not used
 
     expected = "while (n <= 3) {\nputs(to_s(n));\nn = n + 1;\n}"
