@@ -286,3 +286,27 @@ class Type
 
 end
 
+##
+# Unique creates unique variable names.
+
+class Unique
+
+  ##
+  # Variable names will be prefixed by +prefix+
+
+  def initialize(prefix)
+    @prefix = prefix
+    @curr = 'a'
+  end
+
+  ##
+  # Generate a new unique variable name
+
+  def next
+    var = "#{@prefix}_#{@curr}"
+    @curr.succ!
+    return var
+  end
+
+end
+

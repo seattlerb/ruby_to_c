@@ -1,4 +1,5 @@
 require 'sexp_processor'
+require 'parse_tree'
 
 class Rewriter < SexpProcessor
 
@@ -110,23 +111,27 @@ class Rewriter < SexpProcessor
         finish_value = call.pop.pop # not sure about this
         var_name = var.shift
         body.find_and_replace_all(:dvar, :lvar)
-        result = Sexp.new()
+
+        # HACK have to pack body in case it was unpacked
+        while_body = s(:block)
+        if Sexp === body.first then
+          until body.empty? do
+            while_body << body.shift
+          end
+        else
+          while_body << body
+        end
+        while_body << s(:lasgn, var_name,
+                        s(:call, s(:lvar, var_name), "-",
+                          s(:array, Sexp.new(:lit, 1))))
+
+        result = s()
         result.unpack = true
-        result << Sexp.new(:lasgn, var_name, start_value)
-        result << Sexp.new(:while,
-                           Sexp.new(:call,
-                                    Sexp.new(:lvar, var_name),
-                                    ">=",
-                                    Sexp.new(:array, finish_value)),
-                           Sexp.new(:block,
-                                    body,
-                                    Sexp.new(:lasgn,
-                                             var_name,
-                                             Sexp.new(:call,
-                                                      Sexp.new(:lvar, var_name),
-                                                      "-",
-                                                      Sexp.new(:array, Sexp.new(:lit, 1))))
-                                    ))
+        result << s(:lasgn, var_name, start_value)
+        result << s(:while,
+                    s(:call, s(:lvar, var_name), ">=",
+                      s(:array, finish_value)),
+                    while_body)
       when "upto" then
         # REFACTOR: completely duped from above and direction changed
         var.shift # 
@@ -134,23 +139,27 @@ class Rewriter < SexpProcessor
         finish_value = call.pop.pop # not sure about this
         var_name = var.shift
         body.find_and_replace_all(:dvar, :lvar)
-        result = Sexp.new()
+
+        # HACK have to pack body incase it was unpacked
+        while_body = s(:block)
+        if Sexp === body.first then
+          until body.empty? do
+            while_body << body.shift
+          end
+        else
+          while_body << body
+        end
+        while_body << s(:lasgn, var_name,
+                        s(:call, s(:lvar, var_name), "+",
+                          s(:array, Sexp.new(:lit, 1))))
+
+        result = s()
         result.unpack = true
-        result << Sexp.new(:lasgn, var_name, start_value)
-        result << Sexp.new(:while,
-                           Sexp.new(:call,
-                                    Sexp.new(:lvar, var_name),
-                                    "<=",
-                                    Sexp.new(:array, finish_value)),
-                           Sexp.new(:block,
-                                    body,
-                                    Sexp.new(:lasgn,
-                                             var_name,
-                                             Sexp.new(:call,
-                                                      Sexp.new(:lvar, var_name),
-                                                      "+",
-                                                      Sexp.new(:array, Sexp.new(:lit, 1))))
-                                    ))
+        result << s(:lasgn, var_name, start_value)
+        result << s(:while,
+                    s(:call, s(:lvar, var_name), "<=",
+                      s(:array, finish_value)),
+                    while_body)
       else
         raise "unknown iter method #{method_name}"
       end

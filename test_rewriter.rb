@@ -139,6 +139,70 @@ class TestRewriter < Test::Unit::TestCase
     assert_equal expected, @rewrite.process(input)
   end
 
+  def test_iter_downto_nested
+    input    = [:block,
+                 [:iter,
+                   [:call, [:lvar, "n"], "downto", [:array, [:lit, 0]]],
+                   [:dasgn_curr, "i"],
+                   [:iter,
+                     [:call, [:dvar, "i"], "downto", [:array, [:lit, 0]]],
+                     [:dasgn_curr, "j"],
+                     [:nil]]]]
+
+    expected = s(:block,
+                 s(:lasgn, "i", s(:lvar, "n")),
+                 s(:while,
+                   s(:call, s(:lvar, "i"), ">=",
+                     s(:array, s(:lit, 0))),
+                   s(:block,
+                     s(:lasgn, "j", s(:lvar, "i")),
+                     s(:while,
+                       s(:call, s(:lvar, "j"), ">=",
+                         s(:array, s(:lit, 0))),
+                       s(:block,
+                         s(:nil),
+                         s(:lasgn, "j",
+                           s(:call, s(:lvar, "j"), "-",
+                             s(:array, s(:lit, 1)))))),
+                     s(:lasgn, "i",
+                       s(:call, s(:lvar, "i"), "-",
+                         s(:array, s(:lit, 1)))))))
+
+    assert_equal expected, @rewrite.process(input)
+  end
+
+  def test_iter_upto_nested
+    input    = [:block,
+                 [:iter,
+                   [:call, [:lvar, "n"], "upto", [:array, [:lit, 0]]],
+                   [:dasgn_curr, "i"],
+                   [:iter,
+                     [:call, [:dvar, "i"], "upto", [:array, [:lit, 0]]],
+                     [:dasgn_curr, "j"],
+                     [:nil]]]]
+
+    expected = s(:block,
+                 s(:lasgn, "i", s(:lvar, "n")),
+                 s(:while,
+                   s(:call, s(:lvar, "i"), "<=",
+                     s(:array, s(:lit, 0))),
+                   s(:block,
+                     s(:lasgn, "j", s(:lvar, "i")),
+                     s(:while,
+                       s(:call, s(:lvar, "j"), "<=",
+                         s(:array, s(:lit, 0))),
+                       s(:block,
+                         s(:nil),
+                         s(:lasgn, "j",
+                           s(:call, s(:lvar, "j"), "+",
+                             s(:array, s(:lit, 1)))))),
+                     s(:lasgn, "i",
+                       s(:call, s(:lvar, "i"), "+",
+                         s(:array, s(:lit, 1)))))))
+
+    assert_equal expected, @rewrite.process(input)
+  end
+
   def test_process_when
     input = [:when, [:array, [:lit, 1]], [:str, "1"]]
 

@@ -12,6 +12,13 @@ class TestTypeChecker < Test::Unit::TestCase
     @type_checker = TypeChecker.new
   end
 
+  def test_and
+    input  = s(:and, s(:true), s(:false))
+    output = s(:and, s(:true, Type.bool), s(:false, Type.bool), Type.bool)
+
+    assert_equal output, @type_checker.process(input)
+  end
+
   def test_bootstrap
     # bootstrap is automatically called by initialize
     # TODO should we check for EVERYTHING we expect?
@@ -456,6 +463,13 @@ class TestTypeChecker < Test::Unit::TestCase
   def test_process_nil
     input  = s(:nil)
     output = s(:nil, Type.value)
+
+    assert_equal output, @type_checker.process(input)
+  end
+
+  def test_or
+    input  = s(:or, s(:true), s(:false))
+    output = s(:or, s(:true, Type.bool), s(:false, Type.bool), Type.bool)
 
     assert_equal output, @type_checker.process(input)
   end

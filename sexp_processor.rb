@@ -110,15 +110,15 @@ class Sexp < Array # ZenTest FULL
   end
 
   def inspect
-    t = array_type? ? sexp_types.inspect : sexp_type
-    t = t.nil? ? "" : ", #{t}"
-    "Sexp.new(#{self.map {|x|x.inspect}.join(', ')}#{t})"
+    sexp_str = self.map {|x|x.inspect}.join(', ')
+    sexp_type_str = ", #{array_type? ? sexp_types.inspect : sexp_type}" unless sexp_type.nil?
+    return "Sexp.new(#{sexp_str}#{sexp_type_str})"
   end
 
   def pretty_print(q)
     q.group(1, 's(', ')') do
       q.seplist(self) {|v| q.pp v }
-      if @sexp_type then
+      unless @sexp_type.nil? then
         q.text ", "
         q.pp @sexp_type
       end

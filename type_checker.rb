@@ -101,6 +101,22 @@ class TypeChecker < SexpProcessor
   end
 
   ##
+  # Logical and
+
+  def process_and(exp)
+    rhs = process exp.shift
+    lhs = process exp.shift
+
+    rhs_type = rhs.sexp_type
+    lhs_type = lhs.sexp_type
+
+    rhs_type.unify lhs_type
+    rhs_type.unify Type.bool
+
+    return Sexp.new(:and, rhs, lhs, Type.bool)
+  end
+
+  ##
   # Expects a list of variable names and returns a arg list of
   # name, type pairs.
 
