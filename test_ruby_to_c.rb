@@ -134,8 +134,10 @@ class TestRubyToC < Test::Unit::TestCase
                       Sexp.new(:scope),
                       Type.function([], Type.void))
     output = "void\nempty() {\n}"
-
     assert_equal output, @ruby_to_c.process(input)
+
+    assert_equal ["void empty();\n"], @ruby_to_c.prototypes
+
   end
 
   def test_defn_with_args_and_body

@@ -61,26 +61,27 @@ class RubyToC < SexpProcessor
   end
 
   def self.translate_all_of(klass, catch_exceptions=false)
-    translator = self.new
     result = []
 
     klass.instance_methods(false).sort.each do |method|
       if catch_exceptions then
         begin
-          result << translator.translate(klass, method)
+          result << self.translate(klass, method)
         rescue RuntimeError => err
           [ "// ERROR translating #{method}: #{err}",
             "//   #{err.backtrace.join("\n//   ")}",
             "//   #{ParseTree.new.parse_tree(klass, method).inspect}" ]
         end
       else
-        result << translator.translate(klass, method)
+        result << self.translate(klass, method)
       end
     end
 
-    translator.prototypes.join('') + "\n\n" + result.join("\n\n")
+    prototypes =  @@translator.processors[-1].prototypes
+    "#{prototypes.join('')}\n\n#{result.join("\n\n")}"
   end
 
+  attr_accessor :prototypes
   def initialize
     super
     @env = Environment.new
