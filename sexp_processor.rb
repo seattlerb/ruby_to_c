@@ -11,28 +11,6 @@ end
 
 class Sexp < Array # ZenTest FULL
 
-  def self.from_array(a)
-    raise "fuck you ryan... you stupid hack" if Sexp === a
-    ary = Array === a ? a.dup : [a]
-    sexp_type = ary.last.kind_of?(Type) ? ary.pop : nil
-
-    result = self.new
-    result.sexp_type = sexp_type
-
-    ary.each do |x|
-      case x
-      when Sexp
-        result << x
-      when Array
-        result << self.from_array(x)
-      else
-        result << x
-      end
-    end
-
-    result
-  end
-
   def initialize(*args)
     # TODO: should probably be Type.unknown
     @sexp_type = Type === args.last ? args.pop : nil
@@ -82,8 +60,6 @@ class Sexp < Array # ZenTest FULL
     case obj
     when Sexp
       super && sexp_type == obj.sexp_type
-    when Array
-      self == Sexp.from_array(obj)
     else
       false
     end
@@ -187,7 +163,6 @@ class SexpProcessor
         raise SyntaxError, "Bug! Unknown type #{type.inspect} to #{self.class}"
       end
     end
-#    return Array === result ? Sexp.from_array(result) : result
     raise "Result must be a #{@expected}, was #{result.class}:#{result.inspect}" unless @expected === result
     result
   end

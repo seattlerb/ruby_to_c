@@ -26,7 +26,7 @@ module TypeMap
         raise "Bug! Unknown type #{typ.inspect}"
       end
 
-    base_type += "[]" if typ.list? # HACK - nuke me - and figure out why
+    base_type += "[]" if typ.list?
 
     base_type
   end
@@ -49,34 +49,15 @@ class RubyToC < SexpProcessor
 "
   end
 
-  @@parser = ParseTree.new
-  @@rewriter = Rewriter.new
-  @@type_checker = TypeChecker.new
-
-  def translate(klass, method = nil)
-    # HACK FIX this is horrid, and entirely eric's fault, and requires a real pipeline
-    sexp = @@parser.parse_tree klass, method
-    sexp = @@rewriter.process sexp
-    sexp = @@type_checker.process sexp
-    self.process sexp
-  end
-
-# REFACTOR (and rename) - this should be the way to write this stuff
-# but typechecker is breaking contract right now.
-  def self.happy(klass, method=nil)
-
-    sexp = ParseTree.new.parse_tree(klass, method)
-
-    processor = CompositeSexpProcessor.new
-    processor << Rewriter.new
-    processor << TypeChecker.new
-    processor << self.new
-    processor.process(sexp)
-
-  end
-
-  def self.translate(klass, method = nil)
-    self.new.translate(klass, method)
+  # REFACTOR: rename to self.process
+  def self.translate(klass, method=nil)
+    unless defined? @@translator then
+      @@translator = CompositeSexpProcessor.new
+      @@translator << Rewriter.new
+      @@translator << TypeChecker.new
+      @@translator << self.new
+    end
+    @@translator.process(ParseTree.new.parse_tree(klass, method))
   end
 
   def self.translate_all_of(klass, catch_exceptions=false)

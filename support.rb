@@ -179,9 +179,7 @@ class Type
     other.type == self.type && other.list? == self.list?
   end
 
-  def ==(other)
-    eql? other
-  end
+  alias :== :eql?
 
   def hash
     type.contents.hash ^ @list.hash

@@ -54,25 +54,6 @@ class TestSexp < Test::Unit::TestCase # ZenTest FULL
     @sexp.sexp_type = 42
   end
 
-  def test_from_array_normal
-    @sexp = Sexp.from_array([1, 2, 3])
-    expected = Sexp.new(1, 2, 3)
-    assert_equal(expected, @sexp)
-  end
-
-  def test_from_array_type
-    @sexp = Sexp.from_array([1, 2, 3, Type.str])
-    expected = Sexp.new(1, 2, 3, Type.str)
-    assert_equal(expected, @sexp)
-  end
-
-  def test_from_array_nested
-    @sexp = Sexp.from_array([1, [2, Type.long], 3, Type.unknown])
-    expected = Sexp.new(1, Sexp.new(2, Type.long), 3, Type.unknown)
-    assert_equal(Sexp.new(2, Type.long), @sexp[1])
-    assert_equal(expected, @sexp)
-  end
-
   def test_new_nested
     @sexp = Sexp.new(:lasgn, "var", Sexp.new(:str, "foo", Type.str), Type.str)
     assert_equal('Sexp.new(:lasgn, "var", Sexp.new(:str, "foo", Type.str), Type.str)',
@@ -113,8 +94,11 @@ class TestSexp < Test::Unit::TestCase # ZenTest FULL
   def test_equals_array
     # can't use assert_equals because it uses array as receiver
     @sexp.sexp_type = Type.str
-    assert(@sexp == [1, 2, 3, Type.str],
-           "Sexp must be equal to equivalent array")
+    assert_not_equal(@sexp, [1, 2, 3, Type.str],
+                     "Sexp must not be equal to equivalent array")
+    # both directions just in case
+    assert_not_equal([1, 2, 3, Type.str], @sexp,
+                     "Sexp must not be equal to equivalent array")
   end
 
   def test_equals_sexp
