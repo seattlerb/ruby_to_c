@@ -46,14 +46,14 @@ class TestRubyToC < Test::Unit::TestCase
   end
 
   def test_call
-    input  = Sexp.new(:call, "name", nil, nil)
+    input  = Sexp.new(:call, nil, "name", nil)
     output = "name()"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_call_lhs
-    input  = Sexp.new(:call, "name", Sexp.new(:lit, 1), nil)
+    input  = Sexp.new(:call, Sexp.new(:lit, 1), "name", nil)
     output = "name(1)"
 
     assert_equal output, @ruby_to_c.process(input)
@@ -61,10 +61,9 @@ class TestRubyToC < Test::Unit::TestCase
 
   def test_call_lhs_rhs
     input  = Sexp.new(:call,
-                      "name",
                       Sexp.new(:lit, 1),
-                      Sexp.new(:array,
-                               Sexp.new(:str, "foo")))
+                      "name",
+                      Sexp.new(:array, Sexp.new(:str, "foo")))
     output = "name(1, \"foo\")"
 
     assert_equal output, @ruby_to_c.process(input)
@@ -72,8 +71,8 @@ class TestRubyToC < Test::Unit::TestCase
 
   def test_call_rhs
     input  = Sexp.new(:call,
-                      "name",
                       nil,
+                      "name",
                       Sexp.new(:array,
                                Sexp.new(:str, "foo")))
     output = "name(\"foo\")"
@@ -82,7 +81,10 @@ class TestRubyToC < Test::Unit::TestCase
   end
 
   def test_call_nil?
-    input  = Sexp.new(:call, "nil?", Sexp.new(:lvar, "arg", Type.long), nil)
+    input  = Sexp.new(:call,
+                      Sexp.new(:lvar, "arg", Type.long),
+                      "nil?",
+                      nil)
     output = "NIL_P(arg)"
 
     assert_equal output, @ruby_to_c.process(input)
@@ -93,8 +95,8 @@ class TestRubyToC < Test::Unit::TestCase
 
     methods.each do |method|
       input  = Sexp.new(:call,
-                        method,
                         Sexp.new(:lit, 1),
+                        method,
                         Sexp.new(:array, Sexp.new(:lit, 2)))
       output = "1 #{method} 2"
 
@@ -192,8 +194,8 @@ class TestRubyToC < Test::Unit::TestCase
   def test_if
     input  = Sexp.new(:if,
                       Sexp.new(:call,
-                               "==",
                                Sexp.new(:lit, 1),
+                               "==",
                                Sexp.new(:array, Sexp.new(:lit, 2))),
                       Sexp.new(:str, "not equal"),
                       nil)
@@ -205,8 +207,8 @@ class TestRubyToC < Test::Unit::TestCase
   def test_if_else
     input  = Sexp.new(:if,
                       Sexp.new(:call,
-                               "==",
                                Sexp.new(:lit, 1),
+                               "==",
                                Sexp.new(:array, Sexp.new(:lit, 2))),
                       Sexp.new(:str, "not equal"),
                       Sexp.new(:str, "equal"))
@@ -218,8 +220,8 @@ class TestRubyToC < Test::Unit::TestCase
   def test_if_block
     input  = Sexp.new(:if,
                       Sexp.new(:call,
-                               "==",
                                Sexp.new(:lit, 1),
+                               "==",
                                Sexp.new(:array, Sexp.new(:lit, 2))),
                       Sexp.new(:block,
                                Sexp.new(:lit, 5),
@@ -234,18 +236,19 @@ class TestRubyToC < Test::Unit::TestCase
     var_type = Type.long_list
     input  = Sexp.new(:iter,
                       Sexp.new(:call,
+                               Sexp.new(:lvar, "array", var_type),
                                "each",
-                               Sexp.new(:lvar, "array", var_type), nil),
+                               nil),
                       Sexp.new(:dasgn_curr, "x", Type.long),
                       Sexp.new(:call,
-                               "puts",
                                nil,
+                               "puts",
                                Sexp.new(:array,
                                         Sexp.new(:call,
-                                                 "to_s",
                                                  Sexp.new(:dvar,
                                                           "x",
                                                           Type.long),
+                                                 "to_s",
                                                  nil))))
     output = "unsigned long index_x;
 for (index_x = 0; index_x < array.length; ++index_x) {
@@ -356,8 +359,9 @@ var.contents[1] = \"bar\""
   end
 
   def test_unless
-    input  = Sexp.new(:if, Sexp.new(:call, "==",
+    input  = Sexp.new(:if, Sexp.new(:call,
                                     Sexp.new(:lit, 1),
+                                    "==",
                                     Sexp.new(:array, Sexp.new(:lit, 2))),
                       nil,
                       Sexp.new(:str, "equal"))

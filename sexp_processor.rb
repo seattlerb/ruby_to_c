@@ -23,6 +23,15 @@ class Sexp < Array # ZenTest FULL
 
   @@array_types = [ :array, :args, ]
 
+  def each_of_type(t, &b)
+    each do | elem |
+      if Sexp === elem then
+        elem.each_of_type(t, &b)
+        b.call(elem) if elem.first == t
+      end
+    end
+  end
+
   # TODO: need to write test
   def find_and_replace_all(from, to)
     each_with_index do | elem, index |

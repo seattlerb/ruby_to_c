@@ -16,7 +16,7 @@ class Rewriter < SexpProcessor
     name = exp.shift
     args = process exp.shift
 
-    Sexp.new(:call, name, lhs, args)
+    Sexp.new(:call, lhs, name, args)
   end
 
   ##
@@ -38,7 +38,7 @@ class Rewriter < SexpProcessor
       assert_type c, :when
       ignored_type, vars, stmts = process(c)
 
-      vars = vars.map { |v| Sexp.new(:call, "===", var.deep_clone, Sexp.new(:array, v))}
+      vars = vars.map { |v| Sexp.new(:call, var.deep_clone, "===", Sexp.new(:array, v))}
       if vars.size > 1 then
         new_exp << Sexp.new(:or, *vars)
       else
@@ -81,7 +81,7 @@ class Rewriter < SexpProcessor
     name = exp.shift
     args = process exp.shift
 
-    Sexp.new(:call, name, nil, args)
+    Sexp.new(:call, nil, name, args)
   end
 
   ##
@@ -93,14 +93,17 @@ class Rewriter < SexpProcessor
     var  = process exp.shift
     body = process exp.shift
 
-    if call.first == :call and call[1] != "each" then
+    assert_type call, :call
+
+    if call[2] != "each" then # TODO: fix call[1] (api)
       call.shift # :call
+      lhs = call.shift
       method_name = call.shift
 
       case method_name
       when "downto" then
         var.shift # 
-        start_value = call.shift
+        start_value = lhs
         finish_value = call.pop.pop # not sure about this
         var_name = var.shift
         body.find_and_replace_all(:dvar, :lvar)
@@ -109,22 +112,22 @@ class Rewriter < SexpProcessor
         result << Sexp.new(:lasgn, var_name, start_value)
         result << Sexp.new(:while,
                            Sexp.new(:call,
-                                    ">=",
                                     Sexp.new(:lvar, var_name),
+                                    ">=",
                                     Sexp.new(:array, finish_value)),
                            Sexp.new(:block,
                                     body,
                                     Sexp.new(:lasgn,
                                              var_name,
                                              Sexp.new(:call,
-                                                      "-",
                                                       Sexp.new(:lvar, var_name),
+                                                      "-",
                                                       Sexp.new(:array, Sexp.new(:lit, 1))))
                                     ))
       when "upto" then
         # REFACTOR: completely duped from above and direction changed
         var.shift # 
-        start_value = call.shift
+        start_value = lhs
         finish_value = call.pop.pop # not sure about this
         var_name = var.shift
         body.find_and_replace_all(:dvar, :lvar)
@@ -133,16 +136,16 @@ class Rewriter < SexpProcessor
         result << Sexp.new(:lasgn, var_name, start_value)
         result << Sexp.new(:while,
                            Sexp.new(:call,
-                                    "<=",
                                     Sexp.new(:lvar, var_name),
+                                    "<=",
                                     Sexp.new(:array, finish_value)),
                            Sexp.new(:block,
                                     body,
                                     Sexp.new(:lasgn,
                                              var_name,
                                              Sexp.new(:call,
-                                                      "+",
                                                       Sexp.new(:lvar, var_name),
+                                                      "+",
                                                       Sexp.new(:array, Sexp.new(:lit, 1))))
                                     ))
       else
@@ -160,7 +163,7 @@ class Rewriter < SexpProcessor
   def process_vcall(exp)
     name = exp.shift
 
-    Sexp.new(:call, name, nil, nil)
+    Sexp.new(:call, nil, name, nil) # TODO: never has any args?
   end
 
   ##

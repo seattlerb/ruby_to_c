@@ -45,7 +45,7 @@ class RubyToC < SexpProcessor
 #include <ruby.h>
 #define RB_COMPARE(x, y) (x) == (y) ? 0 : (x) < (y) ? -1 : 1
 typedef struct { unsigned long length; long * contents; } long_array;
-
+#define case_equal_long(x, y) ((x) == (y))
 // END METARUBY PREAMBLE
 "
   end
@@ -65,17 +65,18 @@ typedef struct { unsigned long length; long * contents; } long_array;
     result = []
 
     klass.instance_methods(false).sort.each do |method|
-      if catch_exceptions then
-        begin
-          result << self.translate(klass, method)
-        rescue RuntimeError => err
-          [ "// ERROR translating #{method}: #{err}",
+      result << 
+        if catch_exceptions then
+          begin
+            self.translate(klass, method)
+          rescue Exception => err
+            [ "// ERROR translating #{method}: #{err}",
             "//   #{err.backtrace.join("\n//   ")}",
             "//   #{ParseTree.new.parse_tree(klass, method).inspect}" ]
+          end
+        else
+          self.translate(klass, method)
         end
-      else
-        result << self.translate(klass, method)
-      end
     end
 
     prototypes =  @@translator.processors[-1].prototypes
@@ -129,8 +130,8 @@ typedef struct { unsigned long length; long * contents; } long_array;
   end
 
   def process_call(exp)
-    name = exp.shift
     receiver = exp.shift
+    name = exp.shift
     args = process exp.shift
 
     receiver_type = Type.unknown
@@ -245,12 +246,12 @@ typedef struct { unsigned long length; long * contents; } long_array;
     result
   end
 
-  def process_iter(exp) # TODO add ;\n as appropriate
+  def process_iter(exp)
     @env.extend
 
 #    p exp
 
-    enum = exp[0][2][1] # HACK ugly
+    enum = exp[0][1][1] # HACK ugly
     call = process exp.shift
     var = process exp.shift
     body = process exp.shift

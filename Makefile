@@ -18,7 +18,7 @@ trouble.c: zcomparable.rb translate.rb ruby_to_c.rb type_checker.rb
 
 FORCE:
 demos: FORCE
-	for rf in demo/*.rb; do f=$$(basename $$rf .rb); echo $$f; ./translate.rb demo/$$f > demo/$$f.c; gcc -Iinc -o demo/$$f demo/$$f.c; done
+	for rf in demo/*.rb; do f=$$(basename $$rf .rb); echo $$f; ./translate.rb demo/$$f > demo/$$f.c && gcc -Iinc -o demo/$$f demo/$$f.c; done
 
 clean:
 	rm -f *~ trouble.* diff.txt

@@ -68,8 +68,8 @@ class FunctionType
 
     @receiver_type.unify other.receiver_type
     @return_type.unify other.return_type
-  rescue RuntimeError # print more complete warning message
-    raise "Unable to unify\n#{self}\nwith\n#{other}"
+#  rescue RuntimeError # print more complete warning message
+#    raise "Unable to unify\n#{self}\nwith\n#{other}"
   end
 
   def to_s
@@ -216,21 +216,21 @@ class Type
 
       self_fun.unify_components other_fun
     else
-      raise "Unable to unify #{self} with #{other}"
+      raise "Unable to unify #{self.inspect} with #{other.inspect}"
     end
 
     return self
   end
 
   def to_s
-    self.inspect
-  end
-
-  def inspect
     str = "Type.#{self.type.contents}"
     str << "_list" if self.list?
     str
   end
+
+  def inspect
+    to_s
+  end unless $DEBUG
 
 end
 

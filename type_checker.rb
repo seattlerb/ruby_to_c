@@ -6,6 +6,14 @@ require 'pp'
 
 # TODO: calls to sexp_type should probably be replaced w/ better Sexp API
 
+# Some ideas: Either have a 2 level hash with [name][reciever], or,
+# since we often register methods w/o knowing their reciever yet, have
+# the value be an array of signatures. In the latter, we can modify
+# unify to take an array of things to unify against, if ONE of them
+# unifies, we are good, if NONE of them, we raise. I think that'll be
+# the easiest of the two, but I' msure I'm not thinking about certain
+# edge cases yet. See [] below for examples of both.
+
 $bootstrap = {
   # :sym => [:reciever, :args, :return]
   "<"  => [:long, :long, :bool],
@@ -20,16 +28,21 @@ $bootstrap = {
 
   # polymorphics:
   "nil?" => [:value, :bool],
-  "to_s" => [:long, :str], # HACK - should be :void, :str
-  "to_i" => [:long, :long], # HACK - should be :void, :str
-
-  "print" => [:void, :str, :void],
+  "to_s" => [:long, :str],  # HACK - should be :value, :str
+  "to_i" => [:long, :long], # HACK - should be :value, :str
   "puts" => [:void, :str, :void],
+  "print" => [:void, :str, :void],
+
+  "[]"   => [:long_list, :long, :long], # HACK - rec/ret should be polymorphic
+
+# "[]"   => [[:long_list, :long, :long],
+#            [:str_list, :str, :long],]
+
+# "[]"   => {:long_list => [:long, :long],},
 
   # get rid of these
   "case_equal_str" => [:str, :str, :bool],
   "case_equal_long" => [:long, :long, :bool],
-
 }
 
 class TypeChecker < SexpProcessor
@@ -88,10 +101,11 @@ class TypeChecker < SexpProcessor
     @genv.add "$stderr", Type.file
 
     $bootstrap.each_key do |name|
-      signature = $bootstrap[name] # .deep_clone
-      lhs_type = Type.new(signature[0])
-      return_type = Type.new(signature[-1])
-      arg_types = signature[1..-2].map { |t| Type.new(t) }
+      # FIX: Using Type.send because it must go through method_missing, not new
+      signature = $bootstrap[name]
+      lhs_type = Type.send(signature[0])
+      return_type = Type.send(signature[-1])
+      arg_types = signature[1..-2].map { |t| Type.send(t) }
       @functions[name] = Type.function(lhs_type, arg_types, return_type)
     end
   end
@@ -151,9 +165,8 @@ class TypeChecker < SexpProcessor
   # Unifies the arguments according to the method name.
 
   def process_call(exp)
-    orig_exp = exp.deep_clone
-    name = exp.shift
     lhs = process exp.shift     # can be nil
+    name = exp.shift
     args = process exp.shift
 
     arg_types = if args.nil? then
@@ -178,19 +191,19 @@ class TypeChecker < SexpProcessor
 
     function_type = @functions[name]
     return_type = Type.unknown
-
     lhs_type = lhs.nil? ? Type.unknown : lhs.sexp_type # TODO: maybe void instead of unknown
+
     if function_type.nil?  then
       function_type = Type.function(lhs_type, arg_types, return_type)
       @functions[name] = function_type
-      $stderr.puts "\nWARNING: function #{name} is not defined. Registering #{function_type.inspect}" if $DEBUG
+      $stderr.puts "\nWARNING: function #{name} called w/o being defined. Registering #{function_type.inspect}" if $DEBUG
     else
       call_type = Type.function(lhs_type, arg_types, return_type)
       function_type.unify call_type
       return_type = function_type.list_type.return_type
     end
 
-    return Sexp.new(:call, name, lhs, args, return_type)
+    return Sexp.new(:call, lhs, name, args, return_type)
   end
 
   ##
@@ -221,7 +234,7 @@ class TypeChecker < SexpProcessor
       # TODO: figure out the receiver type? Is that possible at this stage?
       function_type = Type.function Type.unknown, args.sexp_types, Type.unknown
       @functions[name] = function_type
-      $stderr.puts "\nWARNING: function #{name} is not defined. Registering #{function_type.inspect}" if $DEBUG
+      $stderr.puts "\nWARNING: Registering function #{name}: #{function_type.inspect}" if $DEBUG
     end
     body = process exp.shift
 
@@ -231,12 +244,23 @@ class TypeChecker < SexpProcessor
     function_type = @functions[name]
     return_type = function_type.list_type.return_type
 
-    if return_type == Type.unknown then
+    # Drill down and find all return calls, unify each one against the
+    # registered function return value. That way they all have to
+    # return the same type. If we don't end up finding any returns,
+    # set the function return type to void.
+
+    return_count = 0
+    body.each_of_type(:return) do |sub_exp|
+      return_type.unify sub_exp[1].sexp_type
+      return_count += 1
+    end
+    if return_count == 0 then
       return_type.unify Type.void
     end
 
     # TODO: bad API, clean
-    raise "wrong" if args.sexp_types.size != function_type.list_type.formal_types.size
+    raise "wrong" if
+      args.sexp_types.size != function_type.list_type.formal_types.size
     args.sexp_types.each_with_index do |type, i|
       type.unify function_type.list_type.formal_types[i]
     end
@@ -284,7 +308,7 @@ class TypeChecker < SexpProcessor
     dargs_exp = process exp.shift
     body_exp = process exp.shift
 
-    lhs = call_exp[2]
+    lhs = call_exp[1] # FIX
     Type.unknown_list.unify lhs.sexp_type
     Type.new(lhs.sexp_type.list_type).unify dargs_exp.sexp_type
 
@@ -405,19 +429,18 @@ class TypeChecker < SexpProcessor
   end
 
   ##
-  # Expects a list of expressions.  Returns the processed expression and the
-  # void type.
-
-  ##
   # Expects an expression.  Unifies the return type with the current method's
   # return type and returns the expression and the void type.
 
   def process_return(exp)
     body = process exp.shift
     fun_type = @functions[@current_function_name]
+
     raise "Definition of #{@current_function_name.inspect} not found in function list" if fun_type.nil?
+
     return_type = fun_type.list_type.return_type # HACK UGLY
     return_type.unify body.sexp_type
+
     return Sexp.new(:return, body, Type.void) # TODO: why void?!?
   end
 
