@@ -6,47 +6,11 @@ require 'something'
 
 class TestRubyToC < Test::Unit::TestCase
 
-  @@empty = "void
-empty() {
-}"
-  @@simple = "void
-simple(long arg1) {
-print(arg1);
-puts(4 + 2);
-}"
-  @@conditional = "long
-conditional(long arg1) {
-if (arg1 == 0) {
-return 2;
-} else {
-if (arg1 < 0) {
-return 3;
-} else {
-return 4;
-};
-};
-}"
-  @@iteration1 = "void
-iteration1() {
-long array[] = { 1, 2, 3 };
-unsigned long index;
-for (index = 0; index < 3; ++index) {
-long x = array[index];
-puts(x);
-};
-}"
-  @@iteration2 = "void
-iteration2() {
-long array[] = { 1, 2, 3 };
-unsigned long index;
-for (index = 0; index < 3; ++index) {
-long x = array[index];
-puts(x);
-};
-}"
-
-  def setup
-  end
+  @@empty = "void\nempty() {\n}"
+  @@simple = "void\nsimple(long arg1) {\nprint(arg1);\nputs(4 + 2);\n}"
+  @@conditional = "long\nconditional(long arg1) {\nif (arg1 == 0) {\nreturn 2;\n} else {\nif (arg1 < 0) {\nreturn 3;\n} else {\nreturn 4;\n};\n};\n}"
+  @@iteration1 = "void\niteration1() {\nlong array[] = { 1, 2, 3 };\nunsigned long index;\nfor (index = 0; index < 3; ++index) {\nlong x = array[index];\nputs(x);\n};\n}"
+  @@iteration2 = "void\niteration2() {\nlong array[] = { 1, 2, 3 };\nunsigned long index;\nfor (index = 0; index < 3; ++index) {\nlong x = array[index];\nputs(x);\n};\n}"
 
   def test_empty
     thing = RubyToC.new(Something, :empty)
