@@ -95,4 +95,5 @@ translate.rb
 type.rb
 type_checker.rb
 typed_sexp_processor.rb
+validate.sh
 zcomparable.rb
