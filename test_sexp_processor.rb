@@ -46,8 +46,12 @@ class TestProcessor < SexpProcessor # ZenTest SKIP
 
   def process_expected(exp)
     exp.clear
-    return 42
+    return 42.0
   end
+
+  def process_string(exp)
+    return exp.shift
+  end 
 
 end
 
@@ -143,7 +147,7 @@ class TestSexp < Test::Unit::TestCase # ZenTest FULL
     assert_equal([1, 2, 3, Type.str], @sexp.to_a)
   end
 
-  def test_accessors
+  def test_accessors=
     a = s(:call, s(:lit, 1), "func", s(:array, s(:lit, 2)))
     a.accessors = [:lhs, :name, :rhs]
 
@@ -158,7 +162,7 @@ class TestSexp < Test::Unit::TestCase # ZenTest FULL
     end
   end
 
-  def test_body
+  def test_sexp_body
     assert_equal [2, 3], @sexp.sexp_body
   end
 
@@ -166,10 +170,6 @@ class TestSexp < Test::Unit::TestCase # ZenTest FULL
     assert_equal Type.str, @sexp.sexp_type
     @sexp._set_sexp_type Type.bool
     assert_equal Type.bool, @sexp.sexp_type
-  end
-
-  def test_accessors=
-    raise NotImplementedError, 'Need to write test_accessors='
   end
 
   def test_array_type?
@@ -219,7 +219,15 @@ class TestSexp < Test::Unit::TestCase # ZenTest FULL
   end
 
   def test_method_missing
-    raise NotImplementedError, 'Need to write test_method_missing'
+    assert_raises NoMethodError do
+      @sexp.no_such_method
+    end
+
+    @sexp.accessors = [:its_a_method_now]
+
+    assert_nothing_raised do
+      assert_equal 2, @sexp.its_a_method_now
+    end
   end
 
   def util_pretty_print(expect, input)
@@ -244,10 +252,6 @@ class TestSexp < Test::Unit::TestCase # ZenTest FULL
                        s(:a, :b, Type.long))
     util_pretty_print("s(:a, s(:b, Type.long), Type.str)",
                        s(:a, s(:b, Type.long), Type.str))
-  end
-
-  def test_sexp_body
-    raise NotImplementedError, 'Need to write test_sexp_body'
   end
 
   def test_sexp_types
@@ -306,6 +310,7 @@ class TestSexpProcessor < Test::Unit::TestCase
       @processor.process(b)
     end
   end
+  def test_sexp_accessors=; end # handled
 
   def test_process_specific
     a = [:specific, 1, 2, 3]
@@ -423,19 +428,15 @@ class TestSexpProcessor < Test::Unit::TestCase
     # HACK whoa! Fixnum === Sexp.new("wtf?!?!?")
     @processor.expected = Float
     assert_equal Float, @processor.expected
-    assert ! Float === Sexp.new()
+    assert !(Float === Sexp.new()), "Float === Sexp.new should not be true"
 
     assert_raises(TypeError) do
-      p @processor.process(s(:str, "string"))     # should raise
+      @processor.process(s(:string, "string"))     # should raise
     end
 
     @processor.process([:expected])        # shouldn't raise
   end
   def test_expected=; end # handled
-
-  def test_sexp_accessors=
-    raise NotImplementedError, 'Need to write test_sexp_accessors='
-  end
 
   # Not Testing:
   def test_debug; end
