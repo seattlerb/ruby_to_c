@@ -151,6 +151,8 @@ class TestSexp < Test::Unit::TestCase # ZenTest FULL
     a = s(:call, s(:lit, 1), "func", s(:array, s(:lit, 2)))
     a.accessors = [:lhs, :name, :rhs]
 
+    assert_equal a.accessors, [:lhs, :name, :rhs]
+
     assert_equal s(:lit, 1), a.lhs
     assert_equal "func", a.name
     assert_equal s(:array, s(:lit, 2)), a.rhs
@@ -161,6 +163,7 @@ class TestSexp < Test::Unit::TestCase # ZenTest FULL
       a.lhs
     end
   end
+  def test_accessors; end # handled
 
   def test_sexp_body
     assert_equal [2, 3], @sexp.sexp_body
