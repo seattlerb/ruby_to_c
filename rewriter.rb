@@ -164,7 +164,7 @@ class Rewriter < SexpProcessor
     body = process exp.shift
 
     if var.nil? then
-      var = s(:lvar, "temp_var1") # HACK HACK HACK
+      var = s(:lvar, :temp_var1) # HACK Use Unique
     end
 
     assert_type call, :call
@@ -315,3 +315,4 @@ class R2CRewriter < SexpProcessor
     return result
   end
 end
+

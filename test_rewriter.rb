@@ -434,14 +434,14 @@ class TestRewriter_2 < Test::Unit::TestCase
                    s(:scope,
                      s(:block,
                        s(:dummy,
-                         s(:lasgn, "temp_var1", s(:lit, 3)),
+                         s(:lasgn, :temp_var1, s(:lit, 3)),
                          s(:while,
-                           s(:call, s(:lvar, "temp_var1"), :>=, s(:array, s(:lit, 1))),
+                           s(:call, s(:lvar, :temp_var1), :>=, s(:array, s(:lit, 1))),
                            s(:block,
                              s(:call, nil, :puts, s(:array, s(:str, "hello"))),
                              s(:lasgn,
-                               "temp_var1",
-                               s(:call, s(:lvar, "temp_var1"), :-, s(:array, s(:lit, 1))))))))))
+                               :temp_var1,
+                               s(:call, s(:lvar, :temp_var1), :-, s(:array, s(:lit, 1))))))))))
   @@multi_args = s(:defn, :multi_args,
                    s(:args, :arg1, :arg2),
                    s(:scope,

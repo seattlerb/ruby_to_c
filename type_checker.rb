@@ -662,7 +662,7 @@ class TypeChecker < SexpProcessor
 
   def process_not(exp)
     thing = process exp.shift
-    thing.unify Type.bool
+    thing.sexp_type.unify Type.bool
     return t(:not, thing, Type.bool)
   end
 

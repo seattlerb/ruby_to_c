@@ -12,6 +12,7 @@ class Environment
   end
 
   def add(id, val)
+    raise "Adding illegal identifier #{id.inspect}" unless String === id or Symbol === id
     @env[0][id] = val
   end
 

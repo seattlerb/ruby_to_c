@@ -335,8 +335,18 @@ class TestEnvironment < Test::Unit::TestCase
   end
 
   def test_add
-    @env.add 'var', 42
+    assert_equal 42, @env.add('var', 42)
     assert_equal 42, @env.lookup('var')
+  end
+
+  def test_add_raises_on_illegal
+    assert_raises RuntimeError do
+      @env.add nil, 1
+    end
+
+    assert_raises RuntimeError do
+      @env.add 1, 'foo'
+    end
   end
 
   def test_add_segmented
