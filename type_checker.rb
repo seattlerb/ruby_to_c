@@ -40,7 +40,6 @@ $bootstrap = {
 
 class TypeChecker < SexpProcessor
 
-  attr_reader :tree
   attr_reader :env
   attr_reader :genv
   attr_reader :functions
@@ -88,6 +87,8 @@ class TypeChecker < SexpProcessor
 
   def bootstrap
     @genv.add "$stderr", Type.file
+    @genv.add "$stdout", Type.file
+    @genv.add "$stdin", Type.file
 
     $bootstrap.each do |name,signatures|
       # FIX: Using Type.send because it must go through method_missing, not new
