@@ -252,7 +252,7 @@ class RubyToC
         else
           code << "break;\n"
         end#{body.join
-      when :rescue, :const then
+      when :rescue, :const, :dstr then
         raise SyntaxError, "'#{node_type}' is not a supported node type for translation (yet?)."
       else
         raise "Bug! Unknown node type #{node_type.inspect} in #{([node_type] + exp).inspect}"

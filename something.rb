@@ -1,8 +1,11 @@
 
 class Something
+
+  # basically: do we work at all?
   def empty
   end
 
+  # First order transformation: basic language constructs
   def stupid
     return nil
   end
@@ -73,20 +76,6 @@ class Something
     end
   end
 
-  def multi_args(arg1, arg2)
-    arg3 = arg1 * arg2 * 7
-    puts(arg3)
-    return "foo"
-  end
-
-  def bools(arg1)
-    unless arg1.nil? then
-      return true
-    else
-      return false
-    end
-  end
-
   def case_stmt
     var = 2
     result = ""
@@ -115,6 +104,22 @@ class Something
     return result
   end
 
+  # Other edge cases:
+
+  def multi_args(arg1, arg2)
+    arg3 = arg1 * arg2 * 7
+    puts(arg3)
+    return "foo"
+  end
+
+  def bools(arg1)
+    unless arg1.nil? then
+      return true
+    else
+      return false
+    end
+  end
+
   def eric_is_stubborn
     var = 42
     var2 = var.to_s
@@ -122,4 +127,8 @@ class Something
     return var2
   end
 
+  def interpolated
+    var = 14
+    var2 = "var is #{var}. So there."
+  end
 end

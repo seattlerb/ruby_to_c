@@ -202,6 +202,14 @@ class TestInferTypes < Test::Unit::TestCase
         [:call, [:gvar, "$stderr"], "puts", [:array, [:lvar, "var2"]]],
         [:return, [:lvar, "var2"]]]],
     Type.str]
+  @@interpolated = [:defn,
+    "interpolated",
+    [:scope,
+      [:block,
+        [:args],
+        [:lasgn, "var", [:lit, 14], Type.long],
+        [:lasgn, "var2", [:dstr, "var is ", [:lvar, "var"], [:str, ". So there."]], Type.str]]],
+    Type.void]
 
   @@augmenter = InferTypes.new
 

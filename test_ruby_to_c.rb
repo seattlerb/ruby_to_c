@@ -26,13 +26,18 @@ class TestRubyToC < Test::Unit::TestCase
   @@eric_is_stubborn = "char *\neric_is_stubborn() {\nlong var = 42;\nchar * var2 = sprintf(\"%ld\", var);\nfputs(var2, stderr);\nreturn var2;\n}"
 
   @@__all = []
+  @@__expect_raise = [ "interpolated" ]
 
   Something.instance_methods(false).sort.each do |meth|
     if class_variables.include?("@@#{meth}") then
       @@__all << eval("@@#{meth}")
       eval "def test_#{meth}; assert_equal @@#{meth}, RubyToC.translate(Something, :#{meth}); end"
     else
-      eval "def test_#{meth}; flunk \"You haven't added @@#{meth} yet\"; end"
+      if @@__expect_raise.include? meth then
+        eval "def test_#{meth}; assert_raise(SyntaxError) { RubyToC.translate(Something, :#{meth}) }; end"
+      else
+        eval "def test_#{meth}; flunk \"You haven't added @@#{meth} yet\"; end"
+      end
     end
   end
 

@@ -9,6 +9,21 @@ class ParseTree
     builder.add_type_converter("NODE *", '(NODE *)', '(VALUE)')
     builder.include '"intern.h"'
     builder.include '"node.h"'
+    builder.include '"st.h"'
+    builder.add_compile_flags "-Wall"
+    builder.add_compile_flags "-W"
+    builder.add_compile_flags "-Wundef"
+    builder.add_compile_flags "-Wpointer-arith"
+    builder.add_compile_flags "-Wcast-qual"
+    builder.add_compile_flags "-Wcast-align"
+    builder.add_compile_flags "-Wwrite-strings"
+    builder.add_compile_flags "-Wmissing-noreturn"
+    builder.add_compile_flags "-Werror"
+    # ruby.h screws these up hardcore:
+    # builder.add_compile_flags "-Wconversion"
+    # builder.add_compile_flags "-Wstrict-prototypes"
+    # builder.add_compile_flags "-Wmissing-prototypes"
+    # builder.add_compile_flags "-Wsign-compare", 
 
     builder.prefix %q{
         static char node_type_string[][60] = {
@@ -61,7 +76,7 @@ static ID *dump_local_tbl;
 static void add_to_parse_tree(VALUE ary, NODE * n) {
   NODE * volatile node = n;
   NODE * volatile contnode = NULL;
-  VALUE old_ary;
+  VALUE old_ary = Qnil;
   VALUE current;
   VALUE node_name;
 
@@ -342,14 +357,11 @@ again_no_block:
   case NODE_DREGX:
   case NODE_DREGX_ONCE:
     {
-      VALUE str, str2;
       NODE *list = node->nd_next;
       if (nd_type(node) == NODE_DREGX || nd_type(node) == NODE_DREGX_ONCE) {
-	int flag;
-	flag = node->nd_cflag & 0xf;
 	break;
       }
-// TODO: push new array
+      rb_ary_push(current, rb_str_new3(node->nd_lit));
       while (list) {
 	if (list->nd_head) {
 	  switch (nd_type(list->nd_head)) {
@@ -363,7 +375,6 @@ again_no_block:
 	    add_to_parse_tree(current, list->nd_head);
 	    break;
 	  }
-// TODO: add item to array
 	}
 	list = list->nd_next;
       }
@@ -382,7 +393,7 @@ again_no_block:
 
   case NODE_CLASS:
   case NODE_MODULE:
-    rb_ary_push(current, rb_str_new2(rb_id2name((long)node->nd_cpath->nd_mid)));
+    rb_ary_push(current, rb_str_new2(rb_id2name((ID)node->nd_cpath->nd_mid)));
     if (node->nd_super && nd_type(node) == NODE_CLASS) {
       add_to_parse_tree(current, node->nd_super);
     }
@@ -473,7 +484,7 @@ again_no_block:
       break;
     }
 
-  finish:
+//  finish:
     if (contnode) {
 	node = contnode;
 	contnode = NULL;
@@ -491,8 +502,10 @@ static VALUE parse_tree_for_method(VALUE klass, VALUE method) {
   ID id;
   VALUE result = rb_ary_new();
 
+  (void) self; // quell warnings
+
   id = rb_to_id(method);
-  if (st_lookup(RCLASS(klass)->m_tbl, id, &node)) {
+  if (st_lookup(RCLASS(klass)->m_tbl, id, (st_data_t *) &node)) {
     rb_ary_push(result, ID2SYM(rb_intern("defn")));
     rb_ary_push(result, method);
     add_to_parse_tree(result, node->nd_body);

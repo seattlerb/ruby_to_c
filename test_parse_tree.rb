@@ -191,7 +191,13 @@ class TestParseTree < Test::Unit::TestCase
         [:lasgn, "var2", [:call, [:lvar, "var"], "to_s"]],
         [:call, [:gvar, "$stderr"], "puts", [:array, [:lvar, "var2"]]],
         [:return, [:lvar, "var2"]]]]]
-
+  @@interpolated = [:defn,
+    "interpolated",
+    [:scope,
+      [:block,
+        [:args],
+        [:lasgn, "var", [:lit, 14]],
+        [:lasgn, "var2", [:dstr, "var is ", [:lvar, "var"], [:str, ". So there."]]]]]]
 
   @@__all = []
 

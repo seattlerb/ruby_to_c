@@ -423,8 +423,10 @@ class InferTypes
         Type.new(:str)
       # dstr is a dynamic string.  Returns the type :str.
       when :dstr
-        $stderr.puts "WARNING: dstr not supported, stripping nodes: #{exp.inspect}"
-        exp.clear
+        tree.add exp.shift
+        until exp.empty? do
+          check(exp.shift, tree)
+        end
         Type.new(:str)
       # :true, :false are literal booleans.  Returns the type :bool.
       when :true, :false then
