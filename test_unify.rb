@@ -37,8 +37,8 @@ end
 class TestType < Test::Unit::TestCase
 
   def setup
-    @unknown = Type.make_unknown
-    @unknown_list = Type.make_unknown_list
+    @unknown = Type.unknown
+    @unknown_list = Type.unknown_list
     @long = Type.long
     @long_list = Type.new(:long, true)
   end
@@ -72,12 +72,12 @@ class TestType < Test::Unit::TestCase
     assert_equal "Integer list", @long_list.to_s
   end
 
-  def test_make_unknown
-    assert_equal @unknown, Type.make_unknown
+  def test_unknown
+    assert_equal @unknown, Type.unknown
   end
 
-  def test_make_unknown_list
-    assert_equal @unknown_list, Type.make_unknown_list
+  def test_unknown_list
+    assert_equal @unknown_list, Type.unknown_list
     assert @unknown_list.list?
   end
 
@@ -97,7 +97,7 @@ class TestType < Test::Unit::TestCase
 
   def test_unify_simple
     long = Type.new(:long)
-    unknown = Type.make_unknown
+    unknown = Type.unknown
 
     assert_equal @long, long
 
@@ -110,7 +110,7 @@ class TestType < Test::Unit::TestCase
 
   def test_unify_list
     long_list = Type.new(:long, true)
-    unknown = Type.make_unknown
+    unknown = Type.unknown
 
     assert_equal @long_list, long_list
 
@@ -122,8 +122,8 @@ class TestType < Test::Unit::TestCase
   end
 
   def test_unify_link
-    unknown1 = Type.make_unknown
-    unknown2 = Type.make_unknown
+    unknown1 = Type.unknown
+    unknown2 = Type.unknown
     long = Type.new(:long)
 
     unknown1.unify unknown2
@@ -137,5 +137,4 @@ class TestType < Test::Unit::TestCase
   end
 
 end
-
 

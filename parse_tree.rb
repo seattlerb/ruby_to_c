@@ -12,7 +12,6 @@ class ParseTree
     builder.include '"st.h"'
     builder.add_compile_flags "-Wall"
     builder.add_compile_flags "-W"
-    builder.add_compile_flags "-Wundef"
     builder.add_compile_flags "-Wpointer-arith"
     builder.add_compile_flags "-Wcast-qual"
     builder.add_compile_flags "-Wcast-align"
@@ -20,6 +19,7 @@ class ParseTree
     builder.add_compile_flags "-Wmissing-noreturn"
     builder.add_compile_flags "-Werror"
     # ruby.h screws these up hardcore:
+    # builder.add_compile_flags "-Wundef"
     # builder.add_compile_flags "-Wconversion"
     # builder.add_compile_flags "-Wstrict-prototypes"
     # builder.add_compile_flags "-Wmissing-prototypes"

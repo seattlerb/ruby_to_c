@@ -38,20 +38,21 @@ class Type
 
   def self.method_missing(type, *args)
     raise "Unknown type #{type}" unless KNOWN_TYPES.has_key?(type)
-    TYPES[type] = self.new(type) unless TYPES.has_key?(type)
-    TYPES[type]
+    case type 
+    when :unknown then
+      return self.new(type)
+    else
+      TYPES[type] = self.new(type) unless TYPES.has_key?(type)
+      return TYPES[type]
+    end
+  end
+
+  def self.unknown_list
+    self.new(:unknown, true)
   end
 
   attr_accessor :type
   attr_accessor :list
-
-  def self.make_unknown
-    self.new(:unknown, false)
-  end
-
-  def self.make_unknown_list
-    self.new(:unknown, true)
-  end
 
   def initialize(type, list=false)
     raise "Unknown type #{type.inspect}" unless KNOWN_TYPES.has_key? type
@@ -204,7 +205,7 @@ class InferTypes
 
     if exp.nil? then
       tree.add nil
-      return Type.make_unknown
+      return Type.unknown
     end
 
     @original = exp.deep_clone if exp.first == :defn
@@ -219,7 +220,7 @@ class InferTypes
         types = []
         until exp.empty? do
           arg = exp.shift
-          typ = Type.make_unknown
+          typ = Type.unknown
           tree.add [arg, typ]
           @env.add arg, typ
           types << typ
@@ -281,7 +282,7 @@ class InferTypes
         else
           case method
           when 'each' then
-            lvar.unify Type.make_unknown_list
+            lvar.unify Type.unknown_list
           when 'nil?' then
             Type.bool
           when 'to_i', 'class' then
@@ -308,7 +309,7 @@ class InferTypes
       when :defn then
         name = exp.shift
         @env.extend
-        @env.add :return, Type.make_unknown
+        @env.add :return, Type.unknown
         tree.add name
         check(exp.shift, tree)
         ret_type = @env.lookup :return
@@ -326,7 +327,7 @@ class InferTypes
       when :fcall then
         tree.add exp.shift
         type = check(exp.shift, tree)
-        Type.make_unknown
+        Type.unknown
       # :if expects a conditional, if branch and else branch expressions.
       # Unifies and returns the type of the three expressions.
       when :if then
@@ -358,7 +359,7 @@ class InferTypes
         case sub_exp.first          
         when :array then
           arg_types = check(sub_exp, tree)
-          arg_type = arg_types.inject(Type.make_unknown) do |t1, t2|
+          arg_type = arg_types.inject(Type.unknown) do |t1, t2|
             t1.unify t2
           end
           arg_type.list = true
@@ -396,7 +397,7 @@ class InferTypes
         tree.add gvar
         gvar_type = @genv.lookup gvar
         if gvar_type.nil? then
-          gvar_type = Type.make_unknown
+          gvar_type = Type.unknown
           @genv.add name, gvar_type
         end
 #        tree.add gvar_type
