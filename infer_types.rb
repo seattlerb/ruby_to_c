@@ -1,76 +1,117 @@
 require 'parse_tree'
 
 # REFACTOR: dup code
+
 class Object
   def deep_clone
     Marshal.load(Marshal.dump(self))
   end
 end
 
-module Unify
+class Handle
 
-  SIMPLE_TYPES = [ :str, :nil, :bool, :long ]
+  attr_accessor :contents
 
-  def make_unknown
-    [:unknown]
+  def initialize(contents)
+    @contents = contents
   end
 
-  # DEAR GOD I HATE THIS METHOD
-  def type_of(typ)
-    if SIMPLE_TYPES.include?(typ) or
-       (Array === typ and
-        (typ[0] == :list or
-         typ[0] == :unknown)) then
-      typ
-    elsif typ == :unknown then
-      [typ]
+  def ==(other)
+    return nil unless other.class == self.class
+    return other.contents == self.contents
+  end
+
+end
+
+class Type
+
+  KNOWN_TYPES = {
+    :unknown => "Unknown",
+    :long => "Integer",
+    :str => "String",
+    :void => "Void",
+    :bool => "Bool",
+    :value => "Value",
+  }
+
+  TYPES = {}
+
+  def self.method_missing(meth, *args)
+    raise "Unknown type #{meth}" unless TYPES.has_key?(meth)
+    TYPES[meth]
+  end
+
+  attr_accessor :type
+  attr_accessor :list
+
+  def self.make_unknown
+    self.new
+  end
+
+  def self.make_unknown_list
+    unknown_list = self.new
+    unknown_list.list = true
+    unknown_list
+  end
+
+  def initialize(type = :unknown, list = false)
+    raise "Unknown type #{type.inspect}" unless KNOWN_TYPES.has_key? type
+    @type = Handle.new type
+    @list = list
+  end
+
+  KNOWN_TYPES.keys.each do |type|
+    TYPES[type] = Type.new(type)
+  end
+
+  def unknown?
+    self.type.contents == :unknown
+  end
+
+  def list?
+    @list
+  end
+
+  def list_type
+    @type.contents
+  end
+
+  def ==(other)
+    return nil unless other.class == self.class
+
+    return false unless other.type == self.type
+    return false unless other.list? == self.list?
+    return true
+  end
+
+  def unify(other)
+    return self if other == self and (not self.unknown?)
+
+    if self.unknown? and other.unknown? then
+      # link types between unknowns
+      @type = other.type
+      @list = other.list? or self.list? # HACK may need to be tri-state
+    elsif self.unknown? then
+      # other's type is now my type
+      @type.contents = other.type.contents
+      @list = other.list?
+    elsif other.unknown? then
+      # my type is now other's type
+      other.type.contents = @type.contents
+      other.list = self.list?
     else
-      type_of typ[0]
+      raise "Unable to unify #{self} with #{other}"
     end
+
+    return self
   end
 
-  def end_of(list)
-    if Array === list and Array === list[1] then
-      end_of list[1]
-    else
-      list
-    end
+  def to_s
+    KNOWN_TYPES[@type.contents] + "#{' list' if self.list?}"
   end
 
-  def go_postal(x)
-    if Array === x && x[0] == :list then
-      raise "stupid: #{x.inspect}" unless Array === x[1]
-    end
-  end
-
-  def unify(l1, l2)
-
-    ret = nil
-
-    t1 = type_of l1
-    t2 = type_of l2
-
-    go_postal(t1)
-    go_postal(t2)
-
-    if t1 == t2 then
-      ret = t1
-    elsif Symbol === t1 and Symbol === t2 and t1 != t2 then
-      raise "Unable to unify types #{t1.inspect} and #{t2.inspect}"
-    elsif t1 == make_unknown then
-      t1[0] = t2
-      ret = t2
-    elsif t2 == make_unknown then
-      t2[0] = t1
-      ret = t1
-    # THIS IS HORRID OO DESIGN
-    elsif Array === t1 and Array === t2 and :list == t1[0] and :list == t2[0] then
-      ret = [:list, unify(t1[1][0], t2[1][0])]
-    else
-      raise "We shouldn't be here!: #{t1.inspect}, #{t2.inspect}"
-    end
-
-    return ret
+  def inspect
+    "Type(#{self})"
   end
 
 end
@@ -143,8 +184,6 @@ end
 
 class InferTypes
 
-  include Unify
-
   attr_reader :tree
   attr_reader :env
 
@@ -169,7 +208,7 @@ class InferTypes
 
     if exp.nil? then
       tree.add nil
-      return make_unknown
+      return Type.make_unknown
     end
 
     @original = exp.deep_clone if exp.first == :defn
@@ -184,7 +223,7 @@ class InferTypes
         types = []
         until exp.empty? do
           arg = exp.shift
-          typ = make_unknown
+          typ = Type.make_unknown
           tree.add [arg, typ]
           @env.add arg, typ
           types << typ
@@ -207,7 +246,7 @@ class InferTypes
         # TODO: test me
         try_block = check(exp.shift, tree)
         rescue_block = check(exp.shift, tree)
-        unify try_block, rescue_block
+        try_block.unify rescue_block
         try_block
       # :block expects a list of expressions.  Returns the type of the last
       # expression.
@@ -226,33 +265,31 @@ class InferTypes
         method = exp.shift
         tree.add method
         unless exp.empty? then
-          rvar = check(exp.shift, tree)
+          rvar = check(exp.shift, tree)[0]
           case method
           when '==', 'equal?' then
-            rvar = rvar[0]
-            unify lvar, rvar
-            :bool
+            rvar.unify lvar
+            Type.new(:bool)
           when '<', '>', '<=', '>=', '<=>',
             '+', '-', '*', '/', '%' then
-            rvar = rvar[0]
             # HACK HACK HACK: unify rvar, :long
             # TODO: unify and use real type
-            unify lvar, rvar
+            rvar.unify lvar
           when 'puts' then
             # TODO: we need to look up out of a real table of C methods
-            unify rvar, :str
-            :nil
+            rvar.unify Type.new(:str)
+            Type.new(:void)
           else
             raise "unhandled method #{method}"
           end
         else
           case method
           when 'each' then
-            unify lvar, [:list, [make_unknown]]
+            lvar.unify Type.make_unknown_list
           when 'nil?', 'to_i', 'class' then
             lvar
           when 'to_s' then
-            :str
+            Type.new(:str)
           else
             raise "unhandled method '#{method}'"
           end
@@ -262,10 +299,11 @@ class InferTypes
       when :defn then
         name = exp.shift
         @env.extend
-        @env.add :return, make_unknown
+        @env.add :return, Type.make_unknown
         tree.add name
         check(exp.shift, tree)
         ret_type = @env.lookup :return
+        ret_type = Type.void if ret_type.unknown?
         @env.unextend
         tree.add ret_type
         ret_type
@@ -279,14 +317,15 @@ class InferTypes
       when :fcall then
         tree.add exp.shift
         type = check(exp.shift, tree)
-        make_unknown
+        Type.make_unknown
       # :if expects a conditional, if branch and else branch expressions.
       # Unifies and returns the type of the three expressions.
       when :if then
         cond_type = check(exp.shift, tree)
         then_type = check(exp.shift, tree)
         else_type = check(exp.shift, tree)
-        unify then_type, else_type 
+        # TODO: cond_type.unify Type.new(:bool)
+        then_type.unify else_type
       # :iter expects a call, dargs and body expression.  Unifies the type of
       # the call and dargs expressions.  Returns the type of the body.
       when :iter then
@@ -296,7 +335,9 @@ class InferTypes
 
         call = check(call_exp, tree)
         dargs = check(dargs_exp, tree)
-        unify call[1], dargs[0]
+
+        # HACK: call needs to be a list type (this may not be an actual hack)
+        Type.new(call.list_type).unify dargs[0]
         body = check(body_exp, tree)
       # :lasgn expects a variable name and an expression.  Returns the type of
       # the variable.
@@ -308,17 +349,16 @@ class InferTypes
         case sub_exp.first          
         when :array then
           arg_types = check(sub_exp, tree)
-          arg_type = arg_types.inject make_unknown do |t1, t2|
-            unify t1, t2
+          arg_type = arg_types.inject(Type.make_unknown) do |t1, t2|
+            t1.unify t2
           end
-          
-          arg_type = [:list, [arg_type]]
+          arg_type.list = true
         else
-          arg_type = [check(sub_exp, tree)]
+          arg_type = check(sub_exp, tree)
         end
 
         unless name_type.nil? then
-          unify name_type, arg_type
+          name_type.unify arg_type
         end
 
         tree.add arg_type
@@ -332,7 +372,7 @@ class InferTypes
         tree.add lit
         case lit
         when Fixnum then
-          :long
+          Type.new(:long)
         else
           raise "Bug! Unknown literal type #{exp}"
         end
@@ -347,7 +387,7 @@ class InferTypes
         tree.add gvar
         gvar_type = @genv.lookup gvar
         if gvar_type.nil? then
-          gvar_type = make_unknown
+          gvar_type = Type.make_unknown
           @genv.add name, gvar_type
         end
         tree.add gvar_type
@@ -355,12 +395,13 @@ class InferTypes
       # :nil returns the type :nil.
       when :nil then
         # don't do a fucking thing until... we have something to do
-        :nil
+        # HACK: wtf to do here?
+        Type.new(:value)
       # :return expects an expression.  Unifies the return type with the
       # current method's return type and returns it.
       when :return then
         value = check(exp.shift, tree)
-        unify @env.lookup(:return), value
+        @env.lookup(:return).unify value
       # :scope expects an expression.  Returns the type of the the expression.
       when :scope then
         @env.extend
@@ -370,15 +411,15 @@ class InferTypes
       # :str is a literal string.  Returns the type :str.
       when :str then
         tree.add exp.shift
-        :str
+        Type.new(:str)
       # dstr is a dynamic string.  Returns the type :str.
       when :dstr
         $stderr.puts "WARNING: dstr not supported, stripping nodes: #{exp.inspect}"
         exp.clear
-        :str
+        Type.new(:str)
       # :true, :false are literal booleans.  Returns the type :bool.
       when :true, :false then
-        :bool
+        Type.new(:bool)
       # :const expects an expression.  Returns the type of the constant.
       when :const
         c = exp.shift
@@ -387,7 +428,7 @@ class InferTypes
         else
           raise "I don't know what to do with const #{c}. It doesn't look like a class."
         end
-        :zclass
+        Type.new(:zclass)
       else
         raise "Bug! Unknown node type #{node_type.inspect} in #{([node_type] + exp).inspect}"
       end # case

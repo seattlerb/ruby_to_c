@@ -8,28 +8,28 @@ require 'something'
 
 class TestInferTypes < Test::Unit::TestCase
 
-  # TODO: methods with no return stmt should have return type of :none
+  # TODO: methods with no return stmt should have return type of :void
   @@empty = [:defn, "empty",
     [:scope,
       [:args]],
-    [:unknown]]
+    Type.new(:void)]
   @@stupid = [:defn, "stupid",
     [:scope,
       [:block,
         [:args],
         [:return, [:nil]]]],
-    [:nil]]
+    Type.new(:value)]
   @@simple = [:defn, "simple",
     [:scope,
       [:block,
-        [:args, ["arg1", [:unknown]]],
+        [:args, ["arg1", Type.make_unknown]],
         [:fcall, "print", [:array, [:lvar, "arg1"]]],
         [:fcall, "puts",
           [:array,
             [:call, [:lit, 4],
               "+",
               [:array, [:lit, 2]]]]]]],
-    [:unknown]]
+    Type.new(:void)]
   @@global = [:defn, "global",
     [:scope,
       [:block,
@@ -38,7 +38,7 @@ class TestInferTypes < Test::Unit::TestCase
           [:gvar, "$stderr", :file],
           "puts",
           [:array, [:str, "blah"]]]]],
-    [:unknown]]
+    Type.new(:void)]
   @@lasgn_call = [:defn, "lasgn_call",
     [:scope,
       [:block,
@@ -48,12 +48,12 @@ class TestInferTypes < Test::Unit::TestCase
             [:lit, 2],
             "+",
             [:array, [:lit, 3]]],
-          [:long]]]],
-    [:unknown]]
+          Type.new(:long)]]],
+    Type.new(:void)]
   @@conditional1 = [:defn, "conditional1",
     [:scope,
       [:block,
-        [:args, ["arg1", [:long]]],
+        [:args, ["arg1", Type.new(:long)]],
         [:if,
           [:call,
             [:lvar, "arg1"],
@@ -61,11 +61,11 @@ class TestInferTypes < Test::Unit::TestCase
             [:array, [:lit, 0]]],
           [:return, [:lit, 1]],
           nil]]],
-    [:long]]
+    Type.new(:long)]
   @@conditional2 = [:defn, "conditional2",
     [:scope,
       [:block,
-        [:args, ["arg1", [:long]]],
+        [:args, ["arg1", Type.new(:long)]],
         [:if,
           [:call,
             [:lvar, "arg1"],
@@ -73,23 +73,23 @@ class TestInferTypes < Test::Unit::TestCase
             [:array, [:lit, 0]]],
           nil,
           [:return, [:lit, 2]]]]],
-    [:long]]
+    Type.new(:long)]
   @@conditional3 = [:defn, "conditional3",
     [:scope,
       [:block,
-        [:args, ["arg1", [:long]]],
+        [:args, ["arg1", Type.new(:long)]],
         [:if,
           [:call,
             [:lvar, "arg1"],
             "==",
             [:array, [:lit, 0]]],
           [:return, [:lit, 3]],
-          [:return, [:lit, 4]]]]],
-    [:long]]
+          [:return, [:lit, 4]]]]], 
+    Type.new(:long)]
   @@conditional4 = [:defn, "conditional4",
     [:scope,
       [:block,
-        [:args, ["arg1", [:long]]],
+        [:args, ["arg1", Type.new(:long)]],
         [:if,
           [:call,
             [:lvar, "arg1"],
@@ -103,63 +103,61 @@ class TestInferTypes < Test::Unit::TestCase
               [:array, [:lit, 0]]],
             [:return, [:lit, 3]],
             [:return, [:lit, 4]]]]]],
-    [:long]]
+    Type.new(:long)]
   @@iteration_body = [:scope,
     [:block,
       [:args],
       [:lasgn, "array",
-        [:array, [:lit, 1], [:lit, 2], [:lit, 3]],
-        [:list, [:long]]],
+        [:array, [:lit, 1], [:lit, 2], [:lit, 3]], 
+        Type.new(:long, true)],
       [:iter,
         [:call, [:lvar, "array"], "each"],
-        [:dasgn_curr,
-          ["x", [:long]]],
+        [:dasgn_curr, ["x", Type.new(:long)]],
         [:fcall, "puts", [:array, [:dvar, "x"]]]]]]
-  @@iteration1 = [:defn, "iteration1", @@iteration_body, [:unknown]]
-  @@iteration2 = [:defn, "iteration2", @@iteration_body, [:unknown]]
-  @@iteration3 = [:defn, "iteration3", [:scope,
+  @@iteration1 = [:defn, "iteration1", @@iteration_body, Type.new(:void)]
+  @@iteration2 = [:defn, "iteration2", @@iteration_body, Type.new(:void)]
+  @@iteration3 = [:defn, "iteration3",
+    [:scope,
       [:block,
         [:args],
         [:lasgn, "array1",
           [:array, [:lit, 1], [:lit, 2], [:lit, 3]],
-          [:list, [:long]]],
+          Type.new(:long, true)],
         [:lasgn, "array2",
           [:array, [:lit, 4], [:lit, 5], [:lit, 6], [:lit, 7]],
-          [:list, [:long]]],
+          Type.new(:long, true)],
         [:iter,
           [:call, [:lvar, "array1"], "each"],
-          [:dasgn_curr, ["x", [:long]]],
+          [:dasgn_curr, ["x", Type.new(:long)]],
           [:iter,
             [:call, [:lvar, "array2"], "each"],
-            [:dasgn_curr, ["y", [:long]]],
+            [:dasgn_curr, ["y", Type.new(:long)]],
             [:block,
               [:fcall, "puts", [:array, [:dvar, "x"]]],
               [:fcall, "puts", [:array, [:dvar, "y"]]]]]]]],
-    [:unknown]]
+    Type.new(:void)]
   @@multi_args = [:defn, "multi_args",
     [:scope,
       [:block,
         [:args,
-          ["arg1", [:unknown]],
-          ["arg2", [:unknown]]],
-        [:fcall,
-          "puts",
-          [:array,
-            [:call,
+          ["arg1", Type.make_unknown],
+          ["arg2", Type.make_unknown]],
+        [:fcall, "puts",
+          [:array, [:call,
               [:lvar, "arg1"],
               "*",
               [:array, [:lvar, "arg2"]]]]],
         [:return, [:str, "foo"]]]],
-    [:str]]
+    Type.new(:str)]
   @@bools = [:defn, "bools",
     [:scope,
       [:block,
-        [:args, ["arg1", [:unknown]]],
+        [:args, ["arg1", Type.make_unknown]],
         [:if,
           [:call, [:lvar, "arg1"], "nil?"],
           [:return, [:false]],
           [:return, [:true]]]]],
-    [:bool]]
+    Type.new(:bool)]
 
   @@augmenter = InferTypes.new
 

@@ -10,27 +10,27 @@ end
 module TypeMap
 
   def c_type(typ)
-    case typ
-    when :long then
-      "long"
-    when :str then
-      "char *"
-    when :bool then # TODO: subject to change
-      "long"
-    when :unknown then
-      "void"
-    when :nil then
-      "VALUE"
-    when Array then
-      case typ[0]
-      when :list
-        "#{c_type typ[1]}[]"
+    base_type = 
+      case typ.type.contents # HACK this is breaking demeter
+      when :long then
+        "long"
+      when :str then
+        "char *"
+      when :bool then # TODO: subject to change
+        "long"
+      when :void then
+        "void"
+      when :value, :unknown then
+        "VALUE"
+# HACK      when :unknown then
+#        raise "You should not have unknown types by now!"
       else
-        c_type typ[0]
+        raise "Bug! Unknown type #{typ.inspect}"
       end
-    else
-      raise "Bug! Unknown type #{typ.inspect}"
-    end
+
+    base_type += "[]" if typ.list? # HACK - nuke me
+
+    base_type
   end
 
 end
