@@ -272,6 +272,7 @@ class TestTypeChecker < Test::Unit::TestCase
 
     assert_equal(Type.long,
                  s_type.list_type.formal_types[0])
+    flunk "eric hasn't finished writing me yet. guilt. guilt. guilt."
   end
 
   def test_process_call_case_equal_long
@@ -1275,11 +1276,26 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                          Type.void),
                        Type.function(Type.unknown, [], Type.void))
 
+  @@zarray = t(:defn,
+               :zarray,
+               t(:args),
+               t(:scope,
+                 t(:block,
+                   t(:lasgn,
+                     :a,
+                     t(:array), Type.unknown_list),
+                   Type.unknown),
+                 Type.void),
+               Type.function(Type.unknown, [], Type.void))
+
   @@__all = s()
 
   @@__type_checker = TypeChecker.new
 
+  @@__skip = [ "accessor", "accessor=" ]
+
   Something.instance_methods(false).sort.each do |meth|
+    next if @@__skip.include? meth                     
     if class_variables.include?("@@#{meth}") then
       @@__all << eval("@@#{meth}")
       eval "def test_#{meth}

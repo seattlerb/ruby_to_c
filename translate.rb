@@ -1,8 +1,5 @@
 #!/usr/local/bin/ruby -ws
 
-# strict: stop on first failure
-$s ||= false
-
 old_classes = []
 ObjectSpace.each_object(Class) do |klass|
   old_classes << klass
@@ -24,6 +21,6 @@ new_classes -= old_classes
 puts RubyToC.preamble
 
 new_classes.each do |klass|
-  puts RubyToC.translate_all_of(klass, ! $s)
-end
+  puts RubyToC.translate_all_of(klass)
+end rescue nil
 

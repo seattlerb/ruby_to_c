@@ -86,21 +86,17 @@ typedef struct { unsigned long length; long * contents; } long_array;
     end
   end
 
-  def self.translate_all_of(klass, catch_exceptions=false)
+  def self.translate_all_of(klass)
     result = []
 
     klass.instance_methods(false).sort.each do |method|
       result << 
-        if catch_exceptions then
-          begin
-            self.translate(klass, method)
-          rescue Exception => err
-            [ "// ERROR translating #{method}: #{err}",
-            "//   #{err.backtrace.join("\n//   ")}",
-            "//   #{ParseTree.new.parse_tree_for_method(klass, method).inspect}" ]
-          end
-        else
+        begin
           self.translate(klass, method)
+        rescue Exception => err
+          [ "// ERROR translating #{method}: #{err}",
+          "//   #{err.backtrace.join("\n//   ")}",
+          "//   #{ParseTree.new.parse_tree_for_method(klass, method).inspect}" ]
         end
     end
 

@@ -64,25 +64,35 @@ class Rewriter < SexpProcessor
 
   ##
   # Rewrites :defn nodes to pull the functions arguments to the top:
+  #
+  # Input:
+  #
+  #   [:defn, name, [:scope, [:block, [:args, ...]]]]
+  #   [:defn, name, [:ivar, name]]
+  #   [:defn, name, [:attrset, name]]
+  #
   # [:defn, name, args, body]
 
   def process_defn(exp)
     name = exp.shift
-    args = nil
+    args = s(:args)
     body = process exp.shift
 
-    if Array === body[1] then
-      if body[1].first == :args then
-        args = body[1]
-        body.delete_at 1
-      elsif body.last[1].first == :args then
-        args = body.last[1]
-        body.last.delete_at 1
-      else
-        raise "Unknown :defn format: #{body.inspect}"
-      end
+    case body.first
+    when :scope then
+      args = body.last[1]
+      assert_type args, :args
+      assert_type body, :scope
+      assert_type body[1], :block
+      body.last.delete_at 1
+    when :ivar then
+      body = s(:scope, s(:block, s(:return, body)))
+    when :attrset then
+      argname = body.last
+      args << :arg
+      body = s(:scope, s(:block, s(:return, s(:iasgn, argname, s(:lvar, :arg)))))
     else
-      raise "Node :defn is not an Array: #{body.inspect}"
+      raise "Unknown :defn format: #{exp.inspect}"
     end
 
     Sexp.new(:defn, name, args, body)
@@ -182,6 +192,14 @@ class Rewriter < SexpProcessor
     stmts = process(exp)
     return Sexp.new(:when, vars, stmts.first)
   end
+
+  ##
+  # Rewrites :zarray nodes to :array.
+
+  def process_zarray(exp)
+    return s(:array)
+  end
+
 end
 
 class R2CRewriter < SexpProcessor

@@ -156,8 +156,6 @@ class TypeChecker < SexpProcessor
       vars << var
       types << var.sexp_type
     end
-    # HACK!!! omg types cannot be an array, but we don't ... yeah. brokey.
-    # vars.sexp_type = types
     vars
   end
 
@@ -222,6 +220,43 @@ class TypeChecker < SexpProcessor
     return t(:call, lhs, name, args, return_type)
   end
 
+  def process_class(exp)
+    name = exp.shift
+    superclass = exp.shift
+
+    result = t(:class)
+    result << name
+    result << superclass
+
+    until exp.empty? do
+      result << process(exp.shift)
+    end
+
+    return result
+  end
+
+  ##
+  # :const expects an expression.  Returns the type of the constant.
+  #--
+  # :const isn't supported anywhere.
+
+  def process_const(exp)
+    c = exp.shift
+    if c =~ /^[A-Z]/ then
+      #puts "class #{c}" # HACK do something real here
+    else
+      raise "I don't know what to do with const #{c}. It doesn't look like a class."
+    end
+    Type.new(:zclass)
+    raise "not done yet"
+  end
+
+  def process_cvar(exp)
+    # TODO: we should treat these as globals and have them in the top scope
+    name = exp.shift
+    return t(:cvar, name, Type.unknown)
+  end
+
   ##
   # Expects a single variable.  Returns the expression and the unknown type.
 
@@ -231,6 +266,11 @@ class TypeChecker < SexpProcessor
     @env.add name, type
 
     return t(:dasgn_curr, name, type)
+  end
+
+  def process_defined(exp)
+    thing = process exp.shift
+    return t(:defined, thing, Type.bool)
   end
 
   ##
@@ -283,12 +323,38 @@ class TypeChecker < SexpProcessor
   end
 
   ##
+  # :dstr is a dynamic string.  Returns the type :str.
+
+  def process_dstr(exp)
+    out = t(:dstr, exp.shift, Type.str)
+    until exp.empty? do
+      result = process exp.shift
+      out << result
+    end
+    return out
+  end
+
+  ##
   # Expects a variable name.  Returns the expression and variable type.
 
   def process_dvar(exp)
     name = exp.shift
     type = @env.lookup name
     return t(:dvar, name, type)
+  end
+
+  ##
+  # Empty expression. Returns the expression and the boolean type.
+
+  def process_false(exp)
+    return t(:false, Type.bool)
+  end
+
+  def process_iasgn(exp)
+    var = exp.shift
+    val = process exp.shift
+    # TODO: do we need to unify these?
+    return t(:iasgn, var, val)
   end
 
   ##
@@ -327,6 +393,11 @@ class TypeChecker < SexpProcessor
     Type.new(lhs.sexp_type.list_type).unify dargs_exp.sexp_type
 
     return t(:iter, call_exp, dargs_exp, body_exp, Type.void)
+  end
+
+  def process_ivar(exp)
+    name = exp.shift
+    return t(:ivar, name, Type.unknown)
   end
 
   ##
@@ -414,6 +485,20 @@ class TypeChecker < SexpProcessor
     return t(:nil, Type.value)
   end
 
+  def process_not(exp)
+    thing = process exp.shift
+    thing.unify Type.bool
+    return t(:not, thing, Type.bool)
+  end
+
+  def process_op_asgn_or(exp)
+    ivar = process exp.shift
+    iasgn = process exp.shift
+    body = process exp.shift
+    # TODO: probably need to unify all three? or at least the first two...
+    return t(:op_asgn_or, ivar, iasgn, body)
+  end
+
   def process_or(exp)
     rhs = process exp.shift
     lhs = process exp.shift
@@ -471,23 +556,16 @@ class TypeChecker < SexpProcessor
     return t(:scope, body, Type.void)
   end
 
+  def process_self(exp)
+    return t(:self, Type.unknown)
+  end
+
+
   ##
   # A literal string.  Returns the string and the string type.
 
   def process_str(exp)
     return t(:str, exp.shift, Type.str)
-  end
-
-  ##
-  # :dstr is a dynamic string.  Returns the type :str.
-
-  def process_dstr(exp)
-    out = t(:dstr, exp.shift, Type.str)
-    until exp.empty? do
-      result = process exp.shift
-      out << result
-    end
-    return out
   end
 
   ##
@@ -497,36 +575,19 @@ class TypeChecker < SexpProcessor
     return t(:true, Type.bool)
   end
 
-  # TODO: move these into alphabetical order
-
   ##
-  # Empty expression. Returns the expression and the boolean type.
-
-  def process_false(exp)
-    return t(:false, Type.bool)
-  end
-
-  ##
-  # :const expects an expression.  Returns the type of the constant.
-  #--
-  # :const isn't supported anywhere.
-
-  def process_const(exp)
-    c = exp.shift
-    if c =~ /^[A-Z]/ then
-      #puts "class #{c}" # HACK do something real here
-    else
-      raise "I don't know what to do with const #{c}. It doesn't look like a class."
-    end
-    Type.new(:zclass)
-    raise "not done yet"
-  end
+  # While loop. Returns the expression after unifying the condition
+  # and the body.
 
   def process_while(exp)
     cond = process exp.shift
     body = process exp.shift
     Type.bool.unify cond.sexp_type
     t(:while, cond, body)
+  end
+
+  def process_zarray(exp)
+    t(:zarray) # nothing to do until it gets stuff
   end
   
 end

@@ -661,10 +661,20 @@ unknown_args(long arg1, char * arg2) {
 return arg1;
 }"
 
-  @@__all = t()
-  @@__expect_raise = t( "interpolated" )
+  # TODO: we need to do something w/ said array because this is dumb:
+  @@zarray = "void
+zarray() {
+VALUE_array a;
+a.length = 0;
+a.contents = (long*) malloc(sizeof(long) * a.length);
+}"
+
+  @@__all = []
+  @@__expect_raise = [ "interpolated" ]
+  @@__skip = [ "accessor", "accessor=" ]
 
   Something.instance_methods(false).sort.each do |meth|
+    next if @@__skip.include? meth                     
     if class_variables.include?("@@#{meth}") then
       @@__all << eval("@@#{meth}")
       eval "def test_#{meth}

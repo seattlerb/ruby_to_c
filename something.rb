@@ -1,6 +1,8 @@
 
 class Something
 
+  attr_accessor :accessor
+
   # basically: do we work at all?
   def empty
   end
@@ -151,6 +153,10 @@ class Something
 
   def determine_args
     5 == unknown_args(4, "known")
+  end
+
+  def zarray
+    a = []
   end
 
 end

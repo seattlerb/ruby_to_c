@@ -27,18 +27,24 @@ class TestRewriter < Test::Unit::TestCase
   end
 
   def test_process_defn_block
-    input =  [:defn, :block, [:scope, [:block, [:args], [:return, [:nil]]]]]
-    output = [:defn, :block, [:args], [:scope, [:block, [:return, [:nil]]]]]
+    input =  [:defn, :meth, [:scope, [:block, [:args], [:return, [:nil]]]]]
+    output = [:defn, :meth, [:args], [:scope, [:block, [:return, [:nil]]]]]
 
     assert_equal output, @rewrite.process(input)
   end
 
-  # example: attr_accessor :block
-  def test_process_defn_unknown
-    input = [:defn, :type, [:ivar, :@type]]
-    assert_raises RuntimeError do
-      @rewrite.process(input)
-    end
+  def test_process_defn_ivar
+    input =  [:defn, :name, [:ivar, :@name]]
+    output = [:defn, :name, [:args], [:scope, [:block, [:return, [:ivar, :@name]]]]]
+
+    assert_equal output, @rewrite.process(input)
+  end
+
+  def test_process_defn_attrset
+    input =  [:defn, :meth, [:attrset, :@name]]
+    output = [:defn, :meth, [:args, :arg], [:scope, [:block, [:return, [:iasgn, :@name, [:lvar, :arg]]]]]]
+
+    assert_equal output, @rewrite.process(input)
   end
 
   def test_process_fcall
@@ -558,20 +564,39 @@ class TestRewriter_2 < Test::Unit::TestCase
                                  s(:array,
                                    s(:lit, 4), s(:str, "known"))))))))
 
+  @@zarray = s(:defn, :zarray,
+               s(:args),
+               s(:scope,
+                 s(:block, s(:lasgn, :a, s(:array)))))
+
+  @@accessor = s(:defn,
+                 :accessor,
+                 s(:args),
+                 s(:scope, s(:block, s(:return, s(:ivar, :@accessor)))))
+
+  @@accessor_equals = s(:defn,
+                        :accessor=,
+                        s(:args, :arg),
+                        s(:scope,
+                          s(:block,
+                            s(:return,
+                              s(:iasgn, :@accessor, s(:lvar, :arg))))))
+
   @@__all = []
 
   @@__parser = ParseTree.new
   @@__rewriter = Rewriter.new
 
   Something.instance_methods(false).sort.each do |meth|
-    if class_variables.include?("@@#{meth}") then
-      @@__all << eval("@@#{meth}")
+    meth_name = meth.gsub(/=/, '_equals')
+    if class_variables.include?("@@#{meth_name}") then
+      @@__all << eval("@@#{meth_name}")
       eval "def test_#{meth}
         
-        assert_equal @@#{meth}, @@__rewriter.process(@@__parser.parse_tree_for_method(Something, :#{meth}))
+        assert_equal @@#{meth_name}, @@__rewriter.process(@@__parser.parse_tree_for_method(Something, :#{meth}))
       end"
     else
-      eval "def test_#{meth}; flunk \"You haven't added @@#{meth} yet\"; end"
+      eval "def test_#{meth}; flunk \"You haven't added @@#{meth_name} yet\"; end"
     end
   end
 
