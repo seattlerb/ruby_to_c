@@ -190,16 +190,15 @@ class InferTypes
   end
 
   def augment(klass, method=nil)
-    tree = @tree
     sexp = ParseTree.new.parse_tree(klass, method)
 
     sexp = [sexp] unless Array === sexp.first
 
     sexp.each do |exp|
-      self.check(exp, tree)
+      self.check(exp, @tree)
     end
 
-    tree.root
+    @tree.tree.last # HACK - augment needs to return the method(s) processed
   end
 
   protected
