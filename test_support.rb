@@ -89,31 +89,31 @@ class TestFunctionType < Test::Unit::TestCase
   def test_unify_components_fail
     fun1 = FunctionType.new(Type.long, [Type.str], Type.unknown)
     fun2 = FunctionType.new(Type.unknown, [Type.long], Type.long)
-    assert_raises(RuntimeError) do
+    assert_raises(TypeError) do
       fun1.unify_components fun2
     end
 
     fun3 = FunctionType.new(Type.long, [], Type.unknown)
     fun4 = FunctionType.new(Type.unknown, [Type.unknown], Type.long)
-    assert_raises(RuntimeError) do
+    assert_raises(TypeError) do
       fun3.unify_components fun4
     end
 
     fun5 = FunctionType.new(Type.long, [Type.unknown], Type.unknown)
     fun6 = FunctionType.new(Type.unknown, [], Type.long)
-    assert_raises(RuntimeError) do
+    assert_raises(TypeError) do
       fun5.unify_components fun6
     end
 
     fun7 = FunctionType.new(Type.long, [], Type.str)
     fun8 = FunctionType.new(Type.unknown, [], Type.long)
-    assert_raises(RuntimeError) do
+    assert_raises(TypeError) do
       fun7.unify_components fun8
     end
 
     fun9 = FunctionType.new(Type.long, [], Type.str)
     funa = FunctionType.new(Type.str, [], Type.unknown)
-    assert_raises(RuntimeError) do
+    assert_raises(TypeError) do
       fun7.unify_components fun8
     end
   end
@@ -202,11 +202,11 @@ class TestType < Test::Unit::TestCase
     string = Type.new(:str)
     long_list = Type.new(:long, true)
 
-    assert_raises(RuntimeError) do
+    assert_raises(TypeError) do
       long.unify string
     end
 
-    assert_raises(RuntimeError) do
+    assert_raises(TypeError) do
       long.unify long_list
     end
   end
