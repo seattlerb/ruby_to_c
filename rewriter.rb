@@ -71,14 +71,18 @@ class Rewriter < SexpProcessor
     args = nil
     body = process exp.shift
 
-    if body[1].first == :args then
-      args = body[1]
-      body.delete_at 1
-    elsif body.last[1].first == :args then
-      args = body.last[1]
-      body.last.delete_at 1
+    if Array === body[1] then
+      if body[1].first == :args then
+        args = body[1]
+        body.delete_at 1
+      elsif body.last[1].first == :args then
+        args = body.last[1]
+        body.last.delete_at 1
+      else
+        raise "Unknown :defn format: #{body.inspect}"
+      end
     else
-      raise "Unknown :defn format"
+      raise "Node :defn is not an Array: #{body.inspect}"
     end
 
     Sexp.new(:defn, name, args, body)
@@ -185,7 +189,10 @@ class R2CRewriter < SexpProcessor
   REWRITES = {
     [Type.str, :+, Type.str] => proc { |l,n,r|
       t(:call, nil, :strcat, r.unshift(r.shift, l), Type.str)
-    }
+    },
+    [Type.file, :puts, Type.str] => proc { |l,n,r|
+      t(:call, nil, :fputs, r.push(l))
+    },
   }
 
   def initialize

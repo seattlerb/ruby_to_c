@@ -169,6 +169,7 @@ class Type
     :file => "File",
     :homo => "Homogenous",
     :hetero => "Heterogenous",
+    :fucked => "Untranslatable type",
   }
 
   TYPES = {}

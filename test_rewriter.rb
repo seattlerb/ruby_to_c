@@ -33,8 +33,9 @@ class TestRewriter < Test::Unit::TestCase
     assert_equal output, @rewrite.process(input)
   end
 
+  # example: attr_accessor :block
   def test_process_defn_unknown
-    input =  [:defn, :block, [:scope, [:block, [:return, [:nil]]]]]
+    input = [:defn, :type, [:ivar, :@type]]
     assert_raises RuntimeError do
       @rewrite.process(input)
     end
@@ -233,7 +234,7 @@ class TestRewriter_2 < Test::Unit::TestCase
   @@missing = s(nil)
   @@empty = s(:defn, :empty,
       s(:args),
-    s(:scope))
+    s(:scope, s(:block, s(:nil))))
   @@stupid = s(:defn, :stupid,
     s(:args),
     s(:scope,

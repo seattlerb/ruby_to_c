@@ -54,7 +54,9 @@ class TestTypeChecker < Test::Unit::TestCase
     expect = t(:defn,
                :empty,
                t(:args),
-               t(:scope, Type.void),
+               t(:scope,
+                 t(:block,
+                   t(:nil, Type.value), Type.unknown), Type.void),
                Type.function(Type.unknown, [], Type.void))
     assert_equal(expect, result)
   end
@@ -191,6 +193,87 @@ class TestTypeChecker < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
+  def test_process_call_unify_3
+    a_type = Type.unknown
+    add_fake_var :a, a_type # TODO: Type.unknown
+
+    # def unify_3_outer(a)
+    #
+    #             unk
+    #              ^
+    #              |
+    # outer(., ., [+])
+
+    # assume the environment got everything set up correctly
+    add_fake_function(:unify_3_outer, Type.void, Type.void, a_type)
+
+    assert_equal(a_type,
+                 @type_checker.functions[:unify_3_outer].list_type.formal_types[0])
+
+    #   unify_3_inner(a) # call
+    #
+    # outer(., ., [+])
+    #              |
+    #              v
+    #             unk
+    #              ^
+    #              |
+    # inner(., ., [+])
+
+    @type_checker.process(t(:call, t(:nil),
+                            :unify_3_inner,
+                            t(:array, t(:lvar, :a))))
+
+    assert_equal a_type, @type_checker.env.lookup(:a)
+    assert_equal(@type_checker.env.lookup(:a),
+                 @type_checker.functions[:unify_3_inner].list_type.formal_types[0])
+    
+    # def unify_3_inner(a)
+    #   a = 1
+    # end
+    #
+    # outer(., ., [+])
+    #              |
+    #              v
+    #             long
+    #              ^
+    #              |
+    # inner(., ., [+])
+
+    @type_checker.env.scope do
+      @type_checker.env.add :a, a_type
+      
+      @type_checker.process t(:lasgn, :a, t(:lit, 1))
+    end
+
+    assert_equal a_type, Type.long
+
+    assert_equal(@type_checker.functions[:unify_3_inner].list_type.formal_types[0],
+                 @type_checker.functions[:unify_3_outer].list_type.formal_types[0])
+  end
+
+  def test_defn_call_unify
+
+    # pre-registered function, presumibly through another :call elsewhere
+    add_fake_function :specific, Type.unknown, Type.unknown, Type.unknown
+
+    # now in specific, unify with a long
+# puts "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+# pp @type_checker.functions
+    s = @type_checker.process(s(:defn, :specific,
+                                s(:args, :x),
+                                s(:scope,
+                                  s(:block,
+                                    s(:lasgn, :x, s(:lit, 2))))))
+# pp @type_checker.functions
+    s_type = @type_checker.functions[:specific]
+
+# p s_type
+
+    assert_equal(Type.long,
+                 s_type.list_type.formal_types[0])
+  end
+
   def test_process_call_case_equal_long
     add_fake_var :number, Type.unknown
 
@@ -232,8 +315,6 @@ class TestTypeChecker < Test::Unit::TestCase
   end
 
   def test_process_block
-    add_fake_function Type.unknown, :foo # TODO: why is this here?
-
     input  = t(:block, t(:return, t(:nil)))
     # FIX: should this really be void for return?
     output = t(:block,
@@ -246,8 +327,6 @@ class TestTypeChecker < Test::Unit::TestCase
   end
 
   def test_process_block_multiple
-    add_fake_function Type.unknown, :foo # what is this really testing?
-
     input  = t(:block,
                t(:str, :foo),
                t(:return, t(:nil)))
@@ -499,7 +578,6 @@ class TestTypeChecker < Test::Unit::TestCase
   end
 
   def test_process_scope
-    add_fake_function Type.unknown, :foo # TODO: what is this here for?
     input  = t(:scope,
                t(:block,
                  t(:return, t(:nil))))
@@ -560,15 +638,9 @@ class TestTypeChecker < Test::Unit::TestCase
     assert_equal expected, @type_checker.process(input)
   end
 
-  def add_fake_function(name, reciever_type = nil, return_type = Type.unknown, *arg_types)
-    if reciever_type.nil? then
-      $stderr.puts "\nWARNING: reciever_type not specified from #{caller[0]}"
-      reciever_type = Type.unknown
-    end
-    # HACK!!! what is this and why is this??? current_function_name must die!
-    @type_checker.instance_variable_set "@current_function_name", name
-    functions = @type_checker.instance_variable_get "@functions"
-    functions.add_function(name, Type.function(reciever_type, arg_types, return_type))
+  def add_fake_function(name, reciever_type, return_type, *arg_types)
+    @type_checker.functions.add_function(name,
+                                         Type.function(reciever_type, arg_types, return_type))
   end
 
   def add_fake_var(name, type)
@@ -590,7 +662,9 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
 
   @@empty = t(:defn, :empty,
               t(:args),
-              t(:scope, Type.void),
+              t(:scope,
+                t(:block,
+                  t(:nil, Type.value), Type.unknown), Type.void),
               Type.function(Type.unknown, [], Type.void))
 
   @@stupid = t(:defn, :stupid,

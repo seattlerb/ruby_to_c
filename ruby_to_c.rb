@@ -29,6 +29,8 @@ module TypeMap
         "long"
       when :void then
         "void"
+      when :homo then
+        "void *" # HACK
       when :value, :unknown then
         "VALUE"
 # HACK: uncomment this and fix the above when you want to have good tests
@@ -64,8 +66,7 @@ typedef struct { unsigned long length; long * contents; } long_array;
 "
   end
 
-  # REFACTOR: rename to self.process
-  def self.translate(klass, method=nil)
+  def self.translator
     unless defined? @@translator then
       @@translator = CompositeSexpProcessor.new
       @@translator << Rewriter.new
@@ -73,7 +74,16 @@ typedef struct { unsigned long length; long * contents; } long_array;
       @@translator << R2CRewriter.new
       @@translator << self.new
     end
-    @@translator.process(ParseTree.new.parse_tree_for_method(klass, method))
+    @@translator
+  end
+
+  # REFACTOR: rename to self.process
+  def self.translate(klass, method=nil)
+    unless method.nil? then
+      self.translator.process(ParseTree.new.parse_tree_for_method(klass, method))
+    else
+      self.translator.process(ParseTree.new.parse_tree(klass))
+    end
   end
 
   def self.translate_all_of(klass, catch_exceptions=false)
@@ -87,14 +97,14 @@ typedef struct { unsigned long length; long * contents; } long_array;
           rescue Exception => err
             [ "// ERROR translating #{method}: #{err}",
             "//   #{err.backtrace.join("\n//   ")}",
-            "//   #{ParseTree.new.parse_tree(klass, method).inspect}" ]
+            "//   #{ParseTree.new.parse_tree_for_method(klass, method).inspect}" ]
           end
         else
           self.translate(klass, method)
         end
     end
 
-    prototypes =  @@translator.processors[-1].prototypes
+    prototypes =  self.translator.processors[-1].prototypes
     "#{prototypes.join('')}\n\n#{result.join("\n\n")}"
   end
 
@@ -104,7 +114,7 @@ typedef struct { unsigned long length; long * contents; } long_array;
     super
     @env = Environment.new
     self.auto_shift_type = true
-    self.exclude = [:case, :when, :rescue, :const, :dstr]
+    self.unsupported = [:case, :when, :rescue, :const, :dstr]
     self.strict = true
     self.expected = String
 

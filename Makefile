@@ -1,11 +1,8 @@
 RUBY?=ruby
-RUBY_FLAGS?=-w
+RUBY_FLAGS?=-w -I.:../../ParseTree/dev/lib
 
-all:
-	$(RUBY) $(RUBY_FLAGS) test_all.rb
-
-test:
-	for f in $$(ls test*.rb|grep -v test_all); do echo testing $$f; $(RUBY) $(RUBY_FLAGS) $$f; done
+all test:
+	GEM_SKIP=ParseTree $(RUBY) $(RUBY_FLAGS) test_all.rb
 
 trouble: trouble.o
 	@exit 0

@@ -184,6 +184,7 @@ class TestRubyToC < Test::Unit::TestCase
     # assert_equal Type.long, @ruby_to_c.env.lookup("x")
   end
 
+  # TODO: fix for 1.8.2
   def test_process_defn
     input  = t(:defn,
                :empty,
@@ -455,6 +456,7 @@ class TestRubyToCSomething < Test::Unit::TestCase # ZenTest SKIP
 
   @@empty = "void
 empty() {
+Qnil;
 }"
   # TODO: this test is not good... the args should type-resolve or raise
   # TODO: this test is good, we should know that print takes objects... or something
@@ -672,7 +674,7 @@ return arg1;
     else
       if @@__expect_raise.include? meth then
         eval "def test_#{meth}
-        assert_raise(SyntaxError) { RubyToC.translate Something, :#{meth} }; end"
+        assert_raise(UnsupportedNodeError) { RubyToC.translate Something, :#{meth} }; end"
       else
         eval "def test_#{meth}; flunk \"You haven't added @@#{meth} yet\"; end"
       end

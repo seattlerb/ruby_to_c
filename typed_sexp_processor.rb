@@ -69,7 +69,7 @@ class TypedSexp < Sexp
   def inspect
     sexp_str = self.map {|x|x.inspect}.join(', ')
     sexp_type_str = (sexp_str.empty? ? "" : ", ") + "#{array_type? ? sexp_types.inspect : sexp_type}" unless sexp_type.nil?
-    return "TypedSexp.new(#{sexp_str}#{sexp_type_str})"
+    return "t(#{sexp_str}#{sexp_type_str})"
   end
 
   def pretty_print(q)

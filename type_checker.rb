@@ -173,6 +173,10 @@ class TypeChecker < SexpProcessor
     nodes
   end
 
+  def process_block_arg(exp)
+    t(:block_arg, exp.shift, Type.fucked)
+  end
+
   ##
   # Expects a function name, an optional lhs, and an optional
   # list of arguments.
@@ -190,6 +194,7 @@ class TypeChecker < SexpProcessor
                   if args.first == :array then
                     args.sexp_types
                   else
+                    raise "NONONONONO"
                     [args.sexp_type]
                   end
                 end
@@ -247,6 +252,7 @@ class TypeChecker < SexpProcessor
       @functions.unify(name, function_type) do
         @functions.add_function(name, function_type)
         $stderr.puts "\nWARNING: Registering function #{name}: #{function_type.inspect}" if $DEBUG
+
       end
     end
 

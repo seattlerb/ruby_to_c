@@ -6,13 +6,13 @@ require 'type_checker'
 require 'test/unit'
 
 class RandomCode # ZenTest SKIP
-  def specific_method(x, y)
-    c = x = y = 0 # make x and y to be longs
+  def specific_method(x)
+    x = 0 # make x and y to be longs
     return c.to_i > 0
   end
 
-  def generic_method(x, y)
-    specific_method(x, y)
+  def generic_method(x)
+    specific_method(x)
   end
 
   def meth_b(x)
@@ -79,33 +79,40 @@ class TestExtraTypeChecker < Test::Unit::TestCase # ZenTest SKIP
 
   def test_type_inference_across_args_known
     generic  = util_process(RandomCode, :generic_method).first
+# puts
+# pp @type_checker.functions
     specific = util_process(RandomCode, :specific_method).first
+# puts
+# pp @type_checker.functions
+
+# pp generic
+# pp specific
 
     args_g = generic[2]  # FIX FUCK this is horrid
     args_s = specific[2] # FIX FUCK this is horrid
 
-    assert_equal(args_s[1].sexp_type.list_type.object_id, # FIX demeter
-                 args_s[2].sexp_type.list_type.object_id,
-                 "#specific_method's arguments are unified")
+    #assert_equal(args_s[1].sexp_type.list_type.object_id, # FIX demeter
+    #             args_s[2].sexp_type.list_type.object_id,
+    #             "#specific_method's arguments are unified")
 
     assert_equal(Type.long, args_s[1].sexp_type,
                  "#specific_method's x is a Long")
-    assert_equal(Type.long, args_s[2].sexp_type,
-                 "#specific_method's y is a Long")
+    assert_equal(Type.long, args_g[1].sexp_type, # FAILS
+                 "#generic_method's x is a Long")
 
     assert_equal(args_g[1].sexp_type.list_type.object_id,
                  args_s[1].sexp_type.list_type.object_id,
                  "#specific_method's x and #generic_method's x are unified")
 
-    assert_equal(args_g[2].sexp_type.list_type.object_id,
-                 args_s[2].sexp_type.list_type.object_id,
-                 "#specific_method's y and #generic_method's y are unified")
+#     assert_equal(args_g[2].sexp_type.list_type.object_id,
+#                  args_s[2].sexp_type.list_type.object_id,
+#                 "#specific_method's y and #generic_method's y are unified")
 
-    assert_equal(Type.long, args_g[1].sexp_type,
-                 "#generic_method's x is a Long")
-    assert_equal(Type.long, args_g[2].sexp_type,
-                 "#geniric_method's y is a Long")
-  end
+#     assert_equal(Type.long, args_s[2].sexp_type,
+#                  "#specific_method's y is a Long")
+#     assert_equal(Type.long, args_g[2].sexp_type,
+#                  "#generic_method's y is a Long")
+end
 
   def test_type_inference_across_args_unknown
     meth_a = util_process(RandomCode, :meth_a).first
