@@ -9,6 +9,17 @@ require 'test/unit'
 class TestProcessor < SexpProcessor
   attr_accessor :auto_shift_type
 
+  def process_acc1(exp)
+    out = s(:acc2, exp.thing_three, exp.thing_two, exp.thing_one)
+    exp.clear
+    return out
+  end
+
+  def process_acc2(exp)
+    out = []
+    out << exp.thing_one
+  end
+
   def process_specific(exp)
     result = exp[1..-1]
     exp.clear
@@ -56,7 +67,7 @@ class TestSexp < Test::Unit::TestCase # ZenTest FULL
 
   def test_new_nested
     @sexp = Sexp.new(:lasgn, "var", Sexp.new(:str, "foo", Type.str), Type.str)
-    assert_equal('Sexp.new(:lasgn, "var", Sexp.new(:str, "foo", Type.str), Type.str)',
+    assert_equal('s(:lasgn, "var", s(:str, "foo", Type.str), Type.str)',
                  @sexp.inspect)
   end
 
@@ -124,12 +135,54 @@ class TestSexp < Test::Unit::TestCase # ZenTest FULL
     assert_equal([1, 2, 3, 42], @sexp.to_a)
   end
 
+  def test_accessor
+    a = s(:call, s(:lit, 1), "func", s(:array, s(:lit, 2)))
+    a.accessors = [:lhs, :name, :rhs]
+
+    assert_equal s(:lit, 1), a.lhs
+    assert_equal "func", a.name
+    assert_equal s(:array, s(:lit, 2)), a.rhs
+
+    a.accessors = []
+
+    assert_raises NoMethodError do
+      a.lhs
+    end
+  end
+
+  def test_body
+    assert_equal [2, 3], @sexp.sexp_body
+  end
+
 end
 
 class TestSexpProcessor < Test::Unit::TestCase
 
   def setup
     @processor = TestProcessor.new
+  end
+
+  def test_accessors
+    @processor.sexp_accessors = {
+      :acc1 => [:thing_one, :thing_two, :thing_three]
+    }
+
+    a = s(:acc1, 1, 2, 3)
+
+    assert_equal s(:acc2, 3, 2, 1), @processor.process(a)
+  end
+
+  def test_accessors_reset
+    @processor.sexp_accessors = {
+      :acc1 => [:thing_one, :thing_two, :thing_three]
+    }
+
+    a = s(:acc1, 1, 2, 3)
+    b = @processor.process(a)
+
+    assert_raises NoMethodError do
+      @processor.process(b)
+    end
   end
 
   def test_process_specific
@@ -148,12 +201,6 @@ class TestSexpProcessor < Test::Unit::TestCase
     a = Sexp.new(:blah, 1, 2, 3, Type.bool)
     expected = a.deep_clone
     assert_equal(expected, @processor.process(a))
-  end
-
-  def test_process_nonempty
-    assert_raise(RuntimeError) do
-      @processor.process([:nonempty, 1, 2, 3])
-    end
   end
 
   def test_process_default
@@ -184,6 +231,21 @@ class TestSexpProcessor < Test::Unit::TestCase
     @processor.strict = true
     assert_raise(SyntaxError) do
       @processor.process([:blah, 1, 2, 3])
+    end
+  end
+
+  def test_require_empty_false
+    @processor.require_empty = false
+    @processor.expected = Object
+
+    assert_nothing_raised do
+      @processor.process([:nonempty, 1, 2, 3])
+    end
+  end
+
+  def test_require_empty_true
+    assert_raise(RuntimeError) do
+      @processor.process([:nonempty, 1, 2, 3])
     end
   end
 

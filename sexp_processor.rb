@@ -11,7 +11,9 @@ end
 
 class Sexp < Array # ZenTest FULL
 
+  attr_accessor :accessors
   attr_accessor :unpack
+
   # def unpack?; @unpack; end
   alias_method :unpack?, :unpack
 
@@ -19,6 +21,7 @@ class Sexp < Array # ZenTest FULL
     # TODO: should probably be Type.unknown
     @sexp_type = Type === args.last ? args.pop : nil
     @unpack = false
+    @accessors = []
     super(args)
   end
 
@@ -42,6 +45,17 @@ class Sexp < Array # ZenTest FULL
         self[index] = to if elem == from
       end
     end
+  end
+
+  def method_missing(meth, *a, &b)
+    super unless @accessors.include? meth
+
+    index = @accessors.index(meth) + 1 # skip type
+    return self.at(index)
+  end
+
+  def sexp_body
+    self[1..-1]
   end
 
   def array_type?
@@ -97,11 +111,11 @@ class Sexp < Array # ZenTest FULL
   end
 
   def inspect
-    "Sexp.new(#{self.map {|x|x.inspect}.join(', ')}, #{array_type? ? sexp_types.inspect : sexp_type})"
+    "s(#{self.map {|x|x.inspect}.join(', ')}, #{array_type? ? sexp_types.inspect : sexp_type})"
   end
 
   def pretty_print(q)
-    q.group(1, 'Sexp.new(', ')') do
+    q.group(1, 's(', ')') do
       q.seplist(self) {|v| q.pp v }
       if @sexp_type then
         q.text ", "
@@ -125,15 +139,94 @@ def s(*args) # stupid shortcut to make indentation much cleaner
   Sexp.new(*args)
 end
 
+##
+# SexpProcessor provides a uniform interface to process Sexps.
+#
+# In order to create your own SexpProcessor subclass you'll need
+# to call super in the initialize method, then set any of the
+# Sexp flags you want to be different from the defaults.
+#
+# SexpProcessor uses a Sexp's type to determine which process
+# method to call in the subclass.  For Sexp <code>s(:lit,
+# 1)</code> SexpProcessor will call #process_lit.
+#
+# You can also provide a default method to call for any Sexp
+# types without a process_ method.
+#
+# Here is a simple example:
+#
+#   class MyProcessor < SexpProcessor
+#   
+#     def initialize
+#       super
+#       self.strict = false
+#     end
+#   
+#     def process_lit(exp)
+#       val = exp.shift
+#       return val
+#     end
+#   
+#   end
+
 class SexpProcessor
   
+  ##
+  # A default method to call if a process_ method is not found
+  # for the Sexp type.
+
   attr_accessor :default_method
+
+  ##
+  # Emit a warning when the method in #default_method is called.
+
   attr_accessor :warn_on_default
+
+  ##
+  # Automatically shifts off the Sexp type before handing the
+  # Sexp to process_
+
   attr_accessor :auto_shift_type
+
+  ##
+  # A list of Sexp types.  Raises an exception if a Sexp type in
+  # this list is encountered.
+
   attr_accessor :exclude
+
+  ##
+  # Raise an exception if no process_ method is found for a Sexp.
+
   attr_accessor :strict
+
+  ##
+  # A Hash of Sexp types and Regexp.
+  #
+  # Print a debug message if the Sexp type matches the Hash key
+  # and the Sexp's #inspect output matches the Regexp.
+
   attr_accessor :debug
+
+  ##
+  # Expected result class
+
   attr_accessor :expected
+
+  ##
+  # Raise an exception if the Sexp is not empty after processing
+
+  attr_accessor :require_empty
+
+  ##
+  # Adds accessor methods to the Sexp
+
+  attr_accessor :sexp_accessors
+
+  ##
+  # Creates a new SexpProcessor.  Use super to invoke this
+  # initializer from SexpProcessor subclasses, then use the
+  # attributes above to customize the functionality of the
+  # SexpProcessor
 
   def initialize
     @collection = []
@@ -144,6 +237,8 @@ class SexpProcessor
     @exclude = []
     @debug = {}
     @expected = Sexp
+    @require_empty = true
+    @sexp_accessors = {}
 
     # we do this on an instance basis so we can subclass it for
     # different processors.
@@ -154,6 +249,11 @@ class SexpProcessor
       @methods[$1.intern] = name.intern
     end
   end
+
+  ##
+  # Default Sexp processor.  Invokes process_ methods matching
+  # the Sexp type given.  Performs additional checks as specified
+  # by the initializer.
 
   def process(exp)
     return nil if exp.nil?
@@ -166,6 +266,14 @@ class SexpProcessor
     if @debug.include? type then
       str = exp.inspect
       puts "// DEBUG: #{str}" if str =~ @debug[type]
+    end
+
+    if Sexp === exp then
+      if @sexp_accessors.include? type then
+        exp.accessors = @sexp_accessors[type]
+      else
+        exp.accessors = [] # clean out accessor list in case it changed
+      end
     end
     
     raise SyntaxError, "'#{type}' is not a supported node type." if @exclude.include? type
@@ -180,7 +288,7 @@ class SexpProcessor
       end
       result = self.send(meth, exp)
       raise "Result must be a #{@expected}, was #{result.class}:#{result.inspect}" unless @expected === result
-      raise "exp not empty after #{self.class}.#{meth} on #{exp.inspect} from #{exp_orig.inspect}" unless exp.empty?
+      raise "exp not empty after #{self.class}.#{meth} on #{exp.inspect} from #{exp_orig.inspect}" if @require_empty and not exp.empty?
     else
       unless @strict then
         until exp.empty? do
@@ -210,9 +318,12 @@ class SexpProcessor
     result
   end
 
-  def generate
+  def generate # :nodoc:
     raise "not implemented yet"
   end
+
+  ##
+  # Raises unless the Sexp type for +list+ matches +typ+
 
   def assert_type(list, typ)
     raise TypeError, "Expected type #{typ.inspect} in #{list.inspect}" \
@@ -220,3 +331,4 @@ class SexpProcessor
   end
 
 end
+
