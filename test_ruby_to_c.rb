@@ -17,7 +17,7 @@ class TestRubyToC < Test::Unit::TestCase
   end
 
   def ztest_simple
-    assert_equal(,
+    assert_equal("",
 		 @thing.translate(Something, :simple),
 		 "Must return a basic method body")
   end
