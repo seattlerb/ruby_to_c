@@ -2,7 +2,7 @@ require 'sexp_processor'
 
 class CompositeSexpProcessor < SexpProcessor
 
-  attr_reader :processors if $TESTING
+  attr_reader :processors
 
   def initialize(*processors)
     super
