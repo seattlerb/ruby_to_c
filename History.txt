@@ -1,3 +1,12 @@
+*** 1.0.0-beta1 / 2004-02-01
+
++ 1 major enhancements
+	+ Hit 80% non-error conversion threshold for public beta release.
++ 3 minor enhancements
+	+ (Mostly) Filled out functionality in Rewriter and TypeChecker.
+	+ Flushed out what we don't do in RubyToC.
+	+ Wrote a ton of rdoc
+
 *** 1.0.0-a2 / 2004-12-31
 
 + 7 major enhancements

@@ -69,6 +69,8 @@ end
 
 class RubyToC < SexpProcessor
 
+  VERSION = '1.0.0-beta1'
+
   # TODO: remove me
   def no(exp) # :nodoc:
     raise "no: #{caller[0].split[1]} #{exp.inspect}"

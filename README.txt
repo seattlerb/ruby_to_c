@@ -13,21 +13,18 @@ DESCRIPTION:
   
 RubyToC has the following modules:
 
-	SexpProcessor - a generic sexp processor.
-	ParseTree     - converts ruby's internal parse tree to a sexp.
 	Rewriter      - massages the sexp into a more consistent form.
 	TypeChecker   - type inferencer for the above sexps.
 	RubyToC       - converts a ruby (subset) sexp to C.
 
 and the following tools:
 
-	show.rb       - Displays the sexp for a given file.
 	translate.rb  - Translates a given file to C.
 
 FEATURES/PROBLEMS:
   
 + This is a preview release! BETA BETA BETA! Do NOT use this!
-+ Please contact me if you:
++ Please contact me or Eric (drbrain of segment7 dot net) if you:
 	+ have any feedback!
 	+ have any changes!
 	+ want to work on this!
