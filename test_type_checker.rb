@@ -6,9 +6,9 @@ require 'something'
 
 # Test::Unit::Assertions.use_pp = false
 
-#def s(*args)
-#  Sexp.new(*args)
-#end
+def s(*args) # stupid shortcut to make indentation much cleaner
+  Sexp.new(*args)
+end
 
 class TestTypeChecker_1 < Test::Unit::TestCase
 
@@ -19,17 +19,17 @@ class TestTypeChecker_1 < Test::Unit::TestCase
   def test_args
     @type_checker.env.extend
 
-    input =  Sexp.new(:args, "foo", "bar")
-    output = Sexp.new(:args,
-                      Sexp.new("foo", Type.unknown),
-                      Sexp.new("bar", Type.unknown))
+    input =  s(:args, "foo", "bar")
+    output = s(:args,
+               s("foo", Type.unknown),
+               s("bar", Type.unknown))
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_args_empty
-    input =  Sexp.new(:args)
-    output = Sexp.new(:args)
+    input =  s(:args)
+    output = s(:args)
     # TODO: this should be superseded by the new array functionality
 
     assert_equal output, @type_checker.process(input)
@@ -38,8 +38,8 @@ class TestTypeChecker_1 < Test::Unit::TestCase
   def test_array_single
     add_fake_var "arg1", Type.long
 
-    input  = Sexp.new(:array, Sexp.new(:lvar, "arg1"))
-    output = Sexp.new(:array, Sexp.new(:lvar, "arg1", Type.long))
+    input  = s(:array, s(:lvar, "arg1"))
+    output = s(:array, s(:lvar, "arg1", Type.long))
 
     result = @type_checker.process(input)
 
@@ -52,67 +52,67 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     add_fake_var "arg1", Type.long
     add_fake_var "arg2", Type.str
 
-    input =  Sexp.new(:array, Sexp.new(:lvar, "arg1"), Sexp.new(:lvar, "arg2"))
-    output = Sexp.new(:array,
-                      Sexp.new(:lvar, "arg1", Type.long),
-                      Sexp.new(:lvar, "arg2", Type.str))
+    input =  s(:array, s(:lvar, "arg1"), s(:lvar, "arg2"))
+    output = s(:array,
+               s(:lvar, "arg1", Type.long),
+               s(:lvar, "arg2", Type.str))
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_call_defined
     add_fake_function "name", Type.void, Type.long, Type.str
-    input  = Sexp.new(:call,
-                      "name",
-                      nil,
-                      Sexp.new(:array, Sexp.new(:str, "foo")))
-    output = Sexp.new(:call,
-                      "name",
-                      nil,
-                      Sexp.new(:array, Sexp.new(:str, "foo", Type.str)),
-                      Type.long)
+    input  = s(:call,
+               "name",
+               nil,
+               s(:array, s(:str, "foo")))
+    output = s(:call,
+               "name",
+               nil,
+               s(:array, s(:str, "foo", Type.str)),
+               Type.long)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_call_defined_rhs
     add_fake_function "name3", Type.long, Type.long, Type.str
-    input  = Sexp.new(:call,
-                      "name3",
-                      Sexp.new(:lit, 1),
-                      Sexp.new(:array, Sexp.new(:str, "foo")))
-    output = Sexp.new(:call,
-                      "name3",
-                      Sexp.new(:lit, 1, Type.long),
-                      Sexp.new(:array, Sexp.new(:str, "foo", Type.str)),
-                      Type.long)
+    input  = s(:call,
+               "name3",
+               s(:lit, 1),
+               s(:array, s(:str, "foo")))
+    output = s(:call,
+               "name3",
+               s(:lit, 1, Type.long),
+               s(:array, s(:str, "foo", Type.str)),
+               Type.long)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_call_undefined
-    input  = Sexp.new(:call, "name", nil, nil)
-    output = Sexp.new(:call, "name", nil, nil, Type.unknown)
+    input  = s(:call, "name", nil, nil)
+    output = s(:call, "name", nil, nil, Type.unknown)
 
     assert_equal output, @type_checker.process(input)
-    # FIX returns unknown in Sexp.new()
+    # FIX returns unknown in s()
     assert_equal(Type.function(Type.unknown, [], Type.unknown),
                  @type_checker.functions["name"])
   end
 
   def test_call_unify_1
     add_fake_var "number", Type.long
-    input  = Sexp.new(:call,
-                      "==",
-                      Sexp.new(:lit, 1),
-                      Sexp.new(:array,
-                               Sexp.new(:lvar, "number")))
-    output = Sexp.new(:call,
-                      "==",
-                      Sexp.new(:lit, 1, Type.long),
-                      Sexp.new(:array,
-                               Sexp.new(:lvar, "number", Type.long)),
-                      Type.bool)
+    input  = s(:call,
+               "==",
+               s(:lit, 1),
+               s(:array,
+                 s(:lvar, "number")))
+    output = s(:call,
+               "==",
+               s(:lit, 1, Type.long),
+               s(:array,
+                 s(:lvar, "number", Type.long)),
+               Type.bool)
 
     assert_equal output, @type_checker.process(input)
   end
@@ -121,29 +121,29 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     add_fake_var "number1", Type.unknown
     add_fake_var "number2", Type.unknown
 
-    input  = Sexp.new(:call,
-                      "==",
-                      Sexp.new(:lit, 1),
-                      Sexp.new(:array, Sexp.new(:lvar, "number1")))
-    output = Sexp.new(:call,
-                      "==",
-                      Sexp.new(:lit, 1, Type.long),
-                      Sexp.new(:array,
-                               Sexp.new(:lvar, "number1", Type.long)),
-                      Type.bool)
+    input  = s(:call,
+               "==",
+               s(:lit, 1),
+               s(:array, s(:lvar, "number1")))
+    output = s(:call,
+               "==",
+               s(:lit, 1, Type.long),
+               s(:array,
+                 s(:lvar, "number1", Type.long)),
+               Type.bool)
 
     assert_equal output, @type_checker.process(input)
 
-    input  = Sexp.new(:call,
-                      "==",
-                      Sexp.new(:lvar, "number2"),
-                      Sexp.new(:array, Sexp.new(:lit, 1)))
-    output = Sexp.new(:call,
-                      "==",
-                      Sexp.new(:lvar, "number2", Type.long),
-                      Sexp.new(:array,
-                               Sexp.new(:lit, 1, Type.long)),
-                      Type.bool)
+    input  = s(:call,
+               "==",
+               s(:lvar, "number2"),
+               s(:array, s(:lit, 1)))
+    output = s(:call,
+               "==",
+               s(:lvar, "number2", Type.long),
+               s(:array,
+                 s(:lit, 1, Type.long)),
+               Type.bool)
 
     assert_equal output, @type_checker.process(input)
   end
@@ -151,16 +151,16 @@ class TestTypeChecker_1 < Test::Unit::TestCase
   def test_call_case_equal_long
     add_fake_var "number", Type.unknown
 
-    input  = Sexp.new(:call,
-                      "===",
-                      Sexp.new(:lit, 1),
-                      Sexp.new(:array, Sexp.new(:lvar, "number")))
-    output = Sexp.new(:call,
-                      "case_equal_long",
-                      Sexp.new(:lit, 1, Type.long),
-                      Sexp.new(:array,
-                               Sexp.new(:lvar, "number", Type.long)),
-                      Type.bool)
+    input  = s(:call,
+               "===",
+               s(:lit, 1),
+               s(:array, s(:lvar, "number")))
+    output = s(:call,
+               "case_equal_long",
+               s(:lit, 1, Type.long),
+               s(:array,
+                 s(:lvar, "number", Type.long)),
+               Type.bool)
 
     assert_equal output, @type_checker.process(input)
   end
@@ -168,16 +168,16 @@ class TestTypeChecker_1 < Test::Unit::TestCase
   def test_call_case_equal_string
     add_fake_var "string", Type.unknown
 
-    input  = Sexp.new(:call,
-                      "===",
-                      Sexp.new(:str, 'foo'),
-                      Sexp.new(:array, Sexp.new(:lvar, "string")))
-    output = Sexp.new(:call,
-                      "case_equal_str",
-                      Sexp.new(:str, 'foo', Type.str),
-                      Sexp.new(:array,
-                               Sexp.new(:lvar, "string", Type.str)),
-                      Type.bool)
+    input  = s(:call,
+               "===",
+               s(:str, 'foo'),
+               s(:array, s(:lvar, "string")))
+    output = s(:call,
+               "case_equal_str",
+               s(:str, 'foo', Type.str),
+               s(:array,
+                 s(:lvar, "string", Type.str)),
+               Type.bool)
 
     assert_equal output, @type_checker.process(input)
   end
@@ -185,13 +185,13 @@ class TestTypeChecker_1 < Test::Unit::TestCase
   def test_block
     add_fake_function Type.unknown, "foo" # TODO: why is this here?
 
-    input  = Sexp.new(:block, Sexp.new(:return, Sexp.new(:nil)))
+    input  = s(:block, s(:return, s(:nil)))
     # FIX: should this really be void for return?
-    output = Sexp.new(:block,
-                      Sexp.new(:return,
-                               Sexp.new(:nil, Type.value),
-                               Type.void),
-                      Type.unknown)
+    output = s(:block,
+               s(:return,
+                 s(:nil, Type.value),
+                 Type.void),
+               Type.unknown)
 
     assert_equal output, @type_checker.process(input)
   end
@@ -199,23 +199,23 @@ class TestTypeChecker_1 < Test::Unit::TestCase
   def test_block_multiple
     add_fake_function Type.unknown, "foo" # what is this really testing?
 
-    input  = Sexp.new(:block,
-                      Sexp.new(:str, "foo"),
-                      Sexp.new(:return, Sexp.new(:nil)))
-    output = Sexp.new(:block,
-                      Sexp.new(:str, "foo", Type.str),
-                      Sexp.new(:return,
-                               Sexp.new(:nil, Type.value),
-                               Type.void),
-                      Type.unknown)
+    input  = s(:block,
+               s(:str, "foo"),
+               s(:return, s(:nil)))
+    output = s(:block,
+               s(:str, "foo", Type.str),
+               s(:return,
+                 s(:nil, Type.value),
+                 Type.void),
+               Type.unknown)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_dasgn
     @type_checker.env.extend
-    input  = Sexp.new(:dasgn_curr, "x")
-    output = Sexp.new(:dasgn_curr, "x", Type.unknown)
+    input  = s(:dasgn_curr, "x")
+    output = s(:dasgn_curr, "x", Type.unknown)
 
     assert_equal output, @type_checker.process(input)
     # HACK: is this a valid test??? it was in ruby_to_c:
@@ -223,103 +223,103 @@ class TestTypeChecker_1 < Test::Unit::TestCase
   end
 
   def test_defn
-    function_type = Type.function Sexp.new(), Type.void
-    input  = Sexp.new(:defn,
-                      "empty",
-                      Sexp.new(:args),
-                      Sexp.new(:scope))
-    output = Sexp.new(:defn,
-                      "empty",
-                      Sexp.new(:args),
-                      Sexp.new(:scope, Type.void),
-                      function_type)
+    function_type = Type.function s(), Type.void
+    input  = s(:defn,
+               "empty",
+               s(:args),
+               s(:scope))
+    output = s(:defn,
+               "empty",
+               s(:args),
+               s(:scope, Type.void),
+               function_type)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_dstr
     add_fake_var "var", Type.str
-    input  = Sexp.new(:dstr,
-                      "var is ",
-                      Sexp.new(:lvar, "var"),
-                      Sexp.new(:str, ". So there."))
-    output = Sexp.new(:dstr, "var is ",
-                      Sexp.new(:lvar, "var", Type.str),
-                      Sexp.new(:str, ". So there.", Type.str),
-                      Type.str)
+    input  = s(:dstr,
+               "var is ",
+               s(:lvar, "var"),
+               s(:str, ". So there."))
+    output = s(:dstr, "var is ",
+               s(:lvar, "var", Type.str),
+               s(:str, ". So there.", Type.str),
+               Type.str)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_dvar
     add_fake_var "dvar", Type.long
-    input  = Sexp.new(:dvar, "dvar")
-    output = Sexp.new(:dvar, "dvar", Type.long)
+    input  = s(:dvar, "dvar")
+    output = s(:dvar, "dvar", Type.long)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_false
-    input =   Sexp.new(:false)
-    output = Sexp.new(:false, Type.bool)
+    input =   s(:false)
+    output = s(:false, Type.bool)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_gvar_defined
     add_fake_gvar "$arg", Type.long
-    input  = Sexp.new(:gvar, "$arg")
-    output = Sexp.new(:gvar, "$arg", Type.long)
+    input  = s(:gvar, "$arg")
+    output = s(:gvar, "$arg", Type.long)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_gvar_undefined
-    input  = Sexp.new(:gvar, "$arg")
-    output = Sexp.new(:gvar, "$arg", Type.unknown)
+    input  = s(:gvar, "$arg")
+    output = s(:gvar, "$arg", Type.unknown)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_if
-    input  = Sexp.new(:if,
-                      Sexp.new(:call,
-                               "==",
-                               Sexp.new(:lit, 1),
-                               Sexp.new(:array, Sexp.new(:lit, 2))),
-                      Sexp.new(:str, "not equal"),
-                      nil)
-    output = Sexp.new(:if,
-                      Sexp.new(:call,
-                               "==",
-                               Sexp.new(:lit, 1, Type.long),
-                               Sexp.new(:array,
-                                        Sexp.new(:lit, 2, Type.long)),
-                               Type.bool),
-                      Sexp.new(:str, "not equal", Type.str),
-                      nil,
-                      Type.str)
+    input  = s(:if,
+               s(:call,
+                 "==",
+                 s(:lit, 1),
+                 s(:array, s(:lit, 2))),
+               s(:str, "not equal"),
+               nil)
+    output = s(:if,
+               s(:call,
+                 "==",
+                 s(:lit, 1, Type.long),
+                 s(:array,
+                   s(:lit, 2, Type.long)),
+                 Type.bool),
+               s(:str, "not equal", Type.str),
+               nil,
+               Type.str)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_if_else
-    input  = Sexp.new(:if,
-                      Sexp.new(:call,
-                               "==",
-                               Sexp.new(:lit, 1),
-                               Sexp.new(:array, Sexp.new(:lit, 2))),
-                      Sexp.new(:str, "not equal"),
-                      Sexp.new(:str, "equal"))
-    output = Sexp.new(:if,
-                      Sexp.new(:call,
-                               "==",
-                               Sexp.new(:lit, 1, Type.long),
-                               Sexp.new(:array, Sexp.new(:lit, 2, Type.long)),
-                               Type.bool),
-                      Sexp.new(:str, "not equal", Type.str),
-                      Sexp.new(:str, "equal", Type.str),
-                      Type.str)
+    input  = s(:if,
+               s(:call,
+                 "==",
+                 s(:lit, 1),
+                 s(:array, s(:lit, 2))),
+               s(:str, "not equal"),
+               s(:str, "equal"))
+    output = s(:if,
+               s(:call,
+                 "==",
+                 s(:lit, 1, Type.long),
+                 s(:array, s(:lit, 2, Type.long)),
+                 Type.bool),
+               s(:str, "not equal", Type.str),
+               s(:str, "equal", Type.str),
+               Type.str)
 
     assert_equal output, @type_checker.process(input)
   end
@@ -328,38 +328,38 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     @type_checker.env.extend
     var_type = Type.long_list
     add_fake_var "array", var_type
-    input  = Sexp.new(:iter,
-                      Sexp.new(:call,
-                               "each",
-                               Sexp.new(:lvar, "array"),
-                               nil),
-                      Sexp.new(:dasgn_curr, "x"),
-                      Sexp.new(:call,
-                               "puts",
-                               nil,
-                               Sexp.new(:array,
-                                        Sexp.new(:call,
-                                                 "to_s",
-                                                 Sexp.new(:dvar, "x"), nil))))
-    output = Sexp.new(:iter,
-                      Sexp.new(:call,
-                               "each",
-                               Sexp.new(:lvar, "array", var_type),
-                               nil,
-                               Type.unknown),
-                      Sexp.new(:dasgn_curr, "x", Type.long),
-                      Sexp.new(:call,
-                               "puts",
-                               nil,
-                               Sexp.new(:array,
-                                        Sexp.new(:call,
-                                                 "to_s",
-                                                 Sexp.new(:dvar,
-                                                          "x", Type.long),
-                                                 nil,
-                                                 Type.str)),
-                               Type.void),
-                      Type.void)
+    input  = s(:iter,
+               s(:call,
+                 "each",
+                 s(:lvar, "array"),
+                 nil),
+               s(:dasgn_curr, "x"),
+               s(:call,
+                 "puts",
+                 nil,
+                 s(:array,
+                   s(:call,
+                     "to_s",
+                     s(:dvar, "x"), nil))))
+    output = s(:iter,
+               s(:call,
+                 "each",
+                 s(:lvar, "array", var_type),
+                 nil,
+                 Type.unknown),
+               s(:dasgn_curr, "x", Type.long),
+               s(:call,
+                 "puts",
+                 nil,
+                 s(:array,
+                   s(:call,
+                     "to_s",
+                     s(:dvar,
+                       "x", Type.long),
+                     nil,
+                     Type.str)),
+                 Type.void),
+               Type.void)
 
     assert_equal output, @type_checker.process(input)
   end
@@ -369,55 +369,55 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     # require 'sexp_processor'
     # require 'type_checker'
     # tc = TypeChecker.new
-    # s = Sexp.new(:lasgn, "var", Sexp.new(:str, "foo"))
+    # s = s(:lasgn, "var", s(:str, "foo"))
     # tc.process(s)
     # => raises
     # tc.env.extend
     # tc.process(s)
     # => raises elsewhere... etc etc etc
     # makes debugging very difficult
-    input  = Sexp.new(:lasgn, "var", Sexp.new(:str, "foo"))
-    output = Sexp.new(:lasgn, "var", 
-                      Sexp.new(:str, "foo", Type.str),
-                      Type.str)
+    input  = s(:lasgn, "var", s(:str, "foo"))
+    output = s(:lasgn, "var", 
+               s(:str, "foo", Type.str),
+               Type.str)
 
     assert_equal output, @type_checker.process(input)
   end
   
   def test_lasgn_array
     @type_checker.env.extend
-    input  = Sexp.new(:lasgn,
-                      "var",
-                      Sexp.new(:array,
-                               Sexp.new(:str, "foo"),
-                               Sexp.new(:str, "bar")))
-    output = Sexp.new(:lasgn, "var",
-                      Sexp.new(:array,
-                               Sexp.new(:str, "foo", Type.str),
-                               Sexp.new(:str, "bar", Type.str)),
-                      Type.str_list)
+    input  = s(:lasgn,
+               "var",
+               s(:array,
+                 s(:str, "foo"),
+                 s(:str, "bar")))
+    output = s(:lasgn, "var",
+               s(:array,
+                 s(:str, "foo", Type.str),
+                 s(:str, "bar", Type.str)),
+               Type.str_list)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_lit
-    input  = Sexp.new(:lit, 1)
-    output = Sexp.new(:lit, 1, Type.long)
+    input  = s(:lit, 1)
+    output = s(:lit, 1, Type.long)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_lvar
     add_fake_var "arg", Type.long
-    input  = Sexp.new(:lvar, "arg")
-    output = Sexp.new(:lvar, "arg", Type.long)
+    input  = s(:lvar, "arg")
+    output = s(:lvar, "arg", Type.long)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_nil
-    input  = Sexp.new(:nil)
-    output = Sexp.new(:nil, Type.value)
+    input  = s(:nil)
+    output = s(:nil, Type.value)
 
     assert_equal output, @type_checker.process(input)
   end
@@ -425,14 +425,14 @@ class TestTypeChecker_1 < Test::Unit::TestCase
   def test_return
     add_fake_function Type.unknown, "foo" # TODO: what is this trying to do?
 
-    input  = Sexp.new(:return, Sexp.new(:nil))
-    output = Sexp.new(:return, Sexp.new(:nil, Type.value), Type.void)
+    input  = s(:return, s(:nil))
+    output = s(:return, s(:nil, Type.value), Type.void)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_return_raises
-    input = Sexp.new(:return, Sexp.new(:nil))
+    input = s(:return, s(:nil))
 
     assert_raises RuntimeError do
       @type_checker.process(input)
@@ -440,60 +440,60 @@ class TestTypeChecker_1 < Test::Unit::TestCase
   end
 
   def test_str
-    input  = Sexp.new(:str, "foo")
-    output = Sexp.new(:str, "foo", Type.str)
+    input  = s(:str, "foo")
+    output = s(:str, "foo", Type.str)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_scope
     add_fake_function Type.unknown, "foo" # TODO: what is this here for?
-    input  = Sexp.new(:scope,
-                      Sexp.new(:block,
-                               Sexp.new(:return, Sexp.new(:nil))))
-    output = Sexp.new(:scope,
-                      Sexp.new(:block,
-                               Sexp.new(:return,
-                                        Sexp.new(:nil, Type.value),
-                                        Type.void),
-                               Type.unknown), # FIX ? do we care about block?
-                      Type.void)
+    input  = s(:scope,
+               s(:block,
+                 s(:return, s(:nil))))
+    output = s(:scope,
+               s(:block,
+                 s(:return,
+                   s(:nil, Type.value),
+                   Type.void),
+                 Type.unknown), # FIX ? do we care about block?
+               Type.void)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_scope_empty
-    input =   Sexp.new(:scope)
-    output = Sexp.new(:scope, Type.void)
+    input =   s(:scope)
+    output = s(:scope, Type.void)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_true
-    input =  Sexp.new(:true)
-    output = Sexp.new(:true, Type.bool)
+    input =  s(:true)
+    output = s(:true, Type.bool)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_unless
-    input  = Sexp.new(:if,
-                      Sexp.new(:call,
-                               "==",
-                               Sexp.new(:lit, 1),
-                               Sexp.new(:array, Sexp.new(:lit, 2))),
-                      nil,
-                      Sexp.new(:str, "equal"))
-    output = Sexp.new(:if,
-                      Sexp.new(:call,
-                               "==", 
-                               Sexp.new(:lit, 1, Type.long),
-                               Sexp.new(:array,
-                                        Sexp.new(:lit, 2, Type.long)),
-                               Type.bool),
-                      nil,
-                      Sexp.new(:str, "equal", Type.str),
-                      Type.str)
+    input  = s(:if,
+               s(:call,
+                 "==",
+                 s(:lit, 1),
+                 s(:array, s(:lit, 2))),
+               nil,
+               s(:str, "equal"))
+    output = s(:if,
+               s(:call,
+                 "==", 
+                 s(:lit, 1, Type.long),
+                 s(:array,
+                   s(:lit, 2, Type.long)),
+                 Type.bool),
+               nil,
+               s(:str, "equal", Type.str),
+               Type.str)
 
     assert_equal output, @type_checker.process(input)
   end
@@ -524,570 +524,575 @@ class TestTypeChecker_2 < Test::Unit::TestCase
 
   # TODO: need a good test of interpolated strings
 
-  @@missing = Sexp.new(nil)
+  @@missing = s(nil)
 
-  @@empty = Sexp.new(:defn, "empty",
-                     Sexp.new(:args),
-                     Sexp.new(:scope, Type.void),
-                     Type.function(Type.unknown, [], Type.void))
+  @@empty = s(:defn, "empty",
+              s(:args),
+              s(:scope, Type.void),
+              Type.function(Type.unknown, [], Type.void))
 
-  @@stupid = Sexp.new(:defn, "stupid",
-                      Sexp.new(:args),
-                      Sexp.new(:scope,
-                               Sexp.new(:block,
-                                        Sexp.new(:return,
-                                                 Sexp.new(:nil, Type.value),
-                                                 Type.void),
-                                        Type.unknown),
-                               Type.void),
-                      Type.function(Type.unknown, [], Type.value))
+  @@stupid = s(:defn, "stupid",
+               s(:args),
+               s(:scope,
+                 s(:block,
+                   s(:return,
+                     s(:nil, Type.value),
+                     Type.void),
+                   Type.unknown),
+                 Type.void),
+               Type.function(Type.unknown, [], Type.value))
 
-  @@simple = Sexp.new(:defn, "simple",
-                      Sexp.new(:args, Sexp.new("arg1", Type.str)),
-                      Sexp.new(:scope,
-                               Sexp.new(:block,
-                                        Sexp.new(:call,
-                                                 "print",
-                                                 nil,
-                                                 Sexp.new(:array,
-                                                          Sexp.new(:lvar,
-                                                                   "arg1",
-                                                                   Type.str)),
-                                                 Type.void),
-                                        Sexp.new(:call,
-                                                 "puts",
-                                                 nil,
-                                                 Sexp.new(:array,
-                                                          Sexp.new(:call,
-                                                                   "to_s",
-                                                                   Sexp.new(:call,
-                                                                            "+",
-                                                                            Sexp.new(:lit, 4, Type.long),
-                                                                            Sexp.new(:array,
-                                                                                     Sexp.new(:lit, 2, Type.long)),
-                                                                            Type.long),
-                                                                   nil, Type.str)),
-                                                 Type.void),
-                                        Type.unknown),
-                               Type.void),
-                      Type.function(Type.unknown, [Type.str], Type.void)) # HACK - receiver shouldn't be unknown
+  @@simple = s(:defn, "simple",
+               s(:args, s("arg1", Type.str)),
+               s(:scope,
+                 s(:block,
+                   s(:call,
+                     "print",
+                     nil,
+                     s(:array,
+                       s(:lvar,
+                         "arg1",
+                         Type.str)),
+                     Type.void),
+                   s(:call,
+                     "puts",
+                     nil,
+                     s(:array,
+                       s(:call,
+                         "to_s",
+                         s(:call,
+                           "+",
+                           s(:lit, 4, Type.long),
+                           s(:array,
+                             s(:lit, 2, Type.long)),
+                           Type.long),
+                         nil, Type.str)),
+                     Type.void),
+                   Type.unknown),
+                 Type.void),
+               Type.function(Type.unknown, [Type.str], Type.void)) # HACK - receiver shouldn't be unknown
 
-  @@global = Sexp.new(:defn, "global",
-                      Sexp.new(:args),
-                      Sexp.new(:scope,
-                               Sexp.new(:block,
-                                        Sexp.new(:call, "fputs",
-                                                 Sexp.new(:gvar, "$stderr", Type.file),
-                                                 Sexp.new(:array,
-                                                          Sexp.new(:str, "blah", Type.str)),
-                                                 Type.unknown),
-                                        Type.unknown),
-                               Type.void),
-                      Type.function(Type.unknown, [], Type.void))
+  @@global = s(:defn, "global",
+               s(:args),
+               s(:scope,
+                 s(:block,
+                   s(:call, "fputs",
+                     s(:gvar, "$stderr", Type.file),
+                     s(:array,
+                       s(:str, "blah", Type.str)),
+                     Type.unknown),
+                   Type.unknown),
+                 Type.void),
+               Type.function(Type.unknown, [], Type.void))
 
-  @@lasgn_call = Sexp.new(:defn, "lasgn_call",
-                          Sexp.new(:args),
-                          Sexp.new(:scope,
-                                   Sexp.new(:block,
-                                            Sexp.new(:lasgn, "c",
-                                                     Sexp.new(:call,
-                                                              "+",
-                                                              Sexp.new(:lit, 2, Type.long),
-                                                              Sexp.new(:array,
-                                                                       Sexp.new(:lit, 3, Type.long)),
-                                                              Type.long),
-                                                     Type.long),
-                                            Type.unknown),
-                                   Type.void),
-                          Type.function(Type.unknown, [], Type.void))
+  @@lasgn_call = s(:defn, "lasgn_call",
+                   s(:args),
+                   s(:scope,
+                     s(:block,
+                       s(:lasgn, "c",
+                         s(:call,
+                           "+",
+                           s(:lit, 2, Type.long),
+                           s(:array,
+                             s(:lit, 3, Type.long)),
+                           Type.long),
+                         Type.long),
+                       Type.unknown),
+                     Type.void),
+                   Type.function(Type.unknown, [], Type.void))
 
   @@conditional1 = 
-    Sexp.new(:defn, "conditional1",
-             Sexp.new(:args, Sexp.new("arg1", Type.long)),
-             Sexp.new(:scope,
-                      Sexp.new(:block,
-                               Sexp.new(:if,
-                                        Sexp.new(:call, "==",
-                                                 Sexp.new(:lvar, "arg1", Type.long),
-                                                 Sexp.new(:array,
-                                                          Sexp.new(:lit, 0, Type.long)),
-                                                 Type.bool),
-                                        Sexp.new(:return,
-                                                 Sexp.new(:lit, 1, Type.long),
-                                                 Type.void),
-                                        nil, Type.void), Type.unknown), Type.void),
-             Type.function(Type.unknown, [Type.long], Type.long))
+    s(:defn, "conditional1",
+      s(:args, s("arg1", Type.long)),
+      s(:scope,
+        s(:block,
+          s(:if,
+            s(:call, "==",
+              s(:lvar, "arg1", Type.long),
+              s(:array,
+                s(:lit, 0, Type.long)),
+              Type.bool),
+            s(:return,
+              s(:lit, 1, Type.long),
+              Type.void),
+            nil, Type.void), Type.unknown), Type.void),
+      Type.function(Type.unknown, [Type.long], Type.long))
 
-  @@conditional2 = Sexp.new(:defn, "conditional2",
-                            Sexp.new(:args, Sexp.new("arg1", Type.long)),
-                            Sexp.new(:scope,
-                                     Sexp.new(:block,
-                                              Sexp.new(:if,
-                                                       Sexp.new(:call, "==",
-                                                                Sexp.new(:lvar, "arg1", Type.long),
-                                                                Sexp.new(:array,
-                                                                         Sexp.new(:lit, 0, Type.long)),
-                                                                Type.bool),
-                                                       nil,
-                                                       Sexp.new(:return,
-                                                                Sexp.new(:lit, 2, Type.long),
-                                                                Type.void),
-                                                       Type.void),
-                                              Type.unknown),
-                                     Type.void),
-                            Type.function(Type.unknown, [Type.long], Type.long))
+  @@conditional2 = s(:defn, "conditional2",
+                     s(:args, s("arg1", Type.long)),
+                     s(:scope,
+                       s(:block,
+                         s(:if,
+                           s(:call, "==",
+                             s(:lvar, "arg1", Type.long),
+                             s(:array,
+                               s(:lit, 0, Type.long)),
+                             Type.bool),
+                           nil,
+                           s(:return,
+                             s(:lit, 2, Type.long),
+                             Type.void),
+                           Type.void),
+                         Type.unknown),
+                       Type.void),
+                     Type.function(Type.unknown, [Type.long], Type.long))
 
-  @@conditional3 = Sexp.new(:defn, "conditional3",
-                            Sexp.new(:args, Sexp.new("arg1", Type.long)),
-                            Sexp.new(:scope,
-                                     Sexp.new(:block,
-                                              Sexp.new(:if,
-                                                       Sexp.new(:call, "==",
-                                                                Sexp.new(:lvar, "arg1", Type.long),
-                                                                Sexp.new(:array,
-                                                                         Sexp.new(:lit, 0, Type.long)),
-                                                                Type.bool),
-                                                       Sexp.new(:return,
-                                                                Sexp.new(:lit, 3, Type.long),
-                                                                Type.void),
-                                                       Sexp.new(:return,
-                                                                Sexp.new(:lit, 4, Type.long),
-                                                                Type.void),
-                                                       Type.void),
-                                              Type.unknown),
-                                     Type.void),
-                            Type.function(Type.unknown, [Type.long], Type.long))
+  @@conditional3 = s(:defn, "conditional3",
+                     s(:args, s("arg1", Type.long)),
+                     s(:scope,
+                       s(:block,
+                         s(:if,
+                           s(:call, "==",
+                             s(:lvar, "arg1", Type.long),
+                             s(:array,
+                               s(:lit, 0, Type.long)),
+                             Type.bool),
+                           s(:return,
+                             s(:lit, 3, Type.long),
+                             Type.void),
+                           s(:return,
+                             s(:lit, 4, Type.long),
+                             Type.void),
+                           Type.void),
+                         Type.unknown),
+                       Type.void),
+                     Type.function(Type.unknown, [Type.long], Type.long))
 
-  @@conditional4 = Sexp.new(:defn, "conditional4",
-                            Sexp.new(:args, Sexp.new("arg1", Type.long)),
-                            Sexp.new(:scope,
-                                     Sexp.new(:block,
-                                              Sexp.new(:if,
-                                                       Sexp.new(:call, "==",
-                                                                Sexp.new(:lvar, "arg1", Type.long),
-                                                                Sexp.new(:array,
-                                                                         Sexp.new(:lit, 0, Type.long)),
-                                                                Type.bool),
-                                                       Sexp.new(:return,
-                                                                Sexp.new(:lit, 2, Type.long),
-                                                                Type.void),
-                                                       Sexp.new(:if,
-                                                                Sexp.new(:call, "<",
-                                                                         Sexp.new(:lvar, "arg1", Type.long),
-                                                                         Sexp.new(:array,
-                                                                                  Sexp.new(:lit, 0, Type.long)),
-                                                                         Type.bool),
-                                                                Sexp.new(:return,
-                                                                         Sexp.new(:lit, 3, Type.long),
-                                                                         Type.void),
-                                                                Sexp.new(:return,
-                                                                         Sexp.new(:lit, 4, Type.long),
-                                                                         Type.void),
-                                                                Type.void),
-                                                       Type.void),
-                                              Type.unknown),
-                                     Type.void),
-                            Type.function(Type.unknown, [Type.long], Type.long))
+  @@conditional4 = s(:defn, "conditional4",
+                     s(:args, s("arg1", Type.long)),
+                     s(:scope,
+                       s(:block,
+                         s(:if,
+                           s(:call, "==",
+                             s(:lvar, "arg1", Type.long),
+                             s(:array,
+                               s(:lit, 0, Type.long)),
+                             Type.bool),
+                           s(:return,
+                             s(:lit, 2, Type.long),
+                             Type.void),
+                           s(:if,
+                             s(:call, "<",
+                               s(:lvar, "arg1", Type.long),
+                               s(:array,
+                                 s(:lit, 0, Type.long)),
+                               Type.bool),
+                             s(:return,
+                               s(:lit, 3, Type.long),
+                               Type.void),
+                             s(:return,
+                               s(:lit, 4, Type.long),
+                               Type.void),
+                             Type.void),
+                           Type.void),
+                         Type.unknown),
+                       Type.void),
+                     Type.function(Type.unknown, [Type.long], Type.long))
 
   @@__iteration_body = [
-    Sexp.new(:args),
-    Sexp.new(:scope,
-             Sexp.new(:block,
-                      Sexp.new(:lasgn, "array",
-                               Sexp.new(:array,
-                                        Sexp.new(:lit, 1, Type.long),
-                                        Sexp.new(:lit, 2, Type.long),
-                                        Sexp.new(:lit, 3, Type.long)),
-                               Type.long_list),
-                      Sexp.new(:iter,
-                               Sexp.new(:call,
-                                        "each",
-                                        Sexp.new(:lvar, "array", Type.long_list),
-                                        nil, Type.unknown),
-                               Sexp.new(:dasgn_curr, "x", Type.long),
-                               Sexp.new(:call, "puts", nil,
-                                        Sexp.new(:array,
-                                                 Sexp.new(:call,
-                                                          "to_s",
-                                                          Sexp.new(:dvar, "x", Type.long),
-                                                          nil,
-                                                          Type.str)),
-                                        Type.void),
-                               Type.void),
-                      Type.unknown),
-             Type.void),
+    s(:args),
+    s(:scope,
+      s(:block,
+        s(:lasgn, "array",
+          s(:array,
+            s(:lit, 1, Type.long),
+            s(:lit, 2, Type.long),
+            s(:lit, 3, Type.long)),
+          Type.long_list),
+        s(:iter,
+          s(:call,
+            "each",
+            s(:lvar, "array", Type.long_list),
+            nil, Type.unknown),
+          s(:dasgn_curr, "x", Type.long),
+          s(:call, "puts", nil,
+            s(:array,
+              s(:call,
+                "to_s",
+                s(:dvar, "x", Type.long),
+                nil,
+                Type.str)),
+            Type.void),
+          Type.void),
+        Type.unknown),
+      Type.void),
     Type.function(Type.unknown, [], Type.void)]
 
-  @@iteration1 = Sexp.new(:defn, "iteration1", *@@__iteration_body)
+  @@iteration1 = s(:defn, "iteration1", *@@__iteration_body)
 
-  @@iteration2 = Sexp.new(:defn, "iteration2", *@@__iteration_body)
+  @@iteration2 = s(:defn, "iteration2", *@@__iteration_body)
 
-  @@iteration3 = Sexp.new(:defn, "iteration3",
-                          Sexp.new(:args),
-                          Sexp.new(:scope,
-                                   Sexp.new(:block,
-                                            Sexp.new(:lasgn, "array1",
-                                                     Sexp.new(:array,
-                                                              Sexp.new(:lit, 1, Type.long),
-                                                              Sexp.new(:lit, 2, Type.long),
-                                                              Sexp.new(:lit, 3, Type.long)),
-                                                     Type.long_list),
-                                            Sexp.new(:lasgn, "array2",
-                                                     Sexp.new(:array,
-                                                              Sexp.new(:lit, 4, Type.long),
-                                                              Sexp.new(:lit, 5, Type.long),
-                                                              Sexp.new(:lit, 6, Type.long),
-                                                              Sexp.new(:lit, 7, Type.long)),
-                                                     Type.long_list),
-                                            Sexp.new(:iter,
-                                                     Sexp.new(:call,
-                                                              "each",
-                                                              Sexp.new(:lvar, "array1", Type.long_list),
-                                                              nil,
-                                                              Type.unknown),
-                                                     Sexp.new(:dasgn_curr, "x", Type.long),
-                                                     Sexp.new(:iter,
-                                                              Sexp.new(:call, "each",
-                                                                       Sexp.new(:lvar, "array2", Type.long_list),
-                                                                       nil,
-                                                                       Type.unknown),
-                                                              Sexp.new(:dasgn_curr, "y", Type.long),
-                                                              Sexp.new(:block,
-                                                                       Sexp.new(:call,
-                                                                                "puts",
-                                                                                nil,
-                                                                                Sexp.new(:array,
-                                                                                         Sexp.new(:call,
-                                                                                                  "to_s",
-                                                                                                  Sexp.new(:dvar, "x", Type.long),
-                                                                                                  nil,
-                                                                                                  Type.str)),
-                                                                                Type.void),
-                                                                       Sexp.new(:call,
-                                                                                "puts",
-                                                                                nil,
-                                                                                Sexp.new(:array,
-                                                                                         Sexp.new(:call,
-                                                                                                  "to_s",
-                                                                                                  Sexp.new(:dvar, "y", Type.long),
-                                                                                                  nil,
-                                                                                                  Type.str)),
-                                                                                Type.void),
-                                                                       Type.unknown),
-                                                              Type.void),
-                                                     Type.void),
-                                            Type.unknown),
-                                   Type.void),
-                          Type.function(Type.unknown, [], Type.void))
+  @@iteration3 = s(:defn, "iteration3",
+                   s(:args),
+                   s(:scope,
+                     s(:block,
+                       s(:lasgn, "array1",
+                         s(:array,
+                           s(:lit, 1, Type.long),
+                           s(:lit, 2, Type.long),
+                           s(:lit, 3, Type.long)),
+                         Type.long_list),
+                       s(:lasgn, "array2",
+                         s(:array,
+                           s(:lit, 4, Type.long),
+                           s(:lit, 5, Type.long),
+                           s(:lit, 6, Type.long),
+                           s(:lit, 7, Type.long)),
+                         Type.long_list),
+                       s(:iter,
+                         s(:call,
+                           "each",
+                           s(:lvar, "array1", Type.long_list),
+                           nil,
+                           Type.unknown),
+                         s(:dasgn_curr, "x", Type.long),
+                         s(:iter,
+                           s(:call, "each",
+                             s(:lvar, "array2", Type.long_list),
+                             nil,
+                             Type.unknown),
+                           s(:dasgn_curr, "y", Type.long),
+                           s(:block,
+                             s(:call,
+                               "puts",
+                               nil,
+                               s(:array,
+                                 s(:call,
+                                   "to_s",
+                                   s(:dvar, "x", Type.long),
+                                   nil,
+                                   Type.str)),
+                               Type.void),
+                             s(:call,
+                               "puts",
+                               nil,
+                               s(:array,
+                                 s(:call,
+                                   "to_s",
+                                   s(:dvar, "y", Type.long),
+                                   nil,
+                                   Type.str)),
+                               Type.void),
+                             Type.unknown),
+                           Type.void),
+                         Type.void),
+                       Type.unknown),
+                     Type.void),
+                   Type.function(Type.unknown, [], Type.void))
 
-  @@iteration4 = Sexp.new(:defn,
-                          "iteration4",
-                          Sexp.new(:args),
-                          Sexp.new(:scope,
-                                   Sexp.new(:block,
-                                            Sexp.new(:lasgn, "n", Sexp.new(:lit, 1, Type.long), Type.long),
-                                            Sexp.new(:while,
-                                                     Sexp.new(:call,
-                                                              "<=",
-                                                              Sexp.new(:lvar, "n", Type.long),
-                                                              Sexp.new(:array, Sexp.new(:lit, 3, Type.long)), Type.bool),
-                                                     Sexp.new(:block,
-                                                              Sexp.new(:call,
-                                                                       "puts",
-                                                                       nil,
-                                                                       Sexp.new(:array,
-                                                                                Sexp.new(:call,
-                                                                                         "to_s",
-                                                                                         Sexp.new(:lvar, "n", Type.long),
-                                                                                         nil, Type.str)), Type.void),
-                                                              Sexp.new(:lasgn,
-                                                                       "n",
-                                                                       Sexp.new(:call,
-                                                                                "+",
-                                                                                Sexp.new(:lvar, "n", Type.long),
-                                                                                Sexp.new(:array,
-                                                                                         Sexp.new(:lit,
-                                                                                                  1, Type.long)), Type.long), Type.long), Type.unknown)), Type.unknown), Type.void),
-                          Type.function(Type.unknown, [], Type.void))
-  @@iteration5 = Sexp.new(:defn,
-                          "iteration5",
-                          Sexp.new(:args),
-                          Sexp.new(:scope,
-                                   Sexp.new(:block,
-                                            Sexp.new(:lasgn, "n", Sexp.new(:lit, 3, Type.long), Type.long),
-                                            Sexp.new(:while,
-                                                     Sexp.new(:call,
-                                                              ">=",
-                                                              Sexp.new(:lvar, "n", Type.long),
-                                                              Sexp.new(:array, Sexp.new(:lit, 1, Type.long)), Type.bool),
-                                                     Sexp.new(:block,
-                                                              Sexp.new(:call,
-                                                                       "puts",
-                                                                       nil,
-                                                                       Sexp.new(:array,
-                                                                                Sexp.new(:call,
-                                                                                         "to_s",
-                                                                                         Sexp.new(:lvar, "n", Type.long),
-                                                                                         nil, Type.str)), Type.void),
-                                                              Sexp.new(:lasgn,
-                                                                       "n",
-                                                                       Sexp.new(:call,
-                                                                                "-",
-                                                                                Sexp.new(:lvar, "n", Type.long),
-                                                                                Sexp.new(:array,
-                                                                                         Sexp.new(:lit,
-                                                                                                  1, Type.long)), Type.long), Type.long), Type.unknown)), Type.unknown), Type.void),
-                          Type.function(Type.unknown, [], Type.void))
-  @@multi_args = Sexp.new(:defn, "multi_args",
-                          Sexp.new(:args,
-                                   Sexp.new("arg1", Type.long),
-                                   Sexp.new("arg2", Type.long)),
-                          Sexp.new(:scope,
-                                   Sexp.new(:block,
-                                            Sexp.new(:lasgn,
-                                                     "arg3",
-                                                     Sexp.new(:call,
-                                                              "*",
-                                                              Sexp.new(:call,
-                                                                       "*",
-                                                                       Sexp.new(:lvar, "arg1", Type.long),
-                                                                       Sexp.new(:array,
-                                                                                Sexp.new(:lvar,
-                                                                                         "arg2",
-                                                                                         Type.long)),
-                                                                       Type.long),
-                                                              Sexp.new(:array,
-                                                                       Sexp.new(:lit, 7, Type.long)),
-                                                              Type.long),
-                                                     Type.long),
-                                            Sexp.new(:call, "puts",
-                                                     nil,
-                                                     Sexp.new(:array,
-                                                              Sexp.new(:call,
-                                                                       "to_s",
-                                                                       Sexp.new(:lvar, "arg3", Type.long),
-                                                                       nil,
-                                                                       Type.str)),
-                                                     Type.void),
-                                            Sexp.new(:return, Sexp.new(:str, "foo", Type.str),
-                                                     Type.void),
-                                            Type.unknown),
-                                   Type.void),
-                          Type.function(Type.unknown, [Type.long, Type.long], Type.str))
+  @@iteration4 = s(:defn,
+                   "iteration4",
+                   s(:args),
+                   s(:scope,
+                     s(:block,
+                       s(:lasgn, "n", s(:lit, 1, Type.long), Type.long),
+                       s(:while,
+                         s(:call,
+                           "<=",
+                           s(:lvar, "n", Type.long),
+                           s(:array, s(:lit, 3, Type.long)), Type.bool),
+                         s(:block,
+                           s(:call,
+                             "puts",
+                             nil,
+                             s(:array,
+                               s(:call,
+                                 "to_s",
+                                 s(:lvar, "n", Type.long),
+                                 nil, Type.str)), Type.void),
+                           s(:lasgn,
+                             "n",
+                             s(:call,
+                               "+",
+                               s(:lvar, "n", Type.long),
+                               s(:array,
+                                 s(:lit,
+                                   1, Type.long)), Type.long), Type.long), Type.unknown)), Type.unknown), Type.void),
+                   Type.function(Type.unknown, [], Type.void))
+  @@iteration5 = s(:defn,
+                   "iteration5",
+                   s(:args),
+                   s(:scope,
+                     s(:block,
+                       s(:lasgn, "n", s(:lit, 3, Type.long), Type.long),
+                       s(:while,
+                         s(:call,
+                           ">=",
+                           s(:lvar, "n", Type.long),
+                           s(:array, s(:lit, 1, Type.long)), Type.bool),
+                         s(:block,
+                           s(:call,
+                             "puts",
+                             nil,
+                             s(:array,
+                               s(:call,
+                                 "to_s",
+                                 s(:lvar, "n", Type.long),
+                                 nil, Type.str)), Type.void),
+                           s(:lasgn,
+                             "n",
+                             s(:call,
+                               "-",
+                               s(:lvar, "n", Type.long),
+                               s(:array,
+                                 s(:lit,
+                                   1, Type.long)),
+                               Type.long),
+                             Type.long),
+                           Type.unknown)),
+                       Type.unknown),
+                     Type.void),
+                   Type.function(Type.unknown, [], Type.void))
+  @@multi_args = s(:defn, "multi_args",
+                   s(:args,
+                     s("arg1", Type.long),
+                     s("arg2", Type.long)),
+                   s(:scope,
+                     s(:block,
+                       s(:lasgn,
+                         "arg3",
+                         s(:call,
+                           "*",
+                           s(:call,
+                             "*",
+                             s(:lvar, "arg1", Type.long),
+                             s(:array,
+                               s(:lvar,
+                                 "arg2",
+                                 Type.long)),
+                             Type.long),
+                           s(:array,
+                             s(:lit, 7, Type.long)),
+                           Type.long),
+                         Type.long),
+                       s(:call, "puts",
+                         nil,
+                         s(:array,
+                           s(:call,
+                             "to_s",
+                             s(:lvar, "arg3", Type.long),
+                             nil,
+                             Type.str)),
+                         Type.void),
+                       s(:return, s(:str, "foo", Type.str),
+                         Type.void),
+                       Type.unknown),
+                     Type.void),
+                   Type.function(Type.unknown, [Type.long, Type.long], Type.str))
 
   # TODO: why does return false have type void?
-  @@bools = Sexp.new(:defn, "bools",
-                     Sexp.new(:args, Sexp.new("arg1", Type.value)),
-                     Sexp.new(:scope,
-                              Sexp.new(:block,
-                                       Sexp.new(:if,
-                                                Sexp.new(:call,
-                                                         "nil?",
-                                                         Sexp.new(:lvar, "arg1", Type.value),
-                                                         nil,
-                                                         Type.bool),
-                                                Sexp.new(:return,
-                                                         Sexp.new(:false, Type.bool),
-                                                         Type.void),
-                                                Sexp.new(:return,
-                                                         Sexp.new(:true, Type.bool),
-                                                         Type.void),
-                                                Type.void),
-                                       Type.unknown),
-                              Type.void),
-                     Type.function(Type.unknown, [Type.value], Type.bool))
+  @@bools = s(:defn, "bools",
+              s(:args, s("arg1", Type.value)),
+              s(:scope,
+                s(:block,
+                  s(:if,
+                    s(:call,
+                      "nil?",
+                      s(:lvar, "arg1", Type.value),
+                      nil,
+                      Type.bool),
+                    s(:return,
+                      s(:false, Type.bool),
+                      Type.void),
+                    s(:return,
+                      s(:true, Type.bool),
+                      Type.void),
+                    Type.void),
+                  Type.unknown),
+                Type.void),
+              Type.function(Type.unknown, [Type.value], Type.bool))
 
-  @@case_stmt = Sexp.new(:defn, "case_stmt",
-                         Sexp.new(:args),
-                         Sexp.new(:scope,
-                                  Sexp.new(:block,
-                                           Sexp.new(:lasgn,
-                                                    "var",
-                                                    Sexp.new(:lit, 2, Type.long),
-                                                    Type.long),
-                                           Sexp.new(:lasgn,
-                                                    "result",
-                                                    Sexp.new(:str, "", Type.str),
-                                                    Type.str),
-                                           Sexp.new(:if,
-                                                    Sexp.new(:call,
-                                                             "case_equal_long",
-                                                             Sexp.new(:lvar, "var", Type.long),
-                                                             Sexp.new(:array, Sexp.new(:lit, 1, Type.long)),
-                                                             Type.bool),
-                                                    Sexp.new(:block,
-                                                             Sexp.new(:call,
-                                                                      "puts",
-                                                                      nil,
-                                                                      Sexp.new(:array,
-                                                                               Sexp.new(:str, "something", Type.str)),
-                                                                      Type.void),
-                                                             Sexp.new(:lasgn,
-                                                                      "result",
-                                                                      Sexp.new(:str, "red", Type.str),
-                                                                      Type.str),
-                                                             Type.str),
-                                                    Sexp.new(:if,
-                                                             Sexp.new(:or,
-                                                                      Sexp.new(:call,
-                                                                               "case_equal_long",
-                                                                               Sexp.new(:lvar, "var", Type.long),
-                                                                               Sexp.new(:array, Sexp.new(:lit, 2, Type.long)),
-                                                                               Type.bool),
-                                                                      Sexp.new(:call,
-                                                                               "case_equal_long",
-                                                                               Sexp.new(:lvar, "var", Type.long),
-                                                                               Sexp.new(:array, Sexp.new(:lit, 3, Type.long)),
-                                                                               Type.bool),
-                                                                      Type.bool),
-                                                             Sexp.new(:lasgn,
-                                                                      "result",
-                                                                      Sexp.new(:str, "yellow", Type.str),
-                                                                      Type.str),
-                                                             Sexp.new(:if,
-                                                                      Sexp.new(:call,
-                                                                               "case_equal_long",
-                                                                               Sexp.new(:lvar, "var", Type.long),
-                                                                               Sexp.new(:array, Sexp.new(:lit, 4, Type.long)),
-                                                                               Type.bool),
-                                                                      nil,
-                                                                      Sexp.new(:lasgn,
-                                                                               "result",
-                                                                               Sexp.new(:str, "green", Type.str),
-                                                                               Type.str),
-                                                                      Type.str),
-                                                             Type.str),
-                                                    Type.str),
-                                           Sexp.new(:if,
-                                                    Sexp.new(:call,
-                                                             "case_equal_str",
-                                                             Sexp.new(:lvar, "result", Type.str),
-                                                             Sexp.new(:array, Sexp.new(:str, "red", Type.str)),
-                                                             Type.bool),
-                                                    Sexp.new(:lasgn, "var", Sexp.new(:lit, 1, Type.long), Type.long),
-                                                    Sexp.new(:if,
-                                                             Sexp.new(:call,
-                                                                      "case_equal_str",
-                                                                      Sexp.new(:lvar, "result", Type.str),
-                                                                      Sexp.new(:array, Sexp.new(:str, "yellow", Type.str)),
-                                                                      Type.bool),
-                                                             Sexp.new(:lasgn, "var", Sexp.new(:lit, 2, Type.long), Type.long),
-                                                             Sexp.new(:if,
-                                                                      Sexp.new(:call,
-                                                                               "case_equal_str",
-                                                                               Sexp.new(:lvar, "result", Type.str),
-                                                                               Sexp.new(:array,
-                                                                                        Sexp.new(:str, "green", Type.str)),
-                                                                               Type.bool),
-                                                                      Sexp.new(:lasgn,
-                                                                               "var",
-                                                                               Sexp.new(:lit, 3, Type.long),
-                                                                               Type.long),
-                                                                      nil,
-                                                                      Type.long),
-                                                             Type.long),
-                                                    Type.long),
-                                           Sexp.new(:return,
-                                                    Sexp.new(:lvar, "result", Type.str),
-                                                    Type.void),
-                                           Type.unknown),
-                                  Type.void),
+  @@case_stmt = s(:defn, "case_stmt",
+                  s(:args),
+                  s(:scope,
+                    s(:block,
+                      s(:lasgn,
+                        "var",
+                        s(:lit, 2, Type.long),
+                        Type.long),
+                      s(:lasgn,
+                        "result",
+                        s(:str, "", Type.str),
+                        Type.str),
+                      s(:if,
+                        s(:call,
+                          "case_equal_long",
+                          s(:lvar, "var", Type.long),
+                          s(:array, s(:lit, 1, Type.long)),
+                          Type.bool),
+                        s(:block,
+                          s(:call,
+                            "puts",
+                            nil,
+                            s(:array,
+                              s(:str, "something", Type.str)),
+                            Type.void),
+                          s(:lasgn,
+                            "result",
+                            s(:str, "red", Type.str),
+                            Type.str),
+                          Type.str),
+                        s(:if,
+                          s(:or,
+                            s(:call,
+                              "case_equal_long",
+                              s(:lvar, "var", Type.long),
+                              s(:array, s(:lit, 2, Type.long)),
+                              Type.bool),
+                            s(:call,
+                              "case_equal_long",
+                              s(:lvar, "var", Type.long),
+                              s(:array, s(:lit, 3, Type.long)),
+                              Type.bool),
+                            Type.bool),
+                          s(:lasgn,
+                            "result",
+                            s(:str, "yellow", Type.str),
+                            Type.str),
+                          s(:if,
+                            s(:call,
+                              "case_equal_long",
+                              s(:lvar, "var", Type.long),
+                              s(:array, s(:lit, 4, Type.long)),
+                              Type.bool),
+                            nil,
+                            s(:lasgn,
+                              "result",
+                              s(:str, "green", Type.str),
+                              Type.str),
+                            Type.str),
+                          Type.str),
+                        Type.str),
+                      s(:if,
+                        s(:call,
+                          "case_equal_str",
+                          s(:lvar, "result", Type.str),
+                          s(:array, s(:str, "red", Type.str)),
+                          Type.bool),
+                        s(:lasgn, "var", s(:lit, 1, Type.long), Type.long),
+                        s(:if,
+                          s(:call,
+                            "case_equal_str",
+                            s(:lvar, "result", Type.str),
+                            s(:array, s(:str, "yellow", Type.str)),
+                            Type.bool),
+                          s(:lasgn, "var", s(:lit, 2, Type.long), Type.long),
+                          s(:if,
+                            s(:call,
+                              "case_equal_str",
+                              s(:lvar, "result", Type.str),
+                              s(:array,
+                                s(:str, "green", Type.str)),
+                              Type.bool),
+                            s(:lasgn,
+                              "var",
+                              s(:lit, 3, Type.long),
+                              Type.long),
+                            nil,
+                            Type.long),
+                          Type.long),
+                        Type.long),
+                      s(:return,
+                        s(:lvar, "result", Type.str),
+                        Type.void),
+                      Type.unknown),
+                    Type.void),
+                  Type.function(Type.unknown, [], Type.str))
+
+  @@eric_is_stubborn = s(:defn,
+                         "eric_is_stubborn",
+                         s(:args),
+                         s(:scope,
+                           s(:block,
+                             s(:lasgn,
+                               "var",
+                               s(:lit,
+                                 42,
+                                 Type.long),
+                               Type.long),
+                             s(:lasgn,
+                               "var2",
+                               s(:call,
+                                 "to_s",
+                                 s(:lvar, "var", Type.long),
+                                 nil,
+                                 Type.str),
+                               Type.str),
+                             s(:call,
+                               "fputs",
+                               s(:gvar,
+                                 "$stderr",
+                                 Type.file),
+                               s(:array,
+                                 s(:lvar, "var2", Type.str)),
+                               Type.unknown),
+                             s(:return,
+                               s(:lvar, "var2", Type.str),
+                               Type.void),
+                             Type.unknown),
+                           Type.void),
                          Type.function(Type.unknown, [], Type.str))
 
-  @@eric_is_stubborn = Sexp.new(:defn,
-                                "eric_is_stubborn",
-                                Sexp.new(:args),
-                                Sexp.new(:scope,
-                                         Sexp.new(:block,
-                                                  Sexp.new(:lasgn,
-                                                           "var",
-                                                           Sexp.new(:lit,
-                                                                    42,
-                                                                    Type.long),
-                                                           Type.long),
-                                                  Sexp.new(:lasgn,
-                                                           "var2",
-                                                           Sexp.new(:call,
-                                                                    "to_s",
-                                                                    Sexp.new(:lvar, "var", Type.long),
-                                                                    nil,
-                                                                    Type.str),
-                                                           Type.str),
-                                                  Sexp.new(:call,
-                                                           "fputs",
-                                                           Sexp.new(:gvar,
-                                                                    "$stderr",
-                                                                    Type.file),
-                                                           Sexp.new(:array,
-                                                                    Sexp.new(:lvar, "var2", Type.str)),
-                                                           Type.unknown),
-                                                  Sexp.new(:return,
-                                                           Sexp.new(:lvar, "var2", Type.str),
-                                                           Type.void),
-                                                  Type.unknown),
-                                         Type.void),
-                                Type.function(Type.unknown, [], Type.str))
+  @@interpolated = s(:defn,
+                     "interpolated",
+                     s(:args),
+                     s(:scope,
+                       s(:block,
+                         s(:lasgn,
+                           "var",
+                           s(:lit,
+                             14,
+                             Type.long),
+                           Type.long),
+                         s(:lasgn, "var2",
+                           s(:dstr,
+                             "var is ",
+                             s(:lvar, "var", Type.long),
+                             s(:str, ". So there.", Type.str),
+                             Type.str),
+                           Type.str),
+                         Type.unknown),
+                       Type.void),
+                     Type.function(Type.unknown, [], Type.void))
 
-  @@interpolated = Sexp.new(:defn,
-                            "interpolated",
-                            Sexp.new(:args),
-                            Sexp.new(:scope,
-                                     Sexp.new(:block,
-                                              Sexp.new(:lasgn,
-                                                       "var",
-                                                       Sexp.new(:lit,
-                                                                14,
-                                                                Type.long),
-                                                       Type.long),
-                                              Sexp.new(:lasgn, "var2",
-                                                       Sexp.new(:dstr,
-                                                                "var is ",
-                                                                Sexp.new(:lvar, "var", Type.long),
-                                                                Sexp.new(:str, ". So there.", Type.str),
-                                                                Type.str),
-                                                       Type.str),
-                                              Type.unknown),
-                                     Type.void),
-                            Type.function(Type.unknown, [], Type.void))
+  @@unknown_args = s(:defn, "unknown_args",
+                     s(:args,
+                       s("arg1", Type.long),
+                       s("arg2", Type.str)),
+                     s(:scope,
+                       s(:block,
+                         s(:return,
+                           s(:lvar,
+                             "arg1",
+                             Type.long),
+                           Type.void),
+                         Type.unknown),
+                       Type.void),
+                     Type.function(Type.unknown, [Type.long, Type.str], Type.long))
 
-  @@unknown_args = Sexp.new(:defn, "unknown_args",
-                            Sexp.new(:args,
-                                     Sexp.new("arg1", Type.long),
-                                     Sexp.new("arg2", Type.str)),
-                            Sexp.new(:scope,
-                                     Sexp.new(:block,
-                                              Sexp.new(:return,
-                                                       Sexp.new(:lvar,
-                                                                "arg1",
-                                                                Type.long),
-                                                       Type.void),
-                                              Type.unknown),
-                                     Type.void),
-                            Type.function(Type.unknown, [Type.long, Type.str], Type.long))
+  @@determine_args = s(:defn, "determine_args",
+                       s(:args),
+                       s(:scope,
+                         s(:block,
+                           s(:call,
+                             "==",
+                             s(:lit,
+                               5,
+                               Type.long),
+                             s(:array,
+                               s(:call,
+                                 "unknown_args",
+                                 nil,
+                                 s(:array,
+                                   s(:lit, 4, Type.long),
+                                   s(:str, "known", Type.str)),
+                                 Type.long)),
+                             Type.bool),
+                           Type.unknown),
+                         Type.void),
+                       Type.function(Type.unknown, [], Type.void))
 
-  @@determine_args = Sexp.new(:defn, "determine_args",
-                              Sexp.new(:args),
-                              Sexp.new(:scope,
-                                       Sexp.new(:block,
-                                                Sexp.new(:call,
-                                                         "==",
-                                                         Sexp.new(:lit,
-                                                                  5,
-                                                                  Type.long),
-                                                         Sexp.new(:array,
-                                                                  Sexp.new(:call,
-                                                                           "unknown_args",
-                                                                           nil,
-                                                                           Sexp.new(:array,
-                                                                                    Sexp.new(:lit, 4, Type.long),
-                                                                                    Sexp.new(:str, "known", Type.str)),
-                                                                           Type.long)),
-                                                         Type.bool),
-                                                Type.unknown),
-                                       Type.void),
-                              Type.function(Type.unknown, [], Type.void))
-
-  @@__all = Sexp.new()
+  @@__all = s()
 
   @@__type_checker = TypeChecker.new
 
