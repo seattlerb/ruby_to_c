@@ -8,5 +8,6 @@ class CharDemo
 
   def main
     chardemo
+    return 0
   end
 end

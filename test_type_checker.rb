@@ -6,13 +6,51 @@ require 'something'
 
 # Test::Unit::Assertions.use_pp = false
 
-class TestTypeChecker_1 < Test::Unit::TestCase
+class TestTypeChecker < Test::Unit::TestCase
 
   def setup
     @type_checker = TypeChecker.new
   end
 
-  def test_args
+  def test_bootstrap
+    # bootstrap is automatically called by initialize
+    # TODO should we check for EVERYTHING we expect?
+
+    assert_equal Type.file, @type_checker.genv.lookup("$stderr")
+    assert_equal Type.file, @type_checker.genv.lookup("$stdout")
+    assert_equal Type.file, @type_checker.genv.lookup("$stdin")
+
+    assert_equal(Type.function(Type.long, [Type.long], Type.bool),
+                 @type_checker.functions[">"])
+  end
+
+  def test_functions
+    # bootstrap populates functions
+    assert @type_checker.functions.has_key?("puts")
+    assert_equal(Type.function(Type.long, [Type.long], Type.bool),
+                 @type_checker.functions[">"])
+  end
+
+  def test_env
+    @type_checker.env.add "blah", Type.long
+    assert_equal Type.long, @type_checker.env.lookup("blah") 
+ end
+
+  def test_genv
+    assert_equal Type.file, @type_checker.genv.lookup("$stderr")
+  end
+
+  def test_translate
+    result = @type_checker.translate(Something, :empty)
+    expect = s(:defn,
+               "empty",
+               s(:args),
+               s(:scope, Type.void),
+               Type.function(Type.unknown, [], Type.void))
+    assert_equal(expect, result)
+  end
+
+  def test_process_args
     @type_checker.env.extend
 
     input =  s(:args, "foo", "bar")
@@ -23,7 +61,7 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_args_empty
+  def test_process_args_empty
     input =  s(:args)
     output = s(:args)
     # TODO: this should be superseded by the new array functionality
@@ -31,7 +69,7 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_array_single
+  def test_process_array_single
     add_fake_var "arg1", Type.long
 
     input  = s(:array, s(:lvar, "arg1"))
@@ -44,7 +82,7 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, result
   end
 
-  def test_array_multiple
+  def test_process_array_multiple
     add_fake_var "arg1", Type.long
     add_fake_var "arg2", Type.str
 
@@ -56,7 +94,7 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_call_defined
+  def test_process_call_defined
     add_fake_function "name", Type.void, Type.long, Type.str
     input  = s(:call,
                nil,
@@ -71,7 +109,7 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_call_defined_rhs
+  def test_process_call_defined_rhs
     add_fake_function "name3", Type.long, Type.long, Type.str
     input  = s(:call,
                s(:lit, 1),
@@ -86,7 +124,7 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_call_undefined
+  def test_process_call_undefined
     input  = s(:call, nil, "name", nil)
     output = s(:call, nil, "name", nil, Type.unknown)
 
@@ -96,7 +134,7 @@ class TestTypeChecker_1 < Test::Unit::TestCase
                  @type_checker.functions["name"])
   end
 
-  def test_call_unify_1
+  def test_process_call_unify_1
     add_fake_var "number", Type.long
     input  = s(:call,
                s(:lit, 1),
@@ -113,7 +151,7 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_call_unify_2
+  def test_process_call_unify_2
     add_fake_var "number1", Type.unknown
     add_fake_var "number2", Type.unknown
 
@@ -144,7 +182,7 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_call_case_equal_long
+  def test_process_call_case_equal_long
     add_fake_var "number", Type.unknown
 
     input  = s(:call,
@@ -161,7 +199,7 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_call_case_equal_string
+  def test_process_call_case_equal_string
     add_fake_var "string", Type.unknown
 
     input  = s(:call,
@@ -178,7 +216,11 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_block
+  def test_process_const
+    raise NotImplementedError, 'Need to write test_process_const'
+  end
+
+  def test_process_block
     add_fake_function Type.unknown, "foo" # TODO: why is this here?
 
     input  = s(:block, s(:return, s(:nil)))
@@ -192,7 +234,7 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_block_multiple
+  def test_process_block_multiple
     add_fake_function Type.unknown, "foo" # what is this really testing?
 
     input  = s(:block,
@@ -208,7 +250,7 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_dasgn
+  def test_process_dasgn_curr
     @type_checker.env.extend
     input  = s(:dasgn_curr, "x")
     output = s(:dasgn_curr, "x", Type.unknown)
@@ -218,7 +260,7 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     # assert_equal Type.long, @type_checker.env.lookup("x")
   end
 
-  def test_defn
+  def test_process_defn
     function_type = Type.function s(), Type.void
     input  = s(:defn,
                "empty",
@@ -233,7 +275,7 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_dstr
+  def test_process_dstr
     add_fake_var "var", Type.str
     input  = s(:dstr,
                "var is ",
@@ -247,7 +289,7 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_dvar
+  def test_process_dvar
     add_fake_var "dvar", Type.long
     input  = s(:dvar, "dvar")
     output = s(:dvar, "dvar", Type.long)
@@ -255,14 +297,14 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_false
+  def test_process_false
     input =   s(:false)
     output = s(:false, Type.bool)
 
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_gvar_defined
+  def test_process_gvar_defined
     add_fake_gvar "$arg", Type.long
     input  = s(:gvar, "$arg")
     output = s(:gvar, "$arg", Type.long)
@@ -270,14 +312,14 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_gvar_undefined
+  def test_process_gvar_undefined
     input  = s(:gvar, "$arg")
     output = s(:gvar, "$arg", Type.unknown)
 
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_if
+  def test_process_if
     input  = s(:if,
                s(:call,
                  s(:lit, 1),
@@ -299,7 +341,7 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_if_else
+  def test_process_if_else
     input  = s(:if,
                s(:call,
                  s(:lit, 1),
@@ -320,7 +362,7 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_iter
+  def test_process_iter
     @type_checker.env.extend
     var_type = Type.long_list
     add_fake_var "array", var_type
@@ -360,7 +402,7 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_lasgn
+  def test_process_lasgn
     @type_checker.env.extend # FIX: this is a design flaw... examine irb sess:
     # require 'sexp_processor'
     # require 'type_checker'
@@ -380,7 +422,7 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
   
-  def test_lasgn_array
+  def test_process_lasgn_array
     @type_checker.env.extend
     input  = s(:lasgn,
                "var",
@@ -396,14 +438,14 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_lit
+  def test_process_lit
     input  = s(:lit, 1)
     output = s(:lit, 1, Type.long)
 
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_lvar
+  def test_process_lvar
     add_fake_var "arg", Type.long
     input  = s(:lvar, "arg")
     output = s(:lvar, "arg", Type.long)
@@ -411,28 +453,36 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_nil
+  def test_process_nil
     input  = s(:nil)
     output = s(:nil, Type.value)
 
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_return
+  def test_process_or
+    raise NotImplementedError, 'Need to write test_process_or'
+  end
+
+  def test_process_rescue
+    raise NotImplementedError, 'Need to write test_process_rescue'
+  end
+
+  def test_process_return
     input  = s(:return, s(:nil))
     output = s(:return, s(:nil, Type.value), Type.void)
 
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_str
+  def test_process_str
     input  = s(:str, "foo")
     output = s(:str, "foo", Type.str)
 
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_scope
+  def test_process_scope
     add_fake_function Type.unknown, "foo" # TODO: what is this here for?
     input  = s(:scope,
                s(:block,
@@ -448,21 +498,21 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_scope_empty
+  def test_process_scope_empty
     input =   s(:scope)
     output = s(:scope, Type.void)
 
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_true
+  def test_process_true
     input =  s(:true)
     output = s(:true, Type.bool)
 
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_unless
+  def test_process_unless
     input  = s(:if,
                s(:call,
                  s(:lit, 1),
@@ -482,6 +532,10 @@ class TestTypeChecker_1 < Test::Unit::TestCase
                Type.str)
 
     assert_equal output, @type_checker.process(input)
+  end
+
+  def test_process_while
+    raise NotImplementedError, 'Need to write test_process_while'
   end
 
   def add_fake_function(name, reciever_type = nil, return_type = Type.unknown, *arg_types)
@@ -506,7 +560,7 @@ class TestTypeChecker_1 < Test::Unit::TestCase
 
 end
 
-class TestTypeChecker_2 < Test::Unit::TestCase
+class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
 
   # TODO: need a good test of interpolated strings
 

@@ -3,6 +3,12 @@
 require 'test/unit'
 require 'type_checker'
 
+class TestFunctions < Test::Unit::TestCase
+  def test_index
+    raise NotImplementedError, 'Need to write test_index'
+  end
+end
+
 class TestHandle < Test::Unit::TestCase
 
   def setup
@@ -13,19 +19,19 @@ class TestHandle < Test::Unit::TestCase
     assert_equal "text", @handle.contents
   end
 
-  def test_set_contents
+  def test_contents=
     @handle.contents = "new text"
     assert_equal "new text", @handle.contents
   end
 
-  def test_handle
+  def test_equals
     obj = "foo"
     handle1 = Handle.new obj
     handle2 = Handle.new obj
     assert_equal handle1, handle2
   end
 
-  def test_handle2
+  def test_equals_reassign
     obj = "foo"
     handle2 = Handle.new obj
     @handle.contents = obj
@@ -36,7 +42,31 @@ end
 
 class TestFunctionType < Test::Unit::TestCase
 
-  def test_equal
+  def test_formal_types
+    raise NotImplementedError, 'Need to write test_formal_types'
+  end
+
+  def test_formal_types=
+    raise NotImplementedError, 'Need to write test_formal_types='
+  end
+
+  def test_receiver_type
+    raise NotImplementedError, 'Need to write test_receiver_type'
+  end
+
+  def test_receiver_type=
+    raise NotImplementedError, 'Need to write test_receiver_type='
+  end
+
+  def test_return_type
+    raise NotImplementedError, 'Need to write test_return_type'
+  end
+
+  def test_return_type=
+    raise NotImplementedError, 'Need to write test_return_type='
+  end
+
+  def test_equals
     funs = []
     funs << FunctionType.new(Type.unknown, [], Type.unknown)
     funs << FunctionType.new(Type.unknown, [Type.unknown], Type.unknown)
@@ -76,7 +106,7 @@ class TestFunctionType < Test::Unit::TestCase
     assert_equal fun6, fun5
   end
 
-  def test_new_fail
+  def test_initialize_fail
     assert_raises(RuntimeError) do
       FunctionType.new(Type.unknown, nil, Type.long)
     end
@@ -129,6 +159,22 @@ class TestType < Test::Unit::TestCase
     @long_list = Type.new(:long, true)
   end
 
+  def test_function?
+    assert ! @long.function?
+    assert ! @long_list.function?
+    assert ! @unknown.function?
+    assert ! @unknown_list.function?
+    assert Type.function(Type.str, [Type.str], Type.str).function?
+  end
+
+  def test_list=
+    raise NotImplementedError, 'Need to write test_list='
+  end
+
+  def test_type=
+    raise NotImplementedError, 'Need to write test_type='
+  end
+
   def test_unknown_types
     assert_raises(RuntimeError) do
       Type.new(:some_made_up_type)
@@ -149,14 +195,14 @@ class TestType < Test::Unit::TestCase
     assert_equal :long, @long_list.list_type
   end
 
-  def test_equal
+  def test_equals
     type = Type.long
     assert_not_equal @unknown, type
     assert_equal @long, type
     assert_not_equal @long_list, type
   end
 
-  def test_equal_and_hash
+  def test_hash
     long1 = Type.long
     long2 = Type.long
 
@@ -186,7 +232,7 @@ class TestType < Test::Unit::TestCase
     assert_equal "Type.long_list", @long_list.to_s
   end
 
-  def test_unknown
+  def test_unknown?
     assert_equal Type.unknown, Type.unknown
     assert_not_same Type.unknown, Type.unknown
   end
@@ -258,5 +304,61 @@ class TestType < Test::Unit::TestCase
     assert_equal fun, @unknown
   end
 
+end
+
+class TestEnvironment < Test::Unit::TestCase
+  def test_add
+    raise NotImplementedError, 'Need to write test_add'
+  end
+
+  def test_current
+    raise NotImplementedError, 'Need to write test_current'
+  end
+
+  def test_depth
+    raise NotImplementedError, 'Need to write test_depth'
+  end
+
+  def test_env
+    raise NotImplementedError, 'Need to write test_env'
+  end
+
+  def test_env=
+    raise NotImplementedError, 'Need to write test_env='
+  end
+
+  def test_lookup
+    raise NotImplementedError, 'Need to write test_lookup'
+  end
+
+  def test_scope
+    raise NotImplementedError, 'Need to write test_scope'
+  end
+
+  def test_unextend
+    raise NotImplementedError, 'Need to write test_unextend'
+  end
+end
+
+class TestFunctionTable < Test::Unit::TestCase
+  def test_add_function
+    raise NotImplementedError, 'Need to write test_add_function'
+  end
+
+  def test_cheat
+    raise NotImplementedError, 'Need to write test_cheat'
+  end
+
+  def test_has_key?
+    raise NotImplementedError, 'Need to write test_has_key?'
+  end
+
+  def test_index
+    raise NotImplementedError, 'Need to write test_index'
+  end
+
+  def test_unify
+    raise NotImplementedError, 'Need to write test_unify'
+  end
 end
 

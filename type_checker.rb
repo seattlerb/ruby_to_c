@@ -6,43 +6,36 @@ require 'pp'
 
 # TODO: calls to sexp_type should probably be replaced w/ better Sexp API
 
-# Some ideas: Either have a 2 level hash with [name][reciever], or,
-# since we often register methods w/o knowing their reciever yet, have
-# the value be an array of signatures. In the latter, we can modify
-# unify to take an array of things to unify against, if ONE of them
-# unifies, we are good, if NONE of them, we raise. I think that'll be
-# the easiest of the two, but I' msure I'm not thinking about certain
-# edge cases yet. See [] below for examples of both.
-
 $bootstrap = {
-  # :sym => [:reciever, :args, :return]
-  "<"  => [:long, :long, :bool],
-  "<=" => [:long, :long, :bool],
-  "==" => [:long, :long, :bool],
-  ">"  => [:long, :long, :bool],
-  ">=" => [:long, :long, :bool],
+  # :sym => [[:reciever, :args, :return], ...]
+  "<"  => [[:long, :long, :bool],],
+  "<=" => [[:long, :long, :bool],],
+  "==" => [[:long, :long, :bool],],
+  ">"  => [[:long, :long, :bool],],
+  ">=" => [[:long, :long, :bool],],
 
-  "+"  => [:long, :long, :long],
-  "-"  => [:long, :long, :long],
-  "*"  => [:long, :long, :long],
+  "+"  => ([
+             [:long, :long, :long],
+             [:str, :str, :str],
+           ]),
+  "-"  => [[:long, :long, :long],],
+  "*"  => [[:long, :long, :long],],
 
   # polymorphics:
-  "nil?" => [:value, :bool],
-  "to_s" => [:long, :str],  # HACK - should be :value, :str
-  "to_i" => [:long, :long], # HACK - should be :value, :str
-  "puts" => [:void, :str, :void],
-  "print" => [:void, :str, :void],
+  "nil?" => [[:value, :bool],],
+  "to_s" => [[:long, :str],],  # HACK - should be :value, :str
+  "to_i" => [[:long, :long],], # HACK - should be :value, :str
+  "puts" => [[:void, :str, :void],],
+  "print" => [[:void, :str, :void],],
 
-  "[]"   => [:long_list, :long, :long], # HACK - rec/ret should be polymorphic
+  "[]"   => ([
+               [:long_list, :long, :long],
+               [:str, :long, :long],
+             ]),
 
-# "[]"   => [[:long_list, :long, :long],
-#            [:str_list, :str, :long],]
-
-# "[]"   => {:long_list => [:long, :long],},
-
-  # get rid of these
-  "case_equal_str" => [:str, :str, :bool],
-  "case_equal_long" => [:long, :long, :bool],
+  # TODO: get rid of these
+  "case_equal_str" => [[:str, :str, :bool],],
+  "case_equal_long" => [[:long, :long, :bool],],
 }
 
 class TypeChecker < SexpProcessor
@@ -96,13 +89,14 @@ class TypeChecker < SexpProcessor
   def bootstrap
     @genv.add "$stderr", Type.file
 
-    $bootstrap.each_key do |name|
+    $bootstrap.each do |name,signatures|
       # FIX: Using Type.send because it must go through method_missing, not new
-      signature = $bootstrap[name]
-      lhs_type = Type.send(signature[0])
-      return_type = Type.send(signature[-1])
-      arg_types = signature[1..-2].map { |t| Type.send(t) }
-      @functions.add_function(name, Type.function(lhs_type, arg_types, return_type))
+      signatures.each do |signature|
+        lhs_type = Type.send(signature[0])
+        return_type = Type.send(signature[-1])
+        arg_types = signature[1..-2].map { |t| Type.send(t) }
+        @functions.add_function(name, Type.function(lhs_type, arg_types, return_type))
+      end
     end
   end
 
@@ -220,6 +214,7 @@ class TypeChecker < SexpProcessor
 
     @env.scope do
       args = process unprocessed_args
+      body = process exp.shift
 
       # Function might already have been defined by a :call node.
       # TODO: figure out the receiver type? Is that possible at this stage?
@@ -228,11 +223,8 @@ class TypeChecker < SexpProcessor
         @functions.add_function(name, function_type)
         $stderr.puts "\nWARNING: Registering function #{name}: #{function_type.inspect}" if $DEBUG
       end
-
-      body = process exp.shift
     end
 
-    function_type = @functions[name]
     return_type = function_type.list_type.return_type
 
     # Drill down and find all return calls, unify each one against the

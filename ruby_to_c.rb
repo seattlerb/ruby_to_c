@@ -56,6 +56,7 @@ typedef struct { unsigned long length; long * contents; } long_array;
       @@translator = CompositeSexpProcessor.new
       @@translator << Rewriter.new
       @@translator << TypeChecker.new
+      @@translator << R2CRewriter.new
       @@translator << self.new
     end
     @@translator.process(ParseTree.new.parse_tree(klass, method))
@@ -100,7 +101,7 @@ typedef struct { unsigned long length; long * contents; } long_array;
 
     until exp.empty? do
       arg = exp.shift
-      args << "#{c_type(arg.sexp_type)} #{arg}"
+      args << "#{c_type(arg.sexp_type)} #{arg.first}"
     end
 
     return "(#{args.join ', '})"

@@ -24,8 +24,8 @@ class Rewriter < SexpProcessor
 
   def process_case(exp)
     result = Sexp.new
-    var = exp.shift
-    else_stmt = exp.pop
+    var = process exp.shift
+    else_stmt = process exp.pop
 
     new_exp = result
     
@@ -38,7 +38,10 @@ class Rewriter < SexpProcessor
       assert_type c, :when
       ignored_type, vars, stmts = process(c)
 
-      vars = vars.map { |v| Sexp.new(:call, var.deep_clone, "===", Sexp.new(:array, v))}
+      vars = vars.map { |v| Sexp.new(:call,
+                                     var.deep_clone,
+                                     "===",
+                                     Sexp.new(:array, process(v)))}
       if vars.size > 1 then
         new_exp << Sexp.new(:or, *vars)
       else
@@ -46,7 +49,7 @@ class Rewriter < SexpProcessor
       end
       new_exp << stmts
     end
-    new_exp << else_stmt if else_stmt
+    new_exp << else_stmt
 
     result.first
   end
@@ -179,3 +182,34 @@ class Rewriter < SexpProcessor
   end
 end
 
+class R2CRewriter < SexpProcessor
+
+  REWRITES = {
+    [Type.str, "+", Type.str] => proc { |l,n,r|
+      s(:call, nil, "strcat", r.unshift(r.shift, l), Type.str)
+    }
+  }
+
+  def initialize
+    super
+    self.auto_shift_type = true
+  end
+
+  def process_call(exp)
+    lhs = process exp.shift
+    name = exp.shift
+    rhs = process exp.shift
+
+    lhs_type = lhs.sexp_type rescue nil
+    type_signature = [lhs_type, name]
+    type_signature += rhs[1..-1].map { |sexp| sexp.sexp_type } unless rhs.nil?
+
+    result = if REWRITES.has_key? type_signature then
+               REWRITES[type_signature].call(lhs, name, rhs)
+             else
+               Sexp.new(:call, lhs, name, rhs, exp.sexp_type)
+             end
+
+    return result
+  end
+end

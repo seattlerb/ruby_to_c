@@ -14,7 +14,6 @@ class Sexp < Array # ZenTest FULL
   attr_accessor :accessors
   attr_accessor :unpack
 
-  # def unpack?; @unpack; end
   alias_method :unpack?, :unpack
 
   def initialize(*args)
@@ -111,7 +110,9 @@ class Sexp < Array # ZenTest FULL
   end
 
   def inspect
-    "s(#{self.map {|x|x.inspect}.join(', ')}, #{array_type? ? sexp_types.inspect : sexp_type})"
+    t = array_type? ? sexp_types.inspect : sexp_type
+    t = t.nil? ? "" : ", #{t}"
+    "Sexp.new(#{self.map {|x|x.inspect}.join(', ')}#{t})"
   end
 
   def pretty_print(q)
@@ -125,7 +126,7 @@ class Sexp < Array # ZenTest FULL
   end
 
   def to_s
-    self.join(" ")
+    inspect
   end
 
   def shift
@@ -287,7 +288,7 @@ class SexpProcessor
         exp.shift
       end
       result = self.send(meth, exp)
-      raise "Result must be a #{@expected}, was #{result.class}:#{result.inspect}" unless @expected === result
+      raise TypeError, "Result must be a #{@expected}, was #{result.class}:#{result.inspect}" unless @expected === result
       raise "exp not empty after #{self.class}.#{meth} on #{exp.inspect} from #{exp_orig.inspect}" if @require_empty and not exp.empty?
     else
       unless @strict then

@@ -6,5 +6,6 @@ class Hello
 
   def main # silly hack
     hello
+    return 0
   end
 end

@@ -1,19 +1,4 @@
 
-class Array
-  def unify(t)
-    success = false
-    each do |o|
-      begin
-        o.unify t
-        success = true
-      rescue
-        # ignore
-      end
-    end
-    raise TypeError, "Unable to unify #{self.inspect} with #{t.inspect}" unless success
-  end
-end
-
 class Environment
 
   attr_accessor :env
@@ -86,9 +71,16 @@ class FunctionTable
   end
 
   def unify(name, type)
-    begin
-      @functions[name].unify(type)
-    rescue TypeError
+    success = false
+    @functions[name].each do |o| # unify(type)
+      begin
+        o.unify type
+        success = true
+      rescue
+        # ignore
+      end
+    end
+    unless success then
       yield(name, type) if block_given?
     end
     type
@@ -122,8 +114,8 @@ class FunctionType
     raise TypeError, "Unable to unify: different number of args #{self.inspect} vs #{other.inspect}" unless
       @formal_types.length == other.formal_types.length
 
-    @formal_types.each_with_index do |type, i|
-      type.unify other.formal_types[i]
+    @formal_types.each_with_index do |t, i|
+      t.unify other.formal_types[i]
     end
 
     @receiver_type.unify other.receiver_type
