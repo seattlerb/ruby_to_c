@@ -369,5 +369,9 @@ typedef struct { unsigned long length; long * contents; } long_array;
     return "while (#{cond}) {\n#{body.strip}\n}"
   end
 
+  def process_dummy(exp)
+    process_block(exp).chomp
+  end
+
 end
 

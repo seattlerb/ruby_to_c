@@ -111,27 +111,16 @@ class Rewriter < SexpProcessor
         finish_value = call.pop.pop # not sure about this
         var_name = var.shift
         body.find_and_replace_all(:dvar, :lvar)
-
-        # HACK have to pack body in case it was unpacked
-        while_body = s(:block)
-        if Sexp === body.first then
-          until body.empty? do
-            while_body << body.shift
-          end
-        else
-          while_body << body
-        end
-        while_body << s(:lasgn, var_name,
-                        s(:call, s(:lvar, var_name), "-",
-                          s(:array, Sexp.new(:lit, 1))))
-
-        result = s()
-        result.unpack = true
-        result << s(:lasgn, var_name, start_value)
-        result << s(:while,
-                    s(:call, s(:lvar, var_name), ">=",
-                      s(:array, finish_value)),
-                    while_body)
+        result = s(:dummy,
+                   s(:lasgn, var_name, start_value),
+                   s(:while,
+                     s(:call, s(:lvar, var_name), ">=",
+                       s(:array, finish_value)),
+                     s(:block,
+                       body,
+                       s(:lasgn, var_name,
+                         s(:call, s(:lvar, var_name), "-",
+                           s(:array, Sexp.new(:lit, 1)))))))
       when "upto" then
         # REFACTOR: completely duped from above and direction changed
         var.shift # 
@@ -139,27 +128,16 @@ class Rewriter < SexpProcessor
         finish_value = call.pop.pop # not sure about this
         var_name = var.shift
         body.find_and_replace_all(:dvar, :lvar)
-
-        # HACK have to pack body incase it was unpacked
-        while_body = s(:block)
-        if Sexp === body.first then
-          until body.empty? do
-            while_body << body.shift
-          end
-        else
-          while_body << body
-        end
-        while_body << s(:lasgn, var_name,
-                        s(:call, s(:lvar, var_name), "+",
-                          s(:array, Sexp.new(:lit, 1))))
-
-        result = s()
-        result.unpack = true
-        result << s(:lasgn, var_name, start_value)
-        result << s(:while,
-                    s(:call, s(:lvar, var_name), "<=",
-                      s(:array, finish_value)),
-                    while_body)
+        result = s(:dummy,
+                   s(:lasgn, var_name, start_value),
+                   s(:while,
+                     s(:call, s(:lvar, var_name), "<=",
+                       s(:array, finish_value)),
+                     s(:block,
+                       body,
+                       s(:lasgn, var_name,
+                         s(:call, s(:lvar, var_name), "+",
+                           s(:array, Sexp.new(:lit, 1)))))))
       else
         raise "unknown iter method #{method_name}"
       end
