@@ -1,13 +1,40 @@
 #!/usr/local/bin/ruby -w
 
+$TESTING = true unless defined? $TESTING
+
 require 'test/unit'
 require 'ruby_to_c'
 require 'parse_tree'
 require 'something'
 
 class TestTypeMap < Test::Unit::TestCase
-  def test_c_type
-    raise NotImplementedError, 'Need to write test_c_type'
+
+  def test_c_type_long
+    assert_equal "long", TypeMap.c_type(Type.long)
+  end
+
+  def test_c_type_long_list
+    assert_equal "long[]", TypeMap.c_type(Type.long_list)
+  end
+
+  def test_c_type_str
+    assert_equal "char *", TypeMap.c_type(Type.str)
+  end
+
+  def test_c_type_bool
+    assert_equal "long", TypeMap.c_type(Type.bool)
+  end
+
+  def test_c_type_void
+    assert_equal "void", TypeMap.c_type(Type.void)
+  end
+
+  def test_c_type_value
+    assert_equal "VALUE", TypeMap.c_type(Type.value)
+  end
+
+  def test_c_type_unknown
+    assert_equal "VALUE", TypeMap.c_type(Type.unknown)
   end
 end
 
@@ -18,12 +45,27 @@ class TestRubyToC < Test::Unit::TestCase
     @ruby_to_c.env.extend
   end
 
+  def test_and
+    input  = Sexp.new(:and, Sexp.new(:lit, 1), Sexp.new(:lit, 2))
+    output = "1 && 2"
+
+    assert_equal output, @ruby_to_c.process(input)
+  end
+
   def test_env
-    raise NotImplementedError, 'Need to write test_env'
+    assert_not_nil @ruby_to_c.env
+    assert_kind_of Environment, @ruby_to_c.env
   end
 
   def test_prototypes
-    raise NotImplementedError, 'Need to write test_prototypes'
+    assert_equal [], @ruby_to_c.prototypes
+    @ruby_to_c.process Sexp.new(:defn,
+                                "empty",
+                                Sexp.new(:args),
+                                Sexp.new(:scope),
+                                Type.function([], Type.void))
+
+    assert_equal "void empty();\n", @ruby_to_c.prototypes.first
   end
 
   def test_prototypes=
@@ -320,7 +362,6 @@ var.contents[1] = \"bar\""
     assert_equal output, @ruby_to_c.process(input)
   end
 
-
   def test_process_or
     input  = Sexp.new(:or, Sexp.new(:lit, 1), Sexp.new(:lit, 2))
     output = "1 || 2"
@@ -389,11 +430,32 @@ var.contents[1] = \"bar\""
   end
 
   def test_process_while
-    raise NotImplementedError, 'Need to write test_process_while'
+    input    = s(:while,
+                 s(:call, s(:lvar, "n"), "<=", s(:array, s(:lit, 3))),
+                 s(:block,
+                   s(:call,
+                     nil,
+                     "puts",
+                     s(:array,
+                       s(:call,
+                         s(:lvar, "n"),
+                         "to_s",
+                         nil))),
+                   s(:lasgn, "n",
+                     s(:call,
+                       s(:lvar, "n"),
+                       "+",
+                       s(:array,
+                         s(:lit, 1))),
+                     Type.long))) # NOTE Type.long needed but not used
+
+    expected = "while (n <= 3) {\nputs(to_s(n));\nn = n + 1;\n}"
+
+    assert_equal expected, @ruby_to_c.process(input)
   end
 end
 
-class TestRubyToC_2 < Test::Unit::TestCase # ZenTest SKIP
+class TestRubyToCSomething < Test::Unit::TestCase # ZenTest SKIP
 
   @@empty = "void
 empty() {

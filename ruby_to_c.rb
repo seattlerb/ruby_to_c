@@ -31,6 +31,8 @@ module TypeMap
     base_type
   end
 
+  module_function :c_type if $TESTING
+
 end
 
 class RubyToC < SexpProcessor
@@ -84,7 +86,8 @@ typedef struct { unsigned long length; long * contents; } long_array;
     "#{prototypes.join('')}\n\n#{result.join("\n\n")}"
   end
 
-  attr_accessor :prototypes
+  # attr_accessor :prototypes # TODO is this needed anymore?
+
   def initialize
     super
     @env = Environment.new
@@ -94,6 +97,13 @@ typedef struct { unsigned long length; long * contents; } long_array;
     self.expected = String
 
     @prototypes = []
+  end
+
+  def process_and(exp)
+    lhs = process exp.shift
+    rhs = process exp.shift
+
+    return "#{lhs} && #{rhs}"
   end
 
   def process_args(exp)
