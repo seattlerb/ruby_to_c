@@ -10,9 +10,8 @@ class ParseTree
     builder.include '"intern.h"'
     builder.include '"node.h"'
 
-    builder.c_raw %q{
-      static VALUE node_to_sym(NODE * n) {
-        char node_type_string[][60] = {
+    builder.prefix %q{
+        static char node_type_string[][60] = {
 	  //  00
 	  "method", "fbody", "cfunc", "scope", "block",
 	  "if", "case", "when", "opt_n", "while",
@@ -53,13 +52,6 @@ class ParseTree
 	  // 104 / 103
 	  "last" 
         };
-
-	if (n) {
-	  return ID2SYM(rb_intern(node_type_string[nd_type(n)]));
-        } else {
-	  return ID2SYM(rb_intern("ICKY"));
-	}
-      }
   }
 
     builder.c_raw %q^
@@ -71,18 +63,23 @@ static void add_to_parse_tree(VALUE ary, NODE * n) {
   NODE * volatile contnode = NULL;
   VALUE old_ary;
   VALUE current;
+  VALUE node_name;
 
-
-    if (!node) return;
+  if (!node) return;
 
 again:
 
-    current = rb_ary_new();
-    rb_ary_push(ary, current);
-    rb_ary_push(current, node_to_sym(node));
+  if (node) {
+    node_name = ID2SYM(rb_intern(node_type_string[nd_type(node)]));
+  } else {
+    node_name = ID2SYM(rb_intern("ICKY"));
+  }
+
+  current = rb_ary_new();
+  rb_ary_push(ary, current);
+  rb_ary_push(current, node_name);
 
 again_no_block:
-
 
     switch (nd_type(node)) {
 
