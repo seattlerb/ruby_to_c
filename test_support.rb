@@ -5,12 +5,6 @@ $TESTING = true
 require 'test/unit'
 require 'type_checker'
 
-class TestFunctions < Test::Unit::TestCase
-  def test_index
-    raise NotImplementedError, 'Need to write test_index'
-  end
-end
-
 class TestHandle < Test::Unit::TestCase
 
   def setup
@@ -44,28 +38,35 @@ end
 
 class TestFunctionType < Test::Unit::TestCase
 
+  def setup
+    @function_type = FunctionType.new Type.void, [Type.long, Type.str], Type.value
+  end
+
   def test_formal_types
-    raise NotImplementedError, 'Need to write test_formal_types'
+    assert_equal [Type.long, Type.str], @function_type.formal_types
   end
 
   def test_formal_types=
-    raise NotImplementedError, 'Need to write test_formal_types='
+    @function_type.formal_types = [Type.str, Type.long]
+    assert_equal [Type.str, Type.long], @function_type.formal_types
   end
 
   def test_receiver_type
-    raise NotImplementedError, 'Need to write test_receiver_type'
+    assert_equal Type.void, @function_type.receiver_type
   end
 
   def test_receiver_type=
-    raise NotImplementedError, 'Need to write test_receiver_type='
+    @function_type.receiver_type = Type.str
+    assert_equal Type.str, @function_type.receiver_type
   end
 
   def test_return_type
-    raise NotImplementedError, 'Need to write test_return_type'
+    assert_equal Type.value, @function_type.return_type
   end
 
   def test_return_type=
-    raise NotImplementedError, 'Need to write test_return_type='
+    @function_type.return_type = Type.long
+    assert_equal Type.long, @function_type.return_type
   end
 
   def test_equals
@@ -169,12 +170,31 @@ class TestType < Test::Unit::TestCase
     assert Type.function(Type.str, [Type.str], Type.str).function?
   end
 
+  def test_list
+    assert_equal false, @long.list
+    assert_equal true, @long_list.list
+  end
+
   def test_list=
-    raise NotImplementedError, 'Need to write test_list='
+    long = Type.long.deep_clone
+    long_list = Type.long_list.deep_clone
+
+    long.list = true
+    long_list.list = false
+
+    assert_equal true, long.list
+    assert_equal false, long_list.list
+  end
+
+  def test_type
+    assert_kind_of Handle, @long.type
+    assert_equal :long, @long.type.contents
   end
 
   def test_type=
-    raise NotImplementedError, 'Need to write test_type='
+    long = Type.long.deep_clone
+    long.type = "something"
+    assert_equal "something", long.type
   end
 
   def test_unknown_types
@@ -309,58 +329,187 @@ class TestType < Test::Unit::TestCase
 end
 
 class TestEnvironment < Test::Unit::TestCase
+
+  def setup
+    @env = Environment.new
+  end
+
   def test_add
-    raise NotImplementedError, 'Need to write test_add'
+    @env.add 'var', 42
+    assert_equal 42, @env.lookup('var')
+  end
+
+  def test_add_segmented
+    @env.scope do
+      @env.add 'var', 42
+      assert_equal 42, @env.lookup('var')
+    end
+
+    assert_raises RuntimeError do
+      @env.lookup('var')
+    end
   end
 
   def test_current
-    raise NotImplementedError, 'Need to write test_current'
+    @env.add 'var', 42
+    
+    expected = { 'var' => 42 }
+    assert_equal expected, @env.current
   end
 
   def test_depth
-    raise NotImplementedError, 'Need to write test_depth'
+    assert_equal 1, @env.depth
+
+    @env.scope do
+      assert_equal 2, @env.depth
+    end
+
+    assert_equal 1, @env.depth
   end
 
   def test_env
-    raise NotImplementedError, 'Need to write test_env'
+    assert_equal [{}], @env.env
   end
 
   def test_env=
-    raise NotImplementedError, 'Need to write test_env='
+    @env.env = "something"
+    assert_equal "something", @env.env
+  end
+
+  def test_extend
+    assert_equal [{}], @env.env
+
+    @env.extend
+    assert_equal [{}, {}], @env.env
   end
 
   def test_lookup
-    raise NotImplementedError, 'Need to write test_lookup'
+    @env.add 'var', 1
+    assert_equal 1, @env.lookup('var')
+  end
+
+  def test_lookup_raises
+    assert_raises RuntimeError do
+      @env.lookup('var')
+    end
+  end
+
+  def test_lookup_extended
+    @env.add 'var', 1
+    assert_equal 1, @env.lookup('var')
+
+    @env.scope do
+      assert_equal 1, @env.lookup('var')
+    end
   end
 
   def test_scope
-    raise NotImplementedError, 'Need to write test_scope'
+    @env.add 'var', 1
+    assert_equal 1, @env.lookup('var')
+
+    @env.scope do
+      @env.add 'var', 2
+      assert_equal 2, @env.lookup('var')
+    end
+
+    assert_equal 1, @env.lookup('var')
   end
 
   def test_unextend
-    raise NotImplementedError, 'Need to write test_unextend'
+    @env.extend
+
+    @env.add 'var', 1
+
+    assert_equal 1, @env.lookup('var')
+
+    @env.unextend
+
+    assert_raises RuntimeError do
+      @env.lookup 'var'
+    end
   end
+
 end
 
 class TestFunctionTable < Test::Unit::TestCase
+
+  def setup
+    @function_table = FunctionTable.new
+  end
+
   def test_add_function
-    raise NotImplementedError, 'Need to write test_add_function'
+    type = @function_table.add_function 'func', Type.long
+
+    assert_equal Type.long, type
+    assert_equal Type.long, @function_table['func']
   end
 
   def test_cheat
-    raise NotImplementedError, 'Need to write test_cheat'
+    @function_table.add_function 'func', Type.long
+    @function_table.add_function 'func', Type.str
+
+    assert_equal [Type.long, Type.str], @function_table.cheat('func')
   end
 
   def test_has_key?
-    raise NotImplementedError, 'Need to write test_has_key?'
+    @function_table.add_function 'func', Type.long
+
+    assert_equal true, @function_table.has_key?('func')
+    assert_equal false, @function_table.has_key?('no such func')
   end
 
   def test_index
-    raise NotImplementedError, 'Need to write test_index'
+    @function_table.add_function 'func', Type.long
+
+    assert_equal Type.long, @function_table['func']
+
+    @function_table.add_function 'func', Type.str
+
+    assert_equal Type.long, @function_table['func']
   end
 
-  def test_unify
-    raise NotImplementedError, 'Need to write test_unify'
+  def test_unify_one_type
+    @function_table.add_function 'func', Type.unknown
+
+    @function_table.unify 'func', Type.long do
+      flunk "Block should not have been called"
+    end
+
+    assert_equal Type.long, @function_table['func']
   end
+
+  def test_unify_two_type
+    @function_table.add_function 'func', Type.unknown
+    @function_table.add_function 'func', Type.str
+
+    @function_table.unify 'func', Type.long do
+      flunk "Block should not have been called"
+    end
+
+    assert_equal Type.long, @function_table['func']
+  end
+
+  def test_unify_block_called_no_type
+    @function_table.add_function 'func', Type.str
+
+    test_var = false
+
+    @function_table.unify 'func', Type.long do
+      test_var = true
+    end
+
+    assert test_var, "Block not called"
+  end
+
+  def test_unify_block_called_no_unify
+    test_var = false
+
+    @function_table.unify 'func', Type.long do
+      test_var = true
+    end
+
+    assert test_var, "Block not called"
+  end
+
 end
 

@@ -2,6 +2,7 @@
 class Environment
 
   attr_accessor :env
+
   def initialize
     @env = [{}]
   end
@@ -130,14 +131,6 @@ class FunctionType
     end
 
     "function(#{receiver_type.inspect}, [#{formals.join ', '}], #{return_type.inspect})"
-  end
-
-end
-
-class Functions < Hash
-
-  def [](name)
-    super(name).deep_clone
   end
 
 end
