@@ -1,270 +1,232 @@
-#!/usr/local/bin/ruby -w
+require 'infer_types'
 
-require 'parse_tree'
-
-class Array
-  def second
-    self[1]
+# REFACTOR: dup code
+class Object
+  def deep_clone
+    Marshal.load(Marshal.dump(self))
   end
+end
+
+module TypeMap
+
+  def c_type(typ)
+    case typ
+    when :long then
+      "long"
+    when :str then
+      "char *"
+    when :bool then # TODO: subject to change
+      "long"
+    when :unknown then
+      "void"
+    when :nil then
+      "VALUE"
+    when Array then
+      case typ[0]
+      when :list
+        "#{c_type typ[1]}[]"
+      else
+        c_type typ[0]
+      end
+    else
+      raise "Bug! Unknown type #{typ.inspect}"
+    end
+  end
+
 end
 
 class RubyToC
 
-  def self.translate_all_of(klass)
+  include TypeMap
 
-    methods = []
-    klass.instance_methods(false).sort.each do |meth|
-      methods << self.new(klass, meth).translate
-    end
+  attr_reader :env
 
-    return methods.join("\n\n")
+  def self.translate(klass, method = nil)
+    checker = self.new
+    checker.translate(InferTypes.new.augment(klass, method))
   end
 
-  def initialize(klass, meth)
-    @return_type = nil
-    @tokens = ParseTree.new.parse_tree(klass, meth)
-    @size = {}
-  end
-
-  def translate
-    type = @tokens.shift
-    case type
-    when :defn then
-#      @tokens.shift
-      return self.parse_defn
-    else
-      raise "unknown type #{type}"
-    end
-  end
-
-  def parse_defn
-    name = @tokens.shift
-    args = []
-    code = []
-
-    if @tokens.first.kind_of? Array then
-      scope = @tokens.shift
-      type = scope.shift
-      case type
-      when :scope then
-	args, code = self.parse_scope(scope)
-	args = args.map { |a| "long #{a}" }
+  def self.translate_all_of(klass, catch_exceptions=false)
+    klass.instance_methods(false).sort.map do |method|
+      if catch_exceptions then
+        begin
+          translate(klass, method)
+        rescue RuntimeError => err
+          puts "// ERROR translating #{method}: #{err}"
+          puts "//   #{err.backtrace.join("\n//   ")}"
+          puts "//   #{ParseTree.new.parse_tree(klass, method).inspect}"
+        end
       else
-	raise "unknown type #{type}"
+        translate(klass, method)
       end
-      code << '' # HACK - um. yeah
-    else
-      raise "parse error in #{name}: #{@tokens.first.inspect}"
-    end
-
-    @return_type = "void" if @return_type.nil?
-
-    return "#{@return_type}\n#{name}(#{args.join(", ")}) {\n#{code.join(";\n")}}"
+    end.join "\n\n"
   end
 
-  def parse_scope(tokens)
-    args = []
-    code = []
-    if tokens.first.kind_of? Array then
-      t = tokens.shift
-      type = t.shift
-      case type
+  def translate(exp)
+    return nil if exp.nil?
+
+    @original = exp.deep_clone if exp.first == :defn
+
+    node_type = exp.shift
+
+    c_code = 
+      case node_type
       when :args then
-	args = t
+        unless exp.empty? then
+          args = []
+          until exp.empty? do
+            arg, typ = exp.shift
+            args << "#{c_type(typ)} #{arg}"
+          end
+          args.join ', '
+        else
+          ""
+        end
+      when :array then
+        code = []
+        until exp.empty? do
+          code << translate(exp.shift)
+        end
+        code
       when :block then
-	args, code = parse_block(t)
-      else
-	raise "unknown type #{type}"
-      end
-    else
-      raise "unknown #{s.first.inspect}"
-    end
-    return args, code
-  end
-
-  def parse_block(tokens)
-    args = []
-    code = []
-
-    tokens.each do |chunk|
-      type = chunk.shift
-      case type
-      when :args then
-	args = chunk
+        code = []
+        until exp.empty? do
+          thingy = exp.shift
+          result = translate(thingy)
+          code << result
+        end
+        code
+      when :call then
+        lvar = translate exp.shift
+        method = exp.shift
+        unless exp.empty? then
+          rvar = translate exp.shift
+          case method
+          when '==', '<=>', 'equal?',
+            '<', '>', '<=', '>=',
+            '+', '-', '*', '/', '%' then
+            "#{lvar} #{method} #{rvar.shift}"
+          when "puts"
+            "fputs(#{rvar}, #{lvar})"
+          else
+            raise "Bug! Unhandled method #{method}"
+          end
+        else
+          case method
+          when "each" then
+            # iter needs to know the lvar and the method being called
+            [lvar, method]
+          when "nil?" then
+            "NIL_P(#{lvar})"
+          when "to_i" then
+            "#{lvar}"
+          when "to_s" then
+            "HACK"
+          when "class" then
+            "HACK"
+          else
+            raise "Bug! Unhandled method #{method}"
+          end
+        end
+      when :dasgn_curr then
+        var = exp.shift
+        arg = var.shift
+        typ = c_type var.shift
+        [typ, arg]
+      when :defn then
+        name = exp.shift
+        args, body = translate exp.shift
+        ret_type = c_type exp.shift
+        "#{ret_type}\n#{name}(#{args}) {#{body}}"
+      when :dvar then
+        exp.shift
+      when :false then
+        0
       when :fcall then
-	code << parse_fcall(chunk)
+        name = exp.shift
+        args = translate exp.shift
+        args = args.join ', '
+        "#{name}(#{args})"
+      when :gvar then
+        name = exp.shift
+        type = exp.shift
+        case name
+        when "$stderr" then
+          "stderr"
+        else
+          raise "Bug! Unhandled gvar #{name} (type = #{type})"
+        end
       when :if then
-	code << parse_if(chunk)
-      when :lasgn then
-	lhs = chunk.shift
-	rhs = parse_thingy(chunk.shift).first
-	@size[lhs.intern] = @size[rhs.intern] # HACK HACK HACK
-	code << "long #{lhs}[] = #{rhs}"
+        cond_part = translate exp.shift
+        then_part = translate exp.shift
+        else_part = translate exp.shift
+        if else_part then
+          "if (#{cond_part}) {\n#{then_part};\n} else {\n#{else_part};\n}"
+        else
+          "if (#{cond_part}) {\n#{then_part};\n}"
+        end
       when :iter then
-	code << parse_iter(chunk)
+        iter, method = translate exp.shift
+        arg_type, arg_name = translate exp.shift
+        body_part = translate exp.shift
+        body_part = body_part.join(";\n") if Array === body_part
+        index = "index_#{arg_name}"
+        res = ""
+        res << "unsigned long #{index};\n"
+        res << "for (#{index} = 0; #{index} < #{iter}.length; ++#{index}) {\n"
+        res << "#{arg_type} #{arg_name} = #{iter}.contents[#{index}];\n"
+        res << body_part
+        res << ";\n}"
+        res
+      when :lasgn then
+        typ = c_type exp.pop
+        name = exp.shift
+        args = []
+        until exp.empty? do
+          sub_exp = exp.shift
+          args << translate(sub_exp)
+        end
+        args = args.shift # arg list is enclosed by array [[arg1, arg2]]
+        res = ""
+        if typ =~ /(.*)\[\]/ then
+          res << "#{$1}_array #{name};\n"
+          res << "#{name}.contents = { #{args.join ', '} };\n"
+          res << "#{name}.length = #{args.length}"
+        else
+          res << "#{typ} #{name} = #{args}"
+        end
+        res
+      when :lit then
+        exp.shift
+      when :lvar then
+        exp.shift
+      when :nil then
+        "Qnil"
+      when :return then
+        "return #{translate exp.shift}"
+      when :scope then
+        args, *body = translate exp.shift
+        if body.empty? then
+          body = "\n"
+        else
+          body = "\n#{body.join ";\n"};\n"
+        end
+        [args, body]
+      when :str then
+        "\"#{exp.shift}\""
+      when :true then
+        1
+        # We purposefully do not support these node types
+      when :rescue, :const then
+        raise SyntaxError, "'#{node_type}' is not a supported node type for translation (yet?)."
       else
-	raise "unknown type #{type}"
+        raise "Bug! Unknown node type #{node_type.inspect} in #{([node_type] + exp).inspect}"
       end
-    end
 
-    return args, code
+    raise "exp is not empty!!! #{exp.inspect} from #{@original.inspect}" unless exp.empty?
+    c_code
 
-  end
-
-  def parse_iter(tokens)
-    # [:iter, 
-    #    [:call, [:lvar, "array"], "each"],
-    #    [:dasgn_curr, "x"],
-    #    [:fcall, "puts", [:array, [:dvar, "x"]]]]
-
-    code = []
-    lhs = parse_thingy(tokens.shift[1]).first
-    var_name = tokens.shift[1]
-    body = []
-    tokens.each do |chunk|
-      body.push(*parse_thingy(chunk))
-    end
-
-    hack_size = @size[lhs.intern]
-    index = "index_#{var_name}"
-    code << "unsigned long #{index}"
-    code << "for (#{index} = 0; #{index} < #{hack_size}; ++#{index}) {\nlong #{var_name} = #{lhs}[#{index}]"
-    code.push(*body)
-    code << "}"
-    return code.join(";\n")
-  end
-
-  def parse_fcall(tokens)
-    code = []
-    name = tokens.shift
-    args = tokens.shift
-
-    type = args.shift
-    if type == :array then
-      args.each do |chunk|
-	type = chunk.shift
-	case type
-	when :lit then
-	  code << chunk.shift
-	when :lvar, :dvar then
-	  code << chunk.shift
-	when :call then
-	  code << parse_call(chunk)
-	else
-	  raise "unknown type #{type}"
-	end
-      end
-    else
-      raise "unknown type #{type}"
-    end
-
-    return "#{name}(#{code.join(", ")})"
-
-  end
-
-  def parse_if(tokens)
-    conditional = parse_thingy(tokens.shift)
-    if_true = parse_thingy(tokens.shift)
-    if_false = parse_thingy(tokens.shift)
- 
-    result = "if (#{conditional}) {\n#{if_true};\n} else {\n#{if_false};\n}"
-    return result
-  end
-
-  # TODO: check the grammar if make this a proper parse_expression
-  def parse_thingy(tokens)
-    code = []
-    type = tokens.shift
-    case type
-    when :lit then
-      code << tokens.shift
-    when :lvar, :dvar then
-      code << tokens.shift
-    when :if then
-      code << parse_if(tokens)
-    when :fcall then
-      code << parse_fcall(tokens)
-    when :call then
-      code << parse_call(tokens)
-    when :array then
-      a = []
-      tokens.each do |chunk|
-	a << parse_thingy(chunk)
-      end
-      c = "{ #{a.join(", ")} }"
-      @size[c.intern] = a.size
-      code << c
-    when :return then
-      ret = tokens.shift
-      if @return_type.nil? then
-	if ret.first == :lit then
-	  @return_type = "long"
-	end
-      end
-      ret = parse_thingy(ret)
-
-      code << "return #{ret}"
-    when :block then
-      args, c = parse_block(tokens)
-      code.push(*c)
-    when :iter then
-      code << parse_iter(tokens)
-    else
-      raise "unknown type #{type}"
-    end
-    return code
-  end
-
-  def parse_call(tokens)
-    lhs = tokens.shift
-    name = tokens.shift
-    rhs = tokens.shift
-
-    type = lhs.shift
-    case type
-    when :lit then
-      lhs = lhs.shift
-    when :lvar then
-      lhs = lhs.shift
-    when :call then
-      lhs = parse_call(lhs)
-    else
-      raise "unknown type #{type}"
-    end
-
-    code = []
-
-    if rhs then
-      type = rhs.shift
-      if type == :array then
-	rhs.each do |chunk|
-	  type = chunk.shift
-	  case type
-	  when :lit then
-	    code << chunk.shift
-	  when :lvar then
-	    code << chunk.shift
-	  when :call then
-	    code << parse_call(chunk)
-	  else
-	    raise "unknown type #{type}"
-	  end
-	end
-      else
-	raise "unknown type #{type}"
-      end
-    end
-
-    case name
-    when "==", "<", "<=", ">", ">=", "!=" then
-      result = "#{lhs} #{name} #{code.first}"
-    when "+", "-", "*", "/", "%" then
-      result = "#{lhs} #{name} #{code.first}"
-    else
-      result = "#{lhs}.#{name}(#{code.join(", ")})"    
-    end
-
-    return result
   end
 
 end
+

@@ -124,8 +124,16 @@ again_no_block:
 
     case NODE_IF:
       add_to_parse_tree(current, node->nd_cond);
-      add_to_parse_tree(current, node->nd_body);
-      add_to_parse_tree(current, node->nd_else);
+      if (node->nd_body) {
+        add_to_parse_tree(current, node->nd_body);
+      } else {
+        rb_ary_push(current, Qnil);
+      }
+      if (node->nd_else) {
+        add_to_parse_tree(current, node->nd_else);
+      } else {
+        rb_ary_push(current, Qnil);
+      }
       break;
 
   case NODE_WHEN:
@@ -344,10 +352,12 @@ again_no_block:
 	flag = node->nd_cflag & 0xf;
 	break;
       }
+// TODO: push new array
       while (list) {
 	if (list->nd_head) {
 	  switch (nd_type(list->nd_head)) {
 	  case NODE_STR:
+	    add_to_parse_tree(current, list->nd_head);
 	    break;
 	  case NODE_EVSTR:
 	    add_to_parse_tree(current, list->nd_head->nd_body);
@@ -356,6 +366,7 @@ again_no_block:
 	    add_to_parse_tree(current, list->nd_head);
 	    break;
 	  }
+// TODO: add item to array
 	}
 	list = list->nd_next;
       }
@@ -420,6 +431,7 @@ again_no_block:
     case NODE_DVAR:
     case NODE_IVAR:
     case NODE_CVAR:
+    case NODE_GVAR:
     case NODE_CONST:
     case NODE_ATTRSET:
       rb_ary_push(current, rb_str_new2(rb_id2name(node->nd_vid)));
@@ -444,7 +456,6 @@ again_no_block:
     case NODE_NIL:
     case NODE_TRUE:
     case NODE_FALSE:
-    case NODE_GVAR:
     case NODE_ZSUPER:
     case NODE_BMETHOD:
     case NODE_REDO:

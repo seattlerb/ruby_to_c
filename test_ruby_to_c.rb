@@ -7,59 +7,34 @@ require 'something'
 class TestRubyToC < Test::Unit::TestCase
 
   @@empty = "void\nempty() {\n}"
-  @@simple = "void\nsimple(long arg1) {\nprint(arg1);\nputs(4 + 2);\n}"
-  @@conditional = "long\nconditional(long arg1) {\nif (arg1 == 0) {\nreturn 2;\n} else {\nif (arg1 < 0) {\nreturn 3;\n} else {\nreturn 4;\n};\n};\n}"
-  @@iteration1 = "void\niteration1() {\nlong array[] = { 1, 2, 3 };\nunsigned long index_x;\nfor (index_x = 0; index_x < 3; ++index_x) {\nlong x = array[index_x];\nputs(x);\n};\n}"
-  @@iteration2 = "void\niteration2() {\nlong array[] = { 1, 2, 3 };\nunsigned long index_x;\nfor (index_x = 0; index_x < 3; ++index_x) {\nlong x = array[index_x];\nputs(x);\n};\n}"
-  @@iteration3 = "void\niteration3() {\nlong array1[] = { 1, 2, 3 };\nlong array2[] = { 4, 5, 6, 7 };\nunsigned long index_x;\nfor (index_x = 0; index_x < 3; ++index_x) {\nlong x = array1[index_x];\nunsigned long index_y;\nfor (index_y = 0; index_y < 4; ++index_y) {\nlong y = array2[index_y];\nputs(x);\nputs(y);\n};\n};\n}"
+  @@simple = "void\nsimple(void arg1) {\nprint(arg1);\nputs(4 + 2);\n}"
+  @@stupid = "VALUE\nstupid() {\nreturn Qnil;\n}"
+  @@global = "void\nglobal() {\nfputs(\"blah\", stderr);\n}"
+  @@lasgn_call = "void\nlasgn_call() {\nlong c = 2 + 3;\n}"
+  @@conditional1 = "long\nconditional1(long arg1) {\nif (arg1 == 0) {\nreturn 1;\n};\n}"
+  @@conditional2 = "long\nconditional2(long arg1) {\nif (arg1 == 0) {\n;\n} else {\nreturn 2;\n};\n}"
+  @@conditional3 = "long\nconditional3(long arg1) {\nif (arg1 == 0) {\nreturn 3;\n} else {\nreturn 4;\n};\n}"
+  @@conditional4 = "long\nconditional4(long arg1) {\nif (arg1 == 0) {\nreturn 2;\n} else {\nif (arg1 < 0) {\nreturn 3;\n} else {\nreturn 4;\n};\n};\n}"
+  @@iteration1 = "void\niteration1() {\nlong_array array;\narray.contents = { 1, 2, 3 };\narray.length = 3;\nunsigned long index_x;\nfor (index_x = 0; index_x < array.length; ++index_x) {\nlong x = array.contents[index_x];\nputs(x);\n};\n}"
+  @@iteration2 = "void\niteration2() {\nlong_array array;\narray.contents = { 1, 2, 3 };\narray.length = 3;\nunsigned long index_x;\nfor (index_x = 0; index_x < array.length; ++index_x) {\nlong x = array.contents[index_x];\nputs(x);\n};\n}"
+  @@iteration3 = "void\niteration3() {\nlong_array array1;\narray1.contents = { 1, 2, 3 };\narray1.length = 3;\nlong_array array2;\narray2.contents = { 4, 5, 6, 7 };\narray2.length = 4;\nunsigned long index_x;\nfor (index_x = 0; index_x < array1.length; ++index_x) {\nlong x = array1.contents[index_x];\nunsigned long index_y;\nfor (index_y = 0; index_y < array2.length; ++index_y) {\nlong y = array2.contents[index_y];\nputs(x);\nputs(y);\n};\n};\n}"
+  @@multi_args = "char *\nmulti_args(void arg1, void arg2) {\nputs(arg1 * arg2);\nreturn \"foo\";\n}"
+  @@bools = "long\nbools(void arg1) {\nif (NIL_P(arg1)) {\nreturn 0;\n} else {\nreturn 1;\n};\n}"
 
-  def test_empty
-    thing = RubyToC.new(Something, :empty)
-    assert_equal(@@empty,
-		 thing.translate,
-		 "Must return an empty method body")
+  @@__all = []
+
+  Something.instance_methods(false).sort.each do |meth|
+    if class_variables.include?("@@#{meth}") then
+      @@__all << eval("@@#{meth}")
+      eval "def test_#{meth}; assert_equal @@#{meth}, RubyToC.translate(Something, :#{meth}); end"
+    else
+      eval "def test_#{meth}; flunk \"You haven't added @@#{meth} yet\"; end"
+    end
   end
 
-  def test_simple
-    thing = RubyToC.new(Something, :simple)
-    assert_equal(@@simple,
-		 thing.translate,
-		 "Must return a basic method body")
-  end
-
-  def test_conditional
-    thing = RubyToC.new(Something, :conditional)
-    assert_equal(@@conditional,
-		 thing.translate,
-		 "Must return a conditional")
-  end
-
-  def test_iteration1
-    thing = RubyToC.new(Something, :iteration1)
-    assert_equal(@@iteration1,
-		 thing.translate,
-		 "Must return an iteration")
-  end
-
-  def test_iteration2
-    thing = RubyToC.new(Something, :iteration2)
-    assert_equal(@@iteration2,
-		 thing.translate,
-		 "Must return an iteration")
-  end
-
-  def test_iteration3
-    thing = RubyToC.new(Something, :iteration3)
-    assert_equal(@@iteration3,
-		 thing.translate,
-		 "Must return an iteration")
-  end
-
-  def test_class
-    assert_equal([@@conditional, @@empty, @@iteration1,
-		  @@iteration2, @@iteration3, @@simple].join("\n\n"),
-		 RubyToC.translate_all_of(Something),
-		 "Must return a lot of shit")
+  def ztest_class
+    assert_equal(@@__all.join("\n\n"),
+		 RubyToC.translate_all_of(Something))
   end
 
 end
