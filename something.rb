@@ -1,3 +1,4 @@
+
 class Something
   def empty
   end
@@ -8,12 +9,12 @@ class Something
   end
 
   def conditional(arg1)
-    if arg1 then
-      2
-    elsif arg1.nil?
-      3
+    if arg1 == 0 then
+      return 2
+    elsif arg1 < 0 then
+      return 3
     else
-      4
+      return 4
     end
   end
 

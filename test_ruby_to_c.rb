@@ -6,49 +6,86 @@ require 'something'
 
 class TestRubyToC < Test::Unit::TestCase
 
-  @@empty = "void\nempty() {\n}"
-  @@simple = "void\nsimple(arg1) {\nprint(arg1);\nputs(4 + 2);\n}"
-  @@conditional = ""
-  @@iteration1 = ""
-  @@iteration2 = ""
+  @@empty = "void
+empty() {
+}"
+  @@simple = "void
+simple(long arg1) {
+print(arg1);
+puts(4 + 2);
+}"
+  @@conditional = "long
+conditional(long arg1) {
+if (arg1 == 0) {
+return 2;
+} else {
+if (arg1 < 0) {
+return 3;
+} else {
+return 4;
+};
+};
+}"
+  @@iteration1 = "void
+iteration1() {
+long array[] = { 1, 2, 3 };
+unsigned long index;
+for (index = 0; index < 3; ++index) {
+long x = array[index];
+puts(x);
+};
+}"
+  @@iteration2 = "void
+iteration2() {
+long array[] = { 1, 2, 3 };
+unsigned long index;
+for (index = 0; index < 3; ++index) {
+long x = array[index];
+puts(x);
+};
+}"
 
   def setup
-    @thing = RubyToC.new
   end
 
   def test_empty
+    thing = RubyToC.new(Something, :empty)
     assert_equal(@@empty,
-		 @thing.translate(Something, :empty),
+		 thing.translate,
 		 "Must return an empty method body")
   end
 
   def test_simple
+    thing = RubyToC.new(Something, :simple)
     assert_equal(@@simple,
-		 @thing.translate(Something, :simple),
+		 thing.translate,
 		 "Must return a basic method body")
   end
 
-  def ztest_conditional
+  def test_conditional
+    thing = RubyToC.new(Something, :conditional)
     assert_equal(@@conditional,
-		 @thing.translate(Something, :conditional),
+		 thing.translate,
 		 "Must return a conditional")
   end
 
-  def ztest_iteration1
+  def test_iteration1
+    thing = RubyToC.new(Something, :iteration1)
     assert_equal(@@iteration1,
-		 @thing.translate(Something, :iteration1),
+		 thing.translate,
 		 "Must return an iteration")
   end
 
-  def ztest_iteration2
+  def test_iteration2
+    thing = RubyToC.new(Something, :iteration2)
     assert_equal(@@iteration2,
-		 @thing.translate(Something, :iteration2),
+		 thing.translate,
 		 "Must return an iteration")
   end
 
-  def ztest_class
-    assert_equal([@@conditional, @@empty, @@iteration1, @@iteration2, @@simple],
-		 @thing.translate(Something),
+  def test_class
+    assert_equal([@@conditional, @@empty, @@iteration1, @@iteration2, @@simple].join("\n\n"),
+		 RubyToC.translate_all_of(Something),
 		 "Must return a lot of shit")
   end
 

@@ -9,7 +9,18 @@ class TestParseTree < Test::Unit::TestCase
   @@missing = [nil]
   @@empty = [:defn, "empty", [:scope, [:args]]]
   @@simple = [:defn, "simple", [:scope, [:block, [:args, "arg1"], [:fcall, "print", [:array, [:lvar, "arg1"]]], [:fcall, "puts", [:array, [:call, [:lit, 4], "+", [:array, [:lit, 2]]]]]]]]
-  @@conditional = [:defn, "conditional", [:scope, [:block, [:args, "arg1"], [:if, [:lvar, "arg1"], [:lit, 2], [:if, [:call, [:lvar, "arg1"], "nil?"], [:lit, 3], [:lit, 4]]]]]]
+  @@conditional = [:defn,
+ "conditional",
+ [:scope,
+  [:block,
+   [:args, "arg1"],
+   [:if,
+    [:call, [:lvar, "arg1"], "==", [:array, [:lit, 0]]],
+    [:return, [:lit, 2]],
+    [:if,
+     [:call, [:lvar, "arg1"], "<", [:array, [:lit, 0]]],
+     [:return, [:lit, 3]],
+     [:return, [:lit, 4]]]]]]]
   @@iteration_body = [:scope, [:block, [:args], [:lasgn, "array", [:array, [:lit, 1], [:lit, 2], [:lit, 3]]], [:iter, [:call, [:lvar, "array"], "each"], [:dasgn_curr, "x"], [:fcall, "puts", [:array, [:dvar, "x"]]]]]]
   @@iteration1 = [:defn, "iteration1", @@iteration_body]
   @@iteration2 = [:defn, "iteration2", @@iteration_body]
