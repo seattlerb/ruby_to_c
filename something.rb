@@ -170,6 +170,15 @@ class Something
     return arg1
   end
 
+  def whiles
+    while false do
+      puts "false"
+    end
+    begin
+      puts "true"
+    end while false
+  end
+
   def zarray
     a = []
   end

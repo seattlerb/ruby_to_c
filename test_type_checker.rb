@@ -1374,6 +1374,28 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
 
   # TODO: sort all vars
 
+  @@whiles = t(:defn,
+               :whiles,
+               t(:args),
+               t(:scope,
+                 t(:block,
+                   t(:while,
+                     t(:false, Type.bool),
+                     t(:call,
+                       nil,
+                       :puts,
+                       t(:array, t(:str, "false", Type.str)), Type.void)),
+                   t(:while,
+                     t(:false, Type.bool),
+                     t(:call,
+                       nil,
+                       :puts,
+                       t(:array, t(:str, "true", Type.str)), Type.void),
+                     :post),
+                   Type.unknown),
+                 Type.void),
+               Type.function(Type.unknown, [], Type.void))
+
   @@bbegin = t(:defn, :bbegin,
                t(:args),
                t(:scope,

@@ -610,6 +610,19 @@ class TestRewriter_2 < Test::Unit::TestCase
 
   # TODO: sort all vars
 
+  @@whiles = s(:defn,
+               :whiles,
+               s(:args),
+               s(:scope,
+                 s(:block,
+                   s(:while,
+                     s(:false),
+                     s(:call, nil, :puts, s(:array, s(:str, "false")))),
+                   s(:while,
+                     s(:false),
+                     s(:call, nil, :puts, s(:array, s(:str, "true"))),
+                     :post))))
+
   @@bbegin = s(:defn,
                :bbegin,
                s(:args),

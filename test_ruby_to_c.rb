@@ -680,6 +680,16 @@ unknown_args(long arg1, str arg2) {
 return arg1;
 }"
 
+  @@whiles = "void
+whiles() {
+while (Qfalse) {
+puts(\"false\")
+};
+{
+puts(\"true\")
+} while (Qfalse);
+}"
+
   # TODO: we need to do something w/ said array because this is dumb:
   @@zarray = "void
 zarray() {

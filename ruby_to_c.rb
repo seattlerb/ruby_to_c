@@ -564,7 +564,10 @@ typedef struct { unsigned long length; str * contents; } str_array;
   def process_while(exp)
     cond = process exp.shift
     body = process exp.shift
-    return "while (#{cond}) {\n#{body.strip}\n}"
+    post = exp.empty? ? false : exp.shift
+    code = "while (#{cond}) {\n#{body.strip}\n}"
+    code = "{\n#{body.strip}\n} while (#{cond})" if post
+    return code
   end
 
 end
