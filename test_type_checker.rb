@@ -6,10 +6,6 @@ require 'something'
 
 # Test::Unit::Assertions.use_pp = false
 
-def s(*args) # stupid shortcut to make indentation much cleaner
-  Sexp.new(*args)
-end
-
 class TestTypeChecker_1 < Test::Unit::TestCase
 
   def setup
