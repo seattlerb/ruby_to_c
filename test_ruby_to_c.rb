@@ -4,7 +4,6 @@ $TESTING = true
 
 require 'test/unit'
 require 'ruby_to_c'
-require 'parse_tree'
 require 'something'
 
 class TestTypeMap < Test::Unit::TestCase
@@ -60,7 +59,7 @@ class TestRubyToC < Test::Unit::TestCase
   def test_prototypes
     assert_equal [], @ruby_to_c.prototypes
     @ruby_to_c.process t(:defn,
-                         "empty",
+                         :empty,
                          t(:args),
                          t(:scope),
                          Type.function([], Type.void))
@@ -70,8 +69,8 @@ class TestRubyToC < Test::Unit::TestCase
 
   def test_process_args_normal
     input =  t(:args,
-               t("foo", Type.long),
-               t("bar", Type.long))
+               t(:foo, Type.long),
+               t(:bar, Type.long))
     output = "(long foo, long bar)"
 
     assert_equal output, @ruby_to_c.process(input)
@@ -86,7 +85,7 @@ class TestRubyToC < Test::Unit::TestCase
 
   def test_process_array_single
     input  = t(:array,
-               t(:lvar, "arg1", Type.long))
+               t(:lvar, :arg1, Type.long))
     output = "arg1"
 
     assert_equal output, @ruby_to_c.process(input)
@@ -94,22 +93,22 @@ class TestRubyToC < Test::Unit::TestCase
 
   def test_process_array_multiple
     input  = t(:array,
-               t(:lvar, "arg1", Type.long),
-               t(:lvar, "arg2", Type.long))
+               t(:lvar, :arg1, Type.long),
+               t(:lvar, :arg2, Type.long))
     output = "arg1, arg2"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_call
-    input  = t(:call, nil, "name", nil)
+    input  = t(:call, nil, :name, nil)
     output = "name()"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_call_lhs
-    input  = t(:call, t(:lit, 1), "name", nil)
+    input  = t(:call, t(:lit, 1), :name, nil)
     output = "name(1)"
 
     assert_equal output, @ruby_to_c.process(input)
@@ -118,7 +117,7 @@ class TestRubyToC < Test::Unit::TestCase
   def test_process_call_lhs_rhs
     input  = t(:call,
                t(:lit, 1),
-               "name",
+               :name,
                t(:array, t(:str, "foo")))
     output = "name(1, \"foo\")"
 
@@ -128,7 +127,7 @@ class TestRubyToC < Test::Unit::TestCase
   def test_process_call_rhs
     input  = t(:call,
                nil,
-               "name",
+               :name,
                t(:array,
                  t(:str, "foo")))
     output = "name(\"foo\")"
@@ -138,8 +137,8 @@ class TestRubyToC < Test::Unit::TestCase
 
   def test_process_call_nil?
     input  = t(:call,
-               t(:lvar, "arg", Type.long),
-               "nil?",
+               t(:lvar, :arg, Type.long),
+               :nil?,
                nil)
     output = "NIL_P(arg)"
 
@@ -147,7 +146,7 @@ class TestRubyToC < Test::Unit::TestCase
   end
 
   def test_process_call_operator
-    methods = t("==", "<", ">", "-", "+", "*", "/", "%", "<=", ">=")
+    methods = t(:==, :<, :>, :-, :+, :*, :/, :%, :<=, :>=)
 
     methods.each do |method|
       input  = t(:call,
@@ -177,7 +176,7 @@ class TestRubyToC < Test::Unit::TestCase
   end
 
   def test_process_dasgn_curr
-    input  = t(:dasgn_curr, "x", Type.long)
+    input  = t(:dasgn_curr, :x, Type.long)
     output = "x"
 
     assert_equal output, @ruby_to_c.process(input)
@@ -187,7 +186,7 @@ class TestRubyToC < Test::Unit::TestCase
 
   def test_process_defn
     input  = t(:defn,
-               "empty",
+               :empty,
                t(:args),
                t(:scope),
                Type.function([], Type.void))
@@ -199,10 +198,10 @@ class TestRubyToC < Test::Unit::TestCase
   end
 
   def test_process_defn_with_args_and_body
-    input  = t(:defn, "empty",
+    input  = t(:defn, :empty,
                t(:args,
-                 t("foo", Type.long),
-                 t("bar", Type.long)),
+                 t(:foo, Type.long),
+                 t(:bar, Type.long)),
                t(:scope,
                  t(:block,
                    t(:lit, 5))),
@@ -215,7 +214,7 @@ class TestRubyToC < Test::Unit::TestCase
   def disabled_test_dstr
     input  = t(:dstr,
                "var is ",
-               t(:lvar, "var"),
+               t(:lvar, :var),
                t(:str, ". So there."))
     output = "sprintf stuff goes here"
 
@@ -224,7 +223,7 @@ class TestRubyToC < Test::Unit::TestCase
   end
 
   def test_process_dvar
-    input  = t(:dvar, "dvar", Type.long)
+    input  = t(:dvar, :dvar, Type.long)
     output = "dvar"
 
     assert_equal output, @ruby_to_c.process(input)
@@ -238,12 +237,12 @@ class TestRubyToC < Test::Unit::TestCase
   end
 
   def test_process_gvar
-    input  = t(:gvar, "$stderr", Type.long)
+    input  = t(:gvar, :$stderr, Type.long)
     output = "stderr"
 
     assert_equal output, @ruby_to_c.process(input)
     assert_raises RuntimeError do
-      @ruby_to_c.process t(:gvar, "$some_gvar", Type.long)
+      @ruby_to_c.process t(:gvar, :$some_gvar, Type.long)
     end
   end
 
@@ -251,7 +250,7 @@ class TestRubyToC < Test::Unit::TestCase
     input  = t(:if,
                t(:call,
                  t(:lit, 1),
-                 "==",
+                 :==,
                  t(:array, t(:lit, 2))),
                t(:str, "not equal"),
                nil)
@@ -264,7 +263,7 @@ class TestRubyToC < Test::Unit::TestCase
     input  = t(:if,
                t(:call,
                  t(:lit, 1),
-                 "==",
+                 :==,
                  t(:array, t(:lit, 2))),
                t(:str, "not equal"),
                t(:str, "equal"))
@@ -277,7 +276,7 @@ class TestRubyToC < Test::Unit::TestCase
     input  = t(:if,
                t(:call,
                  t(:lit, 1),
-                 "==",
+                 :==,
                  t(:array, t(:lit, 2))),
                t(:block,
                  t(:lit, 5),
@@ -292,19 +291,19 @@ class TestRubyToC < Test::Unit::TestCase
     var_type = Type.long_list
     input  = t(:iter,
                t(:call,
-                 t(:lvar, "array", var_type),
-                 "each",
+                 t(:lvar, :array, var_type),
+                 :each,
                  nil),
-               t(:dasgn_curr, "x", Type.long),
+               t(:dasgn_curr, :x, Type.long),
                t(:call,
                  nil,
-                 "puts",
+                 :puts,
                  t(:array,
                    t(:call,
                      t(:dvar,
-                       "x",
+                       :x,
                        Type.long),
-                     "to_s",
+                     :to_s,
                      nil))))
     output = "unsigned long index_x;
 for (index_x = 0; index_x < array.length; ++index_x) {
@@ -316,7 +315,7 @@ puts(to_s(x));
   end
 
   def test_process_lasgn
-    input  = t(:lasgn, "var", t(:str, "foo"), Type.str)
+    input  = t(:lasgn, :var, t(:str, "foo"), Type.str)
     output = "var = \"foo\""
 
     assert_equal output, @ruby_to_c.process(input)
@@ -324,11 +323,11 @@ puts(to_s(x));
 
   def test_process_lasgn_array
     input  = t(:lasgn,
-                      "var",
-                      t(:array,
-                               t(:str, "foo"),
-                               t(:str, "bar")),
-                      Type.str_list)
+               :var,
+               t(:array,
+                 t(:str, "foo", Type.str),
+                 t(:str, "bar", Type.str)),
+               Type.str_list)
     output = "var.length = 2;
 var.contents = (long*) malloc(sizeof(long) * var.length);
 var.contents[0] = \"foo\";
@@ -345,7 +344,7 @@ var.contents[1] = \"bar\""
   end
 
   def test_process_lvar
-    input  = t(:lvar, "arg", Type.long)
+    input  = t(:lvar, :arg, Type.long)
     output = "arg"
 
     assert_equal output, @ruby_to_c.process(input)
@@ -373,7 +372,7 @@ var.contents[1] = \"bar\""
   end
 
   def test_process_str
-    input  = t(:str, "foo")
+    input  = t(:str, "foo", Type.str)
     output = "\"foo\""
 
     assert_equal output, @ruby_to_c.process(input)
@@ -381,8 +380,8 @@ var.contents[1] = \"bar\""
 
   def test_process_scope
     input =  t(:scope,
-                      t(:block,
-                               t(:return, t(:nil))))
+               t(:block,
+                 t(:return, t(:nil))))
     output = "{\nreturn Qnil;\n}"
 
     assert_equal output, @ruby_to_c.process(input)
@@ -397,10 +396,10 @@ var.contents[1] = \"bar\""
 
   def test_process_scope_var_set
     input  = t(:scope, t(:block,
-                                       t(:lasgn, "arg",
-                                                t(:str, "declare me"),
-                                                Type.str),
-                                       t(:return, t(:nil))))
+                         t(:lasgn, :arg,
+                           t(:str, "declare me"),
+                           Type.str),
+                         t(:return, t(:nil))))
     output = "{\nchar * arg;\narg = \"declare me\";\nreturn Qnil;\n}"
 
     assert_equal output, @ruby_to_c.process(input)
@@ -414,12 +413,13 @@ var.contents[1] = \"bar\""
   end
 
   def test_process_unless
-    input  = t(:if, t(:call,
-                                    t(:lit, 1),
-                                    "==",
-                                    t(:array, t(:lit, 2))),
-                      nil,
-                      t(:str, "equal"))
+    input  = t(:if,
+               t(:call,
+                 t(:lit, 1),
+                 :==,
+                 t(:array, t(:lit, 2))),
+               nil,
+               t(:str, "equal"))
     output = "if (1 == 2) {\n;\n} else {\n\"equal\";\n}"
 
     assert_equal output, @ruby_to_c.process(input)
@@ -427,20 +427,20 @@ var.contents[1] = \"bar\""
 
   def test_process_while
     input = t(:while,
-              t(:call, t(:lvar, "n"), "<=", t(:array, t(:lit, 3))),
+              t(:call, t(:lvar, :n), :<=, t(:array, t(:lit, 3))),
               t(:block,
                 t(:call,
                   nil,
-                  "puts",
+                  :puts,
                   t(:array,
                     t(:call,
-                      t(:lvar, "n"),
-                      "to_s",
+                      t(:lvar, :n),
+                      :to_s,
                       nil))),
-                t(:lasgn, "n",
+                t(:lasgn, :n,
                   t(:call,
-                    t(:lvar, "n"),
-                    "+",
+                    t(:lvar, :n),
+                    :+,
                     t(:array,
                       t(:lit, 1))),
                   Type.long))) # NOTE Type.long needed but not used
@@ -580,6 +580,15 @@ n = 3;
 while (n >= 1) {
 puts(to_s(n));
 n = n - 1;
+}
+}"
+  @@iteration6 = "void
+iteration6() {
+long temp_var1;
+temp_var1 = 3;
+while (temp_var1 >= 1) {
+puts(\"hello\");
+temp_var1 = temp_var1 - 1;
 }
 }"
   @@multi_args = "char *

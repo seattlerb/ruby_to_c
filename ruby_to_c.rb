@@ -1,11 +1,20 @@
 
 $TESTING = false unless defined? $TESTING
 
-require 'pp'
+begin
+  require 'rubygems'
+  require_gem 'ParseTree'
+  require 'sexp_processor'
+  require 'composite_sexp_processor'
+rescue LoadError
+  require 'parse_tree'
+  require 'sexp_processor'
+  require 'composite_sexp_processor'
+end
+
 require 'type_checker'
-require 'sexp_processor'
-require 'composite_sexp_processor'
 require 'rewriter'
+require 'pp'
 
 module TypeMap
 
@@ -64,7 +73,7 @@ typedef struct { unsigned long length; long * contents; } long_array;
       @@translator << R2CRewriter.new
       @@translator << self.new
     end
-    @@translator.process(ParseTree.new.parse_tree(klass, method))
+    @@translator.process(ParseTree.new.parse_tree_for_method(klass, method))
   end
 
   def self.translate_all_of(klass, catch_exceptions=false)
@@ -155,14 +164,14 @@ typedef struct { unsigned long length; long * contents; } long_array;
     receiver = process receiver
 
     case name
-    when "==", "<", ">", "<=", ">=", # TODO: these need to be numerics
-         "-", "+", "*", "/", "%" then
+    when :==, :<, :>, :<=, :>=, # TODO: these need to be numerics
+         :-, :+, :*, :/, :% then
       return "#{receiver} #{name} #{args}"
-    when "<=>"
+    when :<=>
       return "RB_COMPARE(#{receiver}, #{args})"
-    when "equal?"
+    when :equal?
       return "#{receiver} == #{args}" # equal? == address equality
-    when "[]"
+    when :[]
       if receiver_type.list? then
         return "#{receiver}.contents[#{args}]"
       else
@@ -170,7 +179,7 @@ typedef struct { unsigned long length; long * contents; } long_array;
         return "#{receiver}[#{args}]"
       end
     else
-      name = "NIL_P" if name == "nil?"
+      name = "NIL_P" if name == :nil?
 
       if receiver.nil? and args.nil? then
         args = ""
@@ -188,8 +197,8 @@ typedef struct { unsigned long length; long * contents; } long_array;
 
   def process_dasgn_curr(exp)
     var = exp.shift
-    @env.add var, exp.sexp_type
-    return var
+    @env.add var.to_sym, exp.sexp_type
+    return var.to_s
   end
 
   def process_defn(exp)
@@ -207,8 +216,8 @@ typedef struct { unsigned long length; long * contents; } long_array;
 
   def process_dvar(exp)
     var = exp.shift
-    @env.add var, exp.sexp_type
-    return var
+    @env.add var.to_sym, exp.sexp_type
+    return var.to_s
   end
 
   def process_false(exp)
@@ -219,10 +228,10 @@ typedef struct { unsigned long length; long * contents; } long_array;
     name = exp.shift
     type = exp.sexp_type
     case name
-    when "$stderr" then
+    when :$stderr then
       "stderr"
     else
-      raise "Bug! Unhandled gvar #{name} (type = #{type})"
+      raise "Bug! Unhandled gvar #{name.inspect} (type = #{type})"
     end
   end
 
@@ -265,7 +274,7 @@ typedef struct { unsigned long length; long * contents; } long_array;
     @env.scope do
       enum = exp[0][1][1] # HACK ugly
       call = process exp.shift
-      var  = process exp.shift
+      var  = process(exp.shift).intern # semi-HACK-y
       body = process exp.shift
       index = "index_#{var}"
 
@@ -293,7 +302,7 @@ typedef struct { unsigned long length; long * contents; } long_array;
     args = value
 
     var_type = exp.sexp_type
-    @env.add var, var_type
+    @env.add var.to_sym, var_type
     var_type = c_type var_type
 
     if var_type =~ /\[\]$/ then
@@ -320,7 +329,7 @@ typedef struct { unsigned long length; long * contents; } long_array;
   def process_lvar(exp)
     name = exp.shift
     # HACK: wtf??? there is no code! do nothing? if so, comment that!
-    return name
+    return name.to_s
   end
 
   def process_nil(exp)
@@ -343,7 +352,7 @@ typedef struct { unsigned long length; long * contents; } long_array;
     body = nil
     @env.scope do
       body = process exp.shift unless exp.empty?
-      @env.current.sort_by { |v,t| v }.each do |var, var_type|
+      @env.current.sort_by { |v,t| v.to_s }.each do |var, var_type|
         var_type = c_type var_type
         if var_type =~ /(.*)(?: \*)?\[\]/ then # TODO: readability
           declarations << "#{$1}_array #{var};\n"

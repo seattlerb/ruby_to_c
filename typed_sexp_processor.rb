@@ -1,5 +1,12 @@
 
-require 'sexp_processor'
+begin
+  require 'rubygems'
+  require_gem 'ParseTree'
+  require 'sexp_processor'
+rescue LoadError
+  require 'sexp_processor'
+end
+
 require 'support'
 
 $TESTING = false unless defined? $TESTING

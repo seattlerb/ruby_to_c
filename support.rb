@@ -28,7 +28,7 @@ class Environment
       return closure[id] if closure.has_key? id
     end
 
-    raise "Unbound var: #{id}"
+    raise "Unbound var: #{id.inspect} in #{@env.inspect}"
   end
 
   def current

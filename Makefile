@@ -25,5 +25,6 @@ interp: FORCE
 
 clean:
 	rm -f *~ trouble.* diff.txt demo/*~
+	rm -rf ~/.ruby_inline
 	for rf in demo/*.rb; do f=$$(basename $$rf .rb); rm -f demo/$$f.c demo/$$f; done
 

@@ -25,34 +25,34 @@ class TestTypeChecker < Test::Unit::TestCase
     # bootstrap is automatically called by initialize
     # TODO should we check for EVERYTHING we expect?
 
-    assert_equal Type.file, @type_checker.genv.lookup("$stdin")
-    assert_equal Type.file, @type_checker.genv.lookup("$stdout")
-    assert_equal Type.file, @type_checker.genv.lookup("$stderr")
+    assert_equal Type.file, @type_checker.genv.lookup(:$stdin)
+    assert_equal Type.file, @type_checker.genv.lookup(:$stdout)
+    assert_equal Type.file, @type_checker.genv.lookup(:$stderr)
 
     assert_equal(Type.function(Type.long, [Type.long], Type.bool),
-                 @type_checker.functions[">"])
+                 @type_checker.functions[:>])
   end
 
   def test_functions
     # bootstrap populates functions
-    assert @type_checker.functions.has_key?("puts")
+    assert @type_checker.functions.has_key?(:puts)
     assert_equal(Type.function(Type.long, [Type.long], Type.bool),
-                 @type_checker.functions[">"])
+                 @type_checker.functions[:>])
   end
 
   def test_env
-    @type_checker.env.add "blah", Type.long
-    assert_equal Type.long, @type_checker.env.lookup("blah") 
+    @type_checker.env.add :blah, Type.long
+    assert_equal Type.long, @type_checker.env.lookup(:blah) 
  end
 
   def test_genv
-    assert_equal Type.file, @type_checker.genv.lookup("$stderr")
+    assert_equal Type.file, @type_checker.genv.lookup(:$stderr)
   end
 
   def test_translate
     result = @type_checker.translate(Something, :empty)
     expect = t(:defn,
-               "empty",
+               :empty,
                t(:args),
                t(:scope, Type.void),
                Type.function(Type.unknown, [], Type.void))
@@ -62,10 +62,10 @@ class TestTypeChecker < Test::Unit::TestCase
   def test_process_args
     @type_checker.env.extend
 
-    input =  t(:args, "foo", "bar")
+    input =  t(:args, :foo, :bar)
     output = t(:args,
-               t("foo", Type.unknown),
-               t("bar", Type.unknown))
+               t(:foo, Type.unknown),
+               t(:bar, Type.unknown))
 
     assert_equal output, @type_checker.process(input)
   end
@@ -79,10 +79,10 @@ class TestTypeChecker < Test::Unit::TestCase
   end
 
   def test_process_array_single
-    add_fake_var "arg1", Type.long
+    add_fake_var :arg1, Type.long
 
-    input  = t(:array, t(:lvar, "arg1"))
-    output = t(:array, t(:lvar, "arg1", Type.long))
+    input  = t(:array, t(:lvar, :arg1))
+    output = t(:array, t(:lvar, :arg1, Type.long))
 
     result = @type_checker.process(input)
 
@@ -92,98 +92,98 @@ class TestTypeChecker < Test::Unit::TestCase
   end
 
   def test_process_array_multiple
-    add_fake_var "arg1", Type.long
-    add_fake_var "arg2", Type.str
+    add_fake_var :arg1, Type.long
+    add_fake_var :arg2, Type.str
 
-    input =  t(:array, t(:lvar, "arg1"), t(:lvar, "arg2"))
+    input =  t(:array, t(:lvar, :arg1), t(:lvar, :arg2))
     output = t(:array,
-               t(:lvar, "arg1", Type.long),
-               t(:lvar, "arg2", Type.str))
+               t(:lvar, :arg1, Type.long),
+               t(:lvar, :arg2, Type.str))
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_process_call_defined
-    add_fake_function "name", Type.void, Type.long, Type.str
+    add_fake_function :name, Type.void, Type.long, Type.str
     input  = t(:call,
                nil,
-               "name",
-               t(:array, t(:str, "foo")))
+               :name,
+               t(:array, t(:str, :foo)))
     output = t(:call,
                nil,
-               "name",
-               t(:array, t(:str, "foo", Type.str)),
+               :name,
+               t(:array, t(:str, :foo, Type.str)),
                Type.long)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_process_call_defined_rhs
-    add_fake_function "name3", Type.long, Type.long, Type.str
+    add_fake_function :name3, Type.long, Type.long, Type.str
     input  = t(:call,
                t(:lit, 1),
-               "name3",
-               t(:array, t(:str, "foo")))
+               :name3,
+               t(:array, t(:str, :foo)))
     output = t(:call,
                t(:lit, 1, Type.long),
-               "name3",
-               t(:array, t(:str, "foo", Type.str)),
+               :name3,
+               t(:array, t(:str, :foo, Type.str)),
                Type.long)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_process_call_undefined
-    input  = t(:call, nil, "name", nil)
-    output = t(:call, nil, "name", nil, Type.unknown)
+    input  = t(:call, nil, :name, nil)
+    output = t(:call, nil, :name, nil, Type.unknown)
 
     assert_equal output, @type_checker.process(input)
     # FIX returns unknown in s()
     assert_equal(Type.function(Type.unknown, [], Type.unknown),
-                 @type_checker.functions["name"])
+                 @type_checker.functions[:name])
   end
 
   def test_process_call_unify_1
-    add_fake_var "number", Type.long
+    add_fake_var :number, Type.long
     input  = t(:call,
                t(:lit, 1),
-               "==",
+               :==,
                t(:array,
-                 t(:lvar, "number")))
+                 t(:lvar, :number)))
     output = t(:call,
                t(:lit, 1, Type.long),
-               "==",
+               :==,
                t(:array,
-                 t(:lvar, "number", Type.long)),
+                 t(:lvar, :number, Type.long)),
                Type.bool)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_process_call_unify_2
-    add_fake_var "number1", Type.unknown
-    add_fake_var "number2", Type.unknown
+    add_fake_var :number1, Type.unknown
+    add_fake_var :number2, Type.unknown
 
     input  = t(:call,
                t(:lit, 1),
-               "==",
-               t(:array, t(:lvar, "number1")))
+               :==,
+               t(:array, t(:lvar, :number1)))
     output = t(:call,
                t(:lit, 1, Type.long),
-               "==",
+               :==,
                t(:array,
-                 t(:lvar, "number1", Type.long)),
+                 t(:lvar, :number1, Type.long)),
                Type.bool)
 
     assert_equal output, @type_checker.process(input)
 
     input  = t(:call,
-               t(:lvar, "number2"),
-               "==",
+               t(:lvar, :number2),
+               :==,
                t(:array, t(:lit, 1)))
     output = t(:call,
-               t(:lvar, "number2", Type.long),
-               "==",
+               t(:lvar, :number2, Type.long),
+               :==,
                t(:array,
                  t(:lit, 1, Type.long)),
                Type.bool)
@@ -192,34 +192,34 @@ class TestTypeChecker < Test::Unit::TestCase
   end
 
   def test_process_call_case_equal_long
-    add_fake_var "number", Type.unknown
+    add_fake_var :number, Type.unknown
 
     input  = t(:call,
                t(:lit, 1),
-               "===",
-               t(:array, t(:lvar, "number")))
+               :===,
+               t(:array, t(:lvar, :number)))
     output = t(:call,
                t(:lit, 1, Type.long),
-               "case_equal_long",
+               :case_equal_long,
                t(:array,
-                 t(:lvar, "number", Type.long)),
+                 t(:lvar, :number, Type.long)),
                Type.bool)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_process_call_case_equal_string
-    add_fake_var "string", Type.unknown
+    add_fake_var :string, Type.unknown
 
     input  = t(:call,
                t(:str, 'foo'),
-               "===",
-               t(:array, t(:lvar, "string")))
+               :===,
+               t(:array, t(:lvar, :string)))
     output = t(:call,
                t(:str, 'foo', Type.str),
-               "case_equal_str",
+               :case_equal_str,
                t(:array,
-                 t(:lvar, "string", Type.str)),
+                 t(:lvar, :string, Type.str)),
                Type.bool)
 
     assert_equal output, @type_checker.process(input)
@@ -227,12 +227,12 @@ class TestTypeChecker < Test::Unit::TestCase
 
   def test_process_const
     assert_raises RuntimeError do
-      @type_checker.process s(:const, "Constant")
+      @type_checker.process s(:const, :Constant)
     end
   end
 
   def test_process_block
-    add_fake_function Type.unknown, "foo" # TODO: why is this here?
+    add_fake_function Type.unknown, :foo # TODO: why is this here?
 
     input  = t(:block, t(:return, t(:nil)))
     # FIX: should this really be void for return?
@@ -246,13 +246,13 @@ class TestTypeChecker < Test::Unit::TestCase
   end
 
   def test_process_block_multiple
-    add_fake_function Type.unknown, "foo" # what is this really testing?
+    add_fake_function Type.unknown, :foo # what is this really testing?
 
     input  = t(:block,
-               t(:str, "foo"),
+               t(:str, :foo),
                t(:return, t(:nil)))
     output = t(:block,
-               t(:str, "foo", Type.str),
+               t(:str, :foo, Type.str),
                t(:return,
                  t(:nil, Type.value),
                  Type.void),
@@ -263,22 +263,22 @@ class TestTypeChecker < Test::Unit::TestCase
 
   def test_process_dasgn_curr
     @type_checker.env.extend
-    input  = t(:dasgn_curr, "x")
-    output = t(:dasgn_curr, "x", Type.unknown)
+    input  = t(:dasgn_curr, :x)
+    output = t(:dasgn_curr, :x, Type.unknown)
 
     assert_equal output, @type_checker.process(input)
     # HACK: is this a valid test??? it was in ruby_to_c:
-    # assert_equal Type.long, @type_checker.env.lookup("x")
+    # assert_equal Type.long, @type_checker.env.lookup(:x)
   end
 
   def test_process_defn
     function_type = Type.function s(), Type.void
     input  = t(:defn,
-               "empty",
+               :empty,
                t(:args),
                t(:scope))
     output = t(:defn,
-               "empty",
+               :empty,
                t(:args),
                t(:scope, Type.void),
                function_type)
@@ -287,13 +287,13 @@ class TestTypeChecker < Test::Unit::TestCase
   end
 
   def test_process_dstr
-    add_fake_var "var", Type.str
+    add_fake_var :var, Type.str
     input  = t(:dstr,
                "var is ",
-               t(:lvar, "var"),
+               t(:lvar, :var),
                t(:str, ". So there."))
     output = t(:dstr, "var is ",
-               t(:lvar, "var", Type.str),
+               t(:lvar, :var, Type.str),
                t(:str, ". So there.", Type.str),
                Type.str)
 
@@ -301,9 +301,9 @@ class TestTypeChecker < Test::Unit::TestCase
   end
 
   def test_process_dvar
-    add_fake_var "dvar", Type.long
-    input  = t(:dvar, "dvar")
-    output = t(:dvar, "dvar", Type.long)
+    add_fake_var :dvar, Type.long
+    input  = t(:dvar, :dvar)
+    output = t(:dvar, :dvar, Type.long)
 
     assert_equal output, @type_checker.process(input)
   end
@@ -316,16 +316,16 @@ class TestTypeChecker < Test::Unit::TestCase
   end
 
   def test_process_gvar_defined
-    add_fake_gvar "$arg", Type.long
-    input  = t(:gvar, "$arg")
-    output = t(:gvar, "$arg", Type.long)
+    add_fake_gvar :$arg, Type.long
+    input  = t(:gvar, :$arg)
+    output = t(:gvar, :$arg, Type.long)
 
     assert_equal output, @type_checker.process(input)
   end
 
   def test_process_gvar_undefined
-    input  = t(:gvar, "$arg")
-    output = t(:gvar, "$arg", Type.unknown)
+    input  = t(:gvar, :$arg)
+    output = t(:gvar, :$arg, Type.unknown)
 
     assert_equal output, @type_checker.process(input)
   end
@@ -334,14 +334,14 @@ class TestTypeChecker < Test::Unit::TestCase
     input  = t(:if,
                t(:call,
                  t(:lit, 1),
-                 "==",
+                 :==,
                  t(:array, t(:lit, 2))),
                t(:str, "not equal"),
                nil)
     output = t(:if,
                t(:call,
                  t(:lit, 1, Type.long),
-                 "==",
+                 :==,
                  t(:array,
                    t(:lit, 2, Type.long)),
                  Type.bool),
@@ -356,14 +356,14 @@ class TestTypeChecker < Test::Unit::TestCase
     input  = t(:if,
                t(:call,
                  t(:lit, 1),
-                 "==",
+                 :==,
                  t(:array, t(:lit, 2))),
                t(:str, "not equal"),
                t(:str, "equal"))
     output = t(:if,
                t(:call,
                  t(:lit, 1, Type.long),
-                 "==",
+                 :==,
                  t(:array, t(:lit, 2, Type.long)),
                  Type.bool),
                t(:str, "not equal", Type.str),
@@ -376,35 +376,35 @@ class TestTypeChecker < Test::Unit::TestCase
   def test_process_iter
     @type_checker.env.extend
     var_type = Type.long_list
-    add_fake_var "array", var_type
+    add_fake_var :array, var_type
     input  = t(:iter,
                t(:call,
-                 t(:lvar, "array"),
-                 "each",
+                 t(:lvar, :array),
+                 :each,
                  nil),
-               t(:dasgn_curr, "x"),
+               t(:dasgn_curr, :x),
                t(:call,
                  nil,
-                 "puts",
+                 :puts,
                  t(:array,
                    t(:call,
-                     t(:dvar, "x"),
-                     "to_s",
+                     t(:dvar, :x),
+                     :to_s,
                      nil))))
     output = t(:iter,
                t(:call,
-                 t(:lvar, "array", var_type),
-                 "each",
+                 t(:lvar, :array, var_type),
+                 :each,
                  nil,
                  Type.unknown),
-               t(:dasgn_curr, "x", Type.long),
+               t(:dasgn_curr, :x, Type.long),
                t(:call,
                  nil,
-                 "puts",
+                 :puts,
                  t(:array,
                    t(:call,
-                     t(:dvar, "x", Type.long),
-                     "to_s",
+                     t(:dvar, :x, Type.long),
+                     :to_s,
                      nil,
                      Type.str)),
                  Type.void),
@@ -418,15 +418,15 @@ class TestTypeChecker < Test::Unit::TestCase
     # require 'sexp_processor'
     # require 'type_checker'
     # tc = TypeChecker.new
-    # s = t(:lasgn, "var", t(:str, "foo"))
+    # s = t(:lasgn, :var, t(:str, :foo))
     # tc.process(s)
     # => raises
     # tc.env.extend
     # tc.process(s)
     # => raises elsewhere... etc etc etc
     # makes debugging very difficult
-    input  = t(:lasgn, "var", t(:str, "foo"))
-    output = t(:lasgn, "var", 
+    input  = t(:lasgn, :var, t(:str, "foo"))
+    output = t(:lasgn, :var, 
                t(:str, "foo", Type.str),
                Type.str)
 
@@ -436,11 +436,11 @@ class TestTypeChecker < Test::Unit::TestCase
   def test_process_lasgn_array
     @type_checker.env.extend
     input  = t(:lasgn,
-               "var",
+               :var,
                t(:array,
                  t(:str, "foo"),
                  t(:str, "bar")))
-    output = t(:lasgn, "var",
+    output = t(:lasgn, :var,
                t(:array,
                  t(:str, "foo", Type.str),
                  t(:str, "bar", Type.str)),
@@ -457,9 +457,9 @@ class TestTypeChecker < Test::Unit::TestCase
   end
 
   def test_process_lvar
-    add_fake_var "arg", Type.long
-    input  = t(:lvar, "arg")
-    output = t(:lvar, "arg", Type.long)
+    add_fake_var :arg, Type.long
+    input  = t(:lvar, :arg)
+    output = t(:lvar, :arg, Type.long)
 
     assert_equal output, @type_checker.process(input)
   end
@@ -499,7 +499,7 @@ class TestTypeChecker < Test::Unit::TestCase
   end
 
   def test_process_scope
-    add_fake_function Type.unknown, "foo" # TODO: what is this here for?
+    add_fake_function Type.unknown, :foo # TODO: what is this here for?
     input  = t(:scope,
                t(:block,
                  t(:return, t(:nil))))
@@ -532,14 +532,14 @@ class TestTypeChecker < Test::Unit::TestCase
     input  = t(:if,
                t(:call,
                  t(:lit, 1),
-                 "==",
+                 :==,
                  t(:array, t(:lit, 2))),
                nil,
                t(:str, "equal"))
     output = t(:if,
                t(:call,
                  t(:lit, 1, Type.long),
-                 "==", 
+                 :==, 
                  t(:array,
                    t(:lit, 2, Type.long)),
                  Type.bool),
@@ -551,10 +551,10 @@ class TestTypeChecker < Test::Unit::TestCase
   end
 
   def test_process_while
-    input    = t(:while, t(:true), t(:call, t(:lit, 1), "to_s", nil))
+    input    = t(:while, t(:true), t(:call, t(:lit, 1), :to_s, nil))
     expected = t(:while,
                  t(:true, Type.bool),
-                 t(:call, t(:lit, 1, Type.long), "to_s", nil,
+                 t(:call, t(:lit, 1, Type.long), :to_s, nil,
                    Type.str))
 
     assert_equal expected, @type_checker.process(input)
@@ -588,12 +588,12 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
 
   @@missing = s(nil)
 
-  @@empty = t(:defn, "empty",
+  @@empty = t(:defn, :empty,
               t(:args),
               t(:scope, Type.void),
               Type.function(Type.unknown, [], Type.void))
 
-  @@stupid = t(:defn, "stupid",
+  @@stupid = t(:defn, :stupid,
                t(:args),
                t(:scope,
                  t(:block,
@@ -604,43 +604,43 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                  Type.void),
                Type.function(Type.unknown, [], Type.value))
 
-  @@simple = t(:defn, "simple",
-               t(:args, t("arg1", Type.str)),
+  @@simple = t(:defn, :simple,
+               t(:args, t(:arg1, Type.str)),
                t(:scope,
                  t(:block,
                    t(:call,
                      nil,
-                     "print",
+                     :print,
                      t(:array,
                        t(:lvar,
-                         "arg1",
+                         :arg1,
                          Type.str)),
                      Type.void),
                    t(:call,
                      nil,
-                     "puts",
+                     :puts,
                      t(:array,
                        t(:call,
                          t(:call,
                            t(:lit, 4, Type.long),
-                           "+",
+                           :+,
                            t(:array,
                              t(:lit, 2, Type.long)),
                            Type.long),
-                         "to_s",
+                         :to_s,
                          nil, Type.str)),
                      Type.void),
                    Type.unknown),
                  Type.void),
                Type.function(Type.unknown, [Type.str], Type.void)) # HACK - receiver shouldn't be unknown
 
-  @@global = t(:defn, "global",
+  @@global = t(:defn, :global,
                t(:args),
                t(:scope,
                  t(:block,
                    t(:call,
-                     t(:gvar, "$stderr", Type.file),
-                     "fputs",
+                     t(:gvar, :$stderr, Type.file),
+                     :fputs,
                      t(:array,
                        t(:str, "blah", Type.str)),
                      Type.unknown),
@@ -648,14 +648,14 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                  Type.void),
                Type.function(Type.unknown, [], Type.void))
 
-  @@lasgn_call = t(:defn, "lasgn_call",
+  @@lasgn_call = t(:defn, :lasgn_call,
                    t(:args),
                    t(:scope,
                      t(:block,
-                       t(:lasgn, "c",
+                       t(:lasgn, :c,
                          t(:call,
                            t(:lit, 2, Type.long),
-                           "+",
+                           :+,
                            t(:array,
                              t(:lit, 3, Type.long)),
                            Type.long),
@@ -665,14 +665,14 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                    Type.function(Type.unknown, [], Type.void))
 
   @@conditional1 = 
-    t(:defn, "conditional1",
-      t(:args, t("arg1", Type.long)),
+    t(:defn, :conditional1,
+      t(:args, t(:arg1, Type.long)),
       t(:scope,
         t(:block,
           t(:if,
             t(:call,
-              t(:lvar, "arg1", Type.long),
-              "==",
+              t(:lvar, :arg1, Type.long),
+              :==,
               t(:array,
                 t(:lit, 0, Type.long)),
               Type.bool),
@@ -682,14 +682,14 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
             nil, Type.void), Type.unknown), Type.void),
       Type.function(Type.unknown, [Type.long], Type.long))
 
-  @@conditional2 = t(:defn, "conditional2",
-                     t(:args, t("arg1", Type.long)),
+  @@conditional2 = t(:defn, :conditional2,
+                     t(:args, t(:arg1, Type.long)),
                      t(:scope,
                        t(:block,
                          t(:if,
                            t(:call,
-                             t(:lvar, "arg1", Type.long),
-                             "==",
+                             t(:lvar, :arg1, Type.long),
+                             :==,
                              t(:array,
                                t(:lit, 0, Type.long)),
                              Type.bool),
@@ -702,14 +702,14 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                        Type.void),
                      Type.function(Type.unknown, [Type.long], Type.long))
 
-  @@conditional3 = t(:defn, "conditional3",
-                     t(:args, t("arg1", Type.long)),
+  @@conditional3 = t(:defn, :conditional3,
+                     t(:args, t(:arg1, Type.long)),
                      t(:scope,
                        t(:block,
                          t(:if,
                            t(:call,
-                             t(:lvar, "arg1", Type.long),
-                             "==",
+                             t(:lvar, :arg1, Type.long),
+                             :==,
                              t(:array,
                                t(:lit, 0, Type.long)),
                              Type.bool),
@@ -724,14 +724,14 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                        Type.void),
                      Type.function(Type.unknown, [Type.long], Type.long))
 
-  @@conditional4 = t(:defn, "conditional4",
-                     t(:args, t("arg1", Type.long)),
+  @@conditional4 = t(:defn, :conditional4,
+                     t(:args, t(:arg1, Type.long)),
                      t(:scope,
                        t(:block,
                          t(:if,
                            t(:call,
-                             t(:lvar, "arg1", Type.long),
-                             "==",
+                             t(:lvar, :arg1, Type.long),
+                             :==,
                              t(:array,
                                t(:lit, 0, Type.long)),
                              Type.bool),
@@ -740,8 +740,8 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                              Type.void),
                            t(:if,
                              t(:call,
-                               t(:lvar, "arg1", Type.long),
-                               "<",
+                               t(:lvar, :arg1, Type.long),
+                               :<,
                                t(:array,
                                  t(:lit, 0, Type.long)),
                                Type.bool),
@@ -761,7 +761,7 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
     t(:args),
     t(:scope,
       t(:block,
-        t(:lasgn, "array",
+        t(:lasgn, :array,
           t(:array,
             t(:lit, 1, Type.long),
             t(:lit, 2, Type.long),
@@ -769,17 +769,17 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
           Type.long_list),
         t(:iter,
           t(:call,
-            t(:lvar, "array", Type.long_list),
-            "each",
+            t(:lvar, :array, Type.long_list),
+            :each,
             nil, Type.unknown),
-          t(:dasgn_curr, "x", Type.long),
+          t(:dasgn_curr, :x, Type.long),
           t(:call,
             nil,
-            "puts",
+            :puts,
             t(:array,
               t(:call,
-                t(:dvar, "x", Type.long),
-                "to_s",
+                t(:dvar, :x, Type.long),
+                :to_s,
                 nil,
                 Type.str)),
             Type.void),
@@ -788,21 +788,21 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
       Type.void),
     Type.function(Type.unknown, [], Type.void)]
 
-  @@iteration1 = t(:defn, "iteration1", *@@__iteration_body)
+  @@iteration1 = t(:defn, :iteration1, *@@__iteration_body)
 
-  @@iteration2 = t(:defn, "iteration2", *@@__iteration_body)
+  @@iteration2 = t(:defn, :iteration2, *@@__iteration_body)
 
-  @@iteration3 = t(:defn, "iteration3",
+  @@iteration3 = t(:defn, :iteration3,
                    t(:args),
                    t(:scope,
                      t(:block,
-                       t(:lasgn, "array1",
+                       t(:lasgn, :array1,
                          t(:array,
                            t(:lit, 1, Type.long),
                            t(:lit, 2, Type.long),
                            t(:lit, 3, Type.long)),
                          Type.long_list),
-                       t(:lasgn, "array2",
+                       t(:lasgn, :array2,
                          t(:array,
                            t(:lit, 4, Type.long),
                            t(:lit, 5, Type.long),
@@ -811,36 +811,36 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                          Type.long_list),
                        t(:iter,
                          t(:call,
-                           t(:lvar, "array1", Type.long_list),
-                           "each",
+                           t(:lvar, :array1, Type.long_list),
+                           :each,
                            nil,
                            Type.unknown),
-                         t(:dasgn_curr, "x", Type.long),
+                         t(:dasgn_curr, :x, Type.long),
                          t(:iter,
                            t(:call,
-                             t(:lvar, "array2", Type.long_list),
-                             "each",
+                             t(:lvar, :array2, Type.long_list),
+                             :each,
                              nil,
                              Type.unknown),
-                           t(:dasgn_curr, "y", Type.long),
+                           t(:dasgn_curr, :y, Type.long),
                            t(:block,
                              t(:call,
                                nil,
-                               "puts",
+                               :puts,
                                t(:array,
                                  t(:call,
-                                   t(:dvar, "x", Type.long),
-                                   "to_s",
+                                   t(:dvar, :x, Type.long),
+                                   :to_s,
                                    nil,
                                    Type.str)),
                                Type.void),
                              t(:call,
                                nil,
-                               "puts",
+                               :puts,
                                t(:array,
                                  t(:call,
-                                   t(:dvar, "y", Type.long),
-                                   "to_s",
+                                   t(:dvar, :y, Type.long),
+                                   :to_s,
                                    nil,
                                    Type.str)),
                                Type.void),
@@ -852,61 +852,61 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                    Type.function(Type.unknown, [], Type.void))
 
   @@iteration4 = t(:defn,
-                   "iteration4",
+                   :iteration4,
                    t(:args),
                    t(:scope,
                      t(:block,
                        t(:dummy,
-                       t(:lasgn, "n", t(:lit, 1, Type.long), Type.long),
+                       t(:lasgn, :n, t(:lit, 1, Type.long), Type.long),
                        t(:while,
                          t(:call,
-                           t(:lvar, "n", Type.long),
-                           "<=",
+                           t(:lvar, :n, Type.long),
+                           :<=,
                            t(:array, t(:lit, 3, Type.long)), Type.bool),
                          t(:block,
                            t(:call,
                              nil,
-                             "puts",
+                             :puts,
                              t(:array,
                                t(:call,
-                                 t(:lvar, "n", Type.long),
-                                 "to_s",
+                                 t(:lvar, :n, Type.long),
+                                 :to_s,
                                  nil, Type.str)), Type.void),
                            t(:lasgn,
-                             "n",
+                             :n,
                              t(:call,
-                               t(:lvar, "n", Type.long),
-                               "+",
+                               t(:lvar, :n, Type.long),
+                               :+,
                                t(:array,
                                  t(:lit,
                                    1, Type.long)), Type.long), Type.long), Type.unknown))), Type.unknown), Type.void),
                    Type.function(Type.unknown, [], Type.void))
   @@iteration5 = t(:defn,
-                   "iteration5",
+                   :iteration5,
                    t(:args),
                    t(:scope,
                      t(:block,
                        t(:dummy,
-                         t(:lasgn, "n", t(:lit, 3, Type.long), Type.long),
+                         t(:lasgn, :n, t(:lit, 3, Type.long), Type.long),
                          t(:while,
                            t(:call,
-                             t(:lvar, "n", Type.long),
-                             ">=",
+                             t(:lvar, :n, Type.long),
+                             :>=,
                              t(:array, t(:lit, 1, Type.long)), Type.bool),
                            t(:block,
                              t(:call,
                                nil,
-                               "puts",
+                               :puts,
                                t(:array,
                                  t(:call,
-                                   t(:lvar, "n", Type.long),
-                                   "to_s",
+                                   t(:lvar, :n, Type.long),
+                                   :to_s,
                                    nil, Type.str)), Type.void),
                              t(:lasgn,
-                               "n",
+                               :n,
                                t(:call,
-                                 t(:lvar, "n", Type.long),
-                                 "-",
+                                 t(:lvar, :n, Type.long),
+                                 :-,
                                  t(:array,
                                    t(:lit,
                                      1, Type.long)),
@@ -916,35 +916,70 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                        Type.unknown),
                      Type.void),
                    Type.function(Type.unknown, [], Type.void))
-  @@multi_args = t(:defn, "multi_args",
+  @@iteration6 = t(:defn,
+                   :iteration6,
+                   t(:args),
+                   t(:scope,
+                     t(:block,
+                       t(:dummy,
+                         t(:lasgn,
+                           "temp_var1",
+                           t(:lit, 3, Type.long),
+                           Type.long),
+                         t(:while,
+                           t(:call,
+                             t(:lvar, "temp_var1", Type.long),
+                             :>=,
+                             t(:array, t(:lit, 1, Type.long)), Type.bool),
+                           t(:block,
+                             t(:call,
+                               nil,
+                               :puts,
+                               t(:array, t(:str, "hello", Type.str)),
+                               Type.void),
+                             t(:lasgn,
+                               "temp_var1",
+                               t(:call,
+                                 t(:lvar, "temp_var1", Type.long),
+                                 :-,
+                                 t(:array,
+                                   t(:lit,
+                                     1, Type.long)),
+                                 Type.long),
+                               Type.long),
+                             Type.unknown))),
+                       Type.unknown),
+                     Type.void),
+                   Type.function(Type.unknown, [], Type.void))
+  @@multi_args = t(:defn, :multi_args,
                    t(:args,
-                     t("arg1", Type.long),
-                     t("arg2", Type.long)),
+                     t(:arg1, Type.long),
+                     t(:arg2, Type.long)),
                    t(:scope,
                      t(:block,
                        t(:lasgn,
-                         "arg3",
+                         :arg3,
                          t(:call,
                            t(:call,
-                             t(:lvar, "arg1", Type.long),
-                             "*",
+                             t(:lvar, :arg1, Type.long),
+                             :*,
                              t(:array,
                                t(:lvar,
-                                 "arg2",
+                                 :arg2,
                                  Type.long)),
                              Type.long),
-                           "*",
+                           :*,
                            t(:array,
                              t(:lit, 7, Type.long)),
                            Type.long),
                          Type.long),
                        t(:call,
                          nil,
-                         "puts",
+                         :puts,
                          t(:array,
                            t(:call,
-                             t(:lvar, "arg3", Type.long),
-                             "to_s",
+                             t(:lvar, :arg3, Type.long),
+                             :to_s,
                              nil,
                              Type.str)),
                          Type.void),
@@ -955,14 +990,14 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                    Type.function(Type.unknown, [Type.long, Type.long], Type.str))
 
   # TODO: why does return false have type void?
-  @@bools = t(:defn, "bools",
-              t(:args, t("arg1", Type.value)),
+  @@bools = t(:defn, :bools,
+              t(:args, t(:arg1, Type.value)),
               t(:scope,
                 t(:block,
                   t(:if,
                     t(:call,
-                      t(:lvar, "arg1", Type.value),
-                      "nil?",
+                      t(:lvar, :arg1, Type.value),
+                      :nil?,
                       nil,
                       Type.bool),
                     t(:return,
@@ -976,62 +1011,62 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                 Type.void),
               Type.function(Type.unknown, [Type.value], Type.bool))
 
-  @@case_stmt = t(:defn, "case_stmt",
+  @@case_stmt = t(:defn, :case_stmt,
                   t(:args),
                   t(:scope,
                     t(:block,
                       t(:lasgn,
-                        "var",
+                        :var,
                         t(:lit, 2, Type.long),
                         Type.long),
                       t(:lasgn,
-                        "result",
+                        :result,
                         t(:str, "", Type.str),
                         Type.str),
                       t(:if,
                         t(:call,
-                          t(:lvar, "var", Type.long),
-                          "case_equal_long",
+                          t(:lvar, :var, Type.long),
+                          :case_equal_long,
                           t(:array, t(:lit, 1, Type.long)),
                           Type.bool),
                         t(:block,
                           t(:call,
                             nil,
-                            "puts",
+                            :puts,
                             t(:array,
                               t(:str, "something", Type.str)),
                             Type.void),
                           t(:lasgn,
-                            "result",
+                            :result,
                             t(:str, "red", Type.str),
                             Type.str),
                           Type.str),
                         t(:if,
                           t(:or,
                             t(:call,
-                              t(:lvar, "var", Type.long),
-                              "case_equal_long",
+                              t(:lvar, :var, Type.long),
+                              :case_equal_long,
                               t(:array, t(:lit, 2, Type.long)),
                               Type.bool),
                             t(:call,
-                              t(:lvar, "var", Type.long),
-                              "case_equal_long",
+                              t(:lvar, :var, Type.long),
+                              :case_equal_long,
                               t(:array, t(:lit, 3, Type.long)),
                               Type.bool),
                             Type.bool),
                           t(:lasgn,
-                            "result",
+                            :result,
                             t(:str, "yellow", Type.str),
                             Type.str),
                           t(:if,
                             t(:call,
-                              t(:lvar, "var", Type.long),
-                              "case_equal_long",
+                              t(:lvar, :var, Type.long),
+                              :case_equal_long,
                               t(:array, t(:lit, 4, Type.long)),
                               Type.bool),
                             nil,
                             t(:lasgn,
-                              "result",
+                              :result,
                               t(:str, "green", Type.str),
                               Type.str),
                             Type.str),
@@ -1039,27 +1074,27 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                         Type.str),
                       t(:if,
                         t(:call,
-                          t(:lvar, "result", Type.str),
-                          "case_equal_str",
+                          t(:lvar, :result, Type.str),
+                          :case_equal_str,
                           t(:array, t(:str, "red", Type.str)),
                           Type.bool),
-                        t(:lasgn, "var", t(:lit, 1, Type.long), Type.long),
+                        t(:lasgn, :var, t(:lit, 1, Type.long), Type.long),
                         t(:if,
                           t(:call,
-                            t(:lvar, "result", Type.str),
-                            "case_equal_str",
+                            t(:lvar, :result, Type.str),
+                            :case_equal_str,
                             t(:array, t(:str, "yellow", Type.str)),
                             Type.bool),
-                          t(:lasgn, "var", t(:lit, 2, Type.long), Type.long),
+                          t(:lasgn, :var, t(:lit, 2, Type.long), Type.long),
                           t(:if,
                             t(:call,
-                              t(:lvar, "result", Type.str),
-                              "case_equal_str",
+                              t(:lvar, :result, Type.str),
+                              :case_equal_str,
                               t(:array,
                                 t(:str, "green", Type.str)),
                               Type.bool),
                             t(:lasgn,
-                              "var",
+                              :var,
                               t(:lit, 3, Type.long),
                               Type.long),
                             nil,
@@ -1067,61 +1102,61 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                           Type.long),
                         Type.long),
                       t(:return,
-                        t(:lvar, "result", Type.str),
+                        t(:lvar, :result, Type.str),
                         Type.void),
                       Type.unknown),
                     Type.void),
                   Type.function(Type.unknown, [], Type.str))
 
   @@eric_is_stubborn = t(:defn,
-                         "eric_is_stubborn",
+                         :eric_is_stubborn,
                          t(:args),
                          t(:scope,
                            t(:block,
                              t(:lasgn,
-                               "var",
+                               :var,
                                t(:lit,
                                  42,
                                  Type.long),
                                Type.long),
                              t(:lasgn,
-                               "var2",
+                               :var2,
                                t(:call,
-                                 t(:lvar, "var", Type.long),
-                                 "to_s",
+                                 t(:lvar, :var, Type.long),
+                                 :to_s,
                                  nil,
                                  Type.str),
                                Type.str),
                              t(:call,
                                t(:gvar,
-                                 "$stderr",
+                                 :$stderr,
                                  Type.file),
-                               "fputs",
+                               :fputs,
                                t(:array,
-                                 t(:lvar, "var2", Type.str)),
+                                 t(:lvar, :var2, Type.str)),
                                Type.unknown),
                              t(:return,
-                               t(:lvar, "var2", Type.str),
+                               t(:lvar, :var2, Type.str),
                                Type.void),
                              Type.unknown),
                            Type.void),
                          Type.function(Type.unknown, [], Type.str))
 
   @@interpolated = t(:defn,
-                     "interpolated",
+                     :interpolated,
                      t(:args),
                      t(:scope,
                        t(:block,
                          t(:lasgn,
-                           "var",
+                           :var,
                            t(:lit,
                              14,
                              Type.long),
                            Type.long),
-                         t(:lasgn, "var2",
+                         t(:lasgn, :var2,
                            t(:dstr,
                              "var is ",
-                             t(:lvar, "var", Type.long),
+                             t(:lvar, :var, Type.long),
                              t(:str, ". So there.", Type.str),
                              Type.str),
                            Type.str),
@@ -1129,22 +1164,22 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                        Type.void),
                      Type.function(Type.unknown, [], Type.void))
 
-  @@unknown_args = t(:defn, "unknown_args",
+  @@unknown_args = t(:defn, :unknown_args,
                      t(:args,
-                       t("arg1", Type.long),
-                       t("arg2", Type.str)),
+                       t(:arg1, Type.long),
+                       t(:arg2, Type.str)),
                      t(:scope,
                        t(:block,
                          t(:return,
                            t(:lvar,
-                             "arg1",
+                             :arg1,
                              Type.long),
                            Type.void),
                          Type.unknown),
                        Type.void),
                      Type.function(Type.unknown, [Type.long, Type.str], Type.long))
 
-  @@determine_args = t(:defn, "determine_args",
+  @@determine_args = t(:defn, :determine_args,
                        t(:args),
                        t(:scope,
                          t(:block,
@@ -1152,11 +1187,11 @@ class TestTypeChecker_2 < Test::Unit::TestCase # ZenTest SKIP
                              t(:lit,
                                5,
                                Type.long),
-                             "==",
+                             :==,
                              t(:array,
                                t(:call,
                                  nil,
-                                 "unknown_args",
+                                 :unknown_args,
                                  t(:array,
                                    t(:lit, 4, Type.long),
                                    t(:str, "known", Type.str)),

@@ -34,8 +34,8 @@ class TestExtraTypeChecker < Test::Unit::TestCase # ZenTest SKIP
   end
 
   # HACK: this shouldn't be in test code. use augment or something
-  def process(klass, meth = nil)
-    sexp = @parser.parse_tree klass, meth
+  def util_process(klass, meth)
+    sexp = @parser.parse_tree_for_method klass, meth
     sexp = [sexp] unless meth.nil?
     result = []
     sexp.each do | sub_exp|
@@ -78,8 +78,8 @@ class TestExtraTypeChecker < Test::Unit::TestCase # ZenTest SKIP
   end
 
   def test_type_inference_across_args_known
-    generic  = process(RandomCode, :generic_method).first
-    specific = process(RandomCode, :specific_method).first
+    generic  = util_process(RandomCode, :generic_method).first
+    specific = util_process(RandomCode, :specific_method).first
 
     args_g = generic[2]  # FIX FUCK this is horrid
     args_s = specific[2] # FIX FUCK this is horrid
@@ -108,8 +108,8 @@ class TestExtraTypeChecker < Test::Unit::TestCase # ZenTest SKIP
   end
 
   def test_type_inference_across_args_unknown
-    meth_a = process(RandomCode, :meth_a).first
-    meth_b = process(RandomCode, :meth_b).first
+    meth_a = util_process(RandomCode, :meth_a).first
+    meth_b = util_process(RandomCode, :meth_b).first
 
     args_a = meth_a[2][1] # FIX FUCK this is horrid
     args_b = meth_b[2][1] # FIX FUCK this is horrid
@@ -124,18 +124,12 @@ class TestExtraTypeChecker < Test::Unit::TestCase # ZenTest SKIP
   end
 
   def test_process_defn_return_val
-    ignore = process(RandomCode, :meth_a)
-    result = process(RandomCode, :meth_b).first
+    ignore = util_process(RandomCode, :meth_a)
+    result = util_process(RandomCode, :meth_b).first
 
-    assert_equal("meth_b", result[1])
+    assert_equal(:meth_b, result[1])
     # FIX: this is the worst API in my codebase - demeter
     assert_equal(Type.void, result.sexp_type.list_type.return_type)
-  end
-
-  def test_wtf?
-    assert_nothing_thrown do
-      process RandomCode
-    end
   end
 
 end

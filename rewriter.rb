@@ -1,5 +1,12 @@
+
+begin
+  require 'rubygems'
+  require_gem 'ParseTree'
+rescue LoadError
+  require 'parse_tree'
+end
+
 require 'typed_sexp_processor'
-require 'parse_tree'
 
 class Rewriter < SexpProcessor
 
@@ -41,7 +48,7 @@ class Rewriter < SexpProcessor
 
       vars = vars.map { |v| Sexp.new(:call,
                                      var.deep_clone,
-                                     "===",
+                                     :===,
                                      Sexp.new(:array, process(v)))}
       if vars.size > 1 then
         new_exp << Sexp.new(:or, *vars)
@@ -97,15 +104,19 @@ class Rewriter < SexpProcessor
     var  = process exp.shift
     body = process exp.shift
 
+    if var.nil? then
+      var = Sexp.new(:lvar, "temp_var1") # HACK HACK HACK
+    end
+
     assert_type call, :call
 
-    if call[2] != "each" then # TODO: fix call[1] (api)
+    if call[2] != :each then # TODO: fix call[1] (api)
       call.shift # :call
       lhs = call.shift
       method_name = call.shift
 
       case method_name
-      when "downto" then
+      when :downto then
         var.shift # 
         start_value = lhs
         finish_value = call.pop.pop # not sure about this
@@ -114,14 +125,14 @@ class Rewriter < SexpProcessor
         result = s(:dummy,
                    s(:lasgn, var_name, start_value),
                    s(:while,
-                     s(:call, s(:lvar, var_name), ">=",
+                     s(:call, s(:lvar, var_name), :>=,
                        s(:array, finish_value)),
                      s(:block,
                        body,
                        s(:lasgn, var_name,
-                         s(:call, s(:lvar, var_name), "-",
+                         s(:call, s(:lvar, var_name), :-,
                            s(:array, Sexp.new(:lit, 1)))))))
-      when "upto" then
+      when :upto then
         # REFACTOR: completely duped from above and direction changed
         var.shift # 
         start_value = lhs
@@ -131,12 +142,12 @@ class Rewriter < SexpProcessor
         result = s(:dummy,
                    s(:lasgn, var_name, start_value),
                    s(:while,
-                     s(:call, s(:lvar, var_name), "<=",
+                     s(:call, s(:lvar, var_name), :<=,
                        s(:array, finish_value)),
                      s(:block,
                        body,
                        s(:lasgn, var_name,
-                         s(:call, s(:lvar, var_name), "+",
+                         s(:call, s(:lvar, var_name), :+,
                            s(:array, Sexp.new(:lit, 1)))))))
       else
         raise "unknown iter method #{method_name}"
@@ -172,8 +183,8 @@ end
 class R2CRewriter < SexpProcessor
 
   REWRITES = {
-    [Type.str, "+", Type.str] => proc { |l,n,r|
-      t(:call, nil, "strcat", r.unshift(r.shift, l), Type.str)
+    [Type.str, :+, Type.str] => proc { |l,n,r|
+      t(:call, nil, :strcat, r.unshift(r.shift, l), Type.str)
     }
   }
 

@@ -1,5 +1,12 @@
-require 'sexp_processor'
-require 'parse_tree'
+
+begin
+  require 'rubygems'
+  require_gem 'ParseTree'
+  require 'sexp_processor'
+rescue LoadError
+  require 'parse_tree'
+end
+
 require 'rewriter'
 require 'support'
 require 'pp'
@@ -8,34 +15,34 @@ require 'pp'
 
 $bootstrap = {
   # :sym => [[:reciever, :args, :return], ...]
-  "<"  => [[:long, :long, :bool],],
-  "<=" => [[:long, :long, :bool],],
-  "==" => [[:long, :long, :bool],],
-  ">"  => [[:long, :long, :bool],],
-  ">=" => [[:long, :long, :bool],],
+  :<  => [[:long, :long, :bool],],
+  :<= => [[:long, :long, :bool],],
+  :== => [[:long, :long, :bool],],
+  :>  => [[:long, :long, :bool],],
+  :>= => [[:long, :long, :bool],],
 
-  "+"  => ([
+  :+  => ([
              [:long, :long, :long],
              [:str, :str, :str],
            ]),
-  "-"  => [[:long, :long, :long],],
-  "*"  => [[:long, :long, :long],],
+  :-  => [[:long, :long, :long],],
+  :*  => [[:long, :long, :long],],
 
   # polymorphics:
-  "nil?" => [[:value, :bool],],
-  "to_s" => [[:long, :str],],  # HACK - should be :value, :str
-  "to_i" => [[:long, :long],], # HACK - should be :value, :str
-  "puts" => [[:void, :str, :void],],
-  "print" => [[:void, :str, :void],],
+  :nil? => [[:value, :bool],],
+  :to_s => [[:long, :str],],  # HACK - should be :value, :str
+  :to_i => [[:long, :long],], # HACK - should be :value, :str
+  :puts => [[:void, :str, :void],],
+  :print => [[:void, :str, :void],],
 
-  "[]"   => ([
+  :[]   => ([
                [:long_list, :long, :long],
                [:str, :long, :long],
              ]),
 
   # TODO: get rid of these
-  "case_equal_str" => [[:str, :str, :bool],],
-  "case_equal_long" => [[:long, :long, :bool],],
+  :case_equal_str => [[:str, :str, :bool],],
+  :case_equal_long => [[:long, :long, :bool],],
 }
 
 class TypeChecker < SexpProcessor
@@ -49,7 +56,7 @@ class TypeChecker < SexpProcessor
 
   def translate(klass, method = nil)
     # HACK FIX this is horrid, and entirely eric's fault, and requires a real pipeline
-    sexp = @@parser.parse_tree klass, method
+    sexp = @@parser.parse_tree_for_method klass, method
     sexp = @@rewriter.process sexp
     self.process sexp
   end
@@ -87,9 +94,9 @@ class TypeChecker < SexpProcessor
   end
 
   def bootstrap
-    @genv.add "$stdin", Type.file
-    @genv.add "$stdout", Type.file
-    @genv.add "$stderr", Type.file
+    @genv.add :$stdin, Type.file
+    @genv.add :$stdout, Type.file
+    @genv.add :$stderr, Type.file
 
     $bootstrap.each do |name,signatures|
       # FIX: Using Type.send because it must go through method_missing, not new
@@ -187,14 +194,14 @@ class TypeChecker < SexpProcessor
                   end
                 end
 
-    if name == "===" then
+    if name == :=== then
       rhs = args[1]
       raise "lhs of === may not be nil" if lhs.nil?
       raise "rhs of === may not be nil" if rhs.nil?
       raise "Help! I can't figure out what kind of #=== comparison to use" if
         lhs.sexp_type.unknown? and rhs.sexp_type.unknown?
       equal_type = lhs.sexp_type.unknown? ? rhs.sexp_type : lhs.sexp_type
-      name = "case_equal_#{equal_type.list_type}"
+      name = "case_equal_#{equal_type.list_type}".intern
     end
 
     return_type = Type.unknown
