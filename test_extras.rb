@@ -38,7 +38,8 @@ class TestExtraInferTypes < Test::Unit::TestCase
     args_g = generic[2][1][1] # FIX FUCK this is horrid
     args_s = specific[2][1][1] # FIX FUCK this is horrid
 
-    assert_equal(args_g.object_id, args_s.object_id)
+    assert_equal(args_g[1].object_id, args_s[1].object_id)
+    assert_equal(args_g[2].object_id, args_s[2].object_id)
     assert_equal(Type.long, args_s[1].last)
     assert_equal(Type.long, args_s[2].last)
     assert_equal(Type.long, args_g[1].last)
@@ -61,7 +62,15 @@ class TestExtraInferTypes < Test::Unit::TestCase
     assert_equal(args_a.object_id, args_b.object_id)
   end
 
+  def test_augment_return_val
+    inferer  = InferTypes.new
+    inferer.augment(RandomCode, :meth_a)
+    result = inferer.augment(RandomCode, :meth_b)
 
+    p result
+
+    assert_equal("meth_b", result[1])
+  end
 
   def xtest_wtf?
     assert_nothing_thrown do
