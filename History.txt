@@ -2,7 +2,7 @@
 
 + 1 minor enhancement
 	+ Added post-condition while/until support and tests.
-+ N bug fixes
++ 4 bug fixes
 	+ Fixed bug:1422: Escape newlines to prevent multi-line strings in C.
 	+ Fixed bug:1429: Arrays of strings are not being properly.
 	+ Fixed bug:1447/1448: Readme file's website and added ParseTree dependency.
