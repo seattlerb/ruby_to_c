@@ -14,6 +14,20 @@ class TypeChecker < SexpProcessor
   attr_reader :genv
   attr_reader :functions
 
+  @@parser = ParseTree.new
+  @@rewriter = Rewriter.new
+
+  def translate(klass, method = nil)
+    # HACK FIX this is horrid, and entirely eric's fault, and requires a real pipeline
+    sexp = @@parser.parse_tree klass, method
+    sexp = @@rewriter.process sexp
+    self.process sexp
+  end
+
+  def self.translate(klass, method = nil)
+    self.new.translate(klass, method)
+  end
+
   def self.process(klass, method=nil)
     processor = self.new
     rewriter = Rewriter.new
@@ -73,9 +87,6 @@ class TypeChecker < SexpProcessor
       formals << Sexp.new(arg, type)
       types << type
     end
-
-    # HACK: should not set w/ array of types... bad bad bad
-    formals.sexp_type = types
 
     return formals
   end
@@ -181,10 +192,9 @@ class TypeChecker < SexpProcessor
     @env.extend
 
     args = process exp.shift
-    arg_types = args.sexp_type
 
     unless @functions.has_key? name then
-      @functions[name] = Type.function arg_types, return_type
+      @functions[name] = Type.function args.sexp_types, return_type
     end
     body = process exp.shift
     body_type = body.sexp_type
@@ -196,7 +206,7 @@ class TypeChecker < SexpProcessor
 
     return_type.unify Type.void if return_type == Type.unknown
 
-    arg_types.each_with_index do |type, i|
+    args.sexp_types.each_with_index do |type, i|
       type.unify function_type.list_type.formal_types[i]
     end
 

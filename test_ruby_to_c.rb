@@ -79,7 +79,7 @@ class TestRubyToC < Test::Unit::TestCase
     methods = ["==", "<", ">", "-", "+", "*", "/", "%", "<=", ">="]
 
     methods.each do |method|
-      input  = Sexp.from_array [:call, method, [:lit, 1], [:array, [:lit, 2]]]
+      input  = Sexp.new(:call, method, Sexp.new(:lit, 1), Sexp.new(:array, Sexp.new(:lit, 2)))
       output = "1 #{method} 2"
 
       assert_equal output, @ruby_to_c.process(input)

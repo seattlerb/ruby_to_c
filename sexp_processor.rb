@@ -1,6 +1,8 @@
 
 require 'support'
 
+$TESTING = false unless defined? $TESTING
+
 class Object
   def deep_clone
     Marshal.load(Marshal.dump(self))
@@ -32,19 +34,24 @@ class Sexp < Array # ZenTest FULL
   end
 
   def initialize(*args)
-    if Type === args.last then
-      @sexp_type = args.pop
-    else
-      @sexp_type = nil # TODO: should probably be Type.unknown
-    end
+    # TODO: should probably be Type.unknown
+    @sexp_type = Type === args.last ? args.pop : nil
     super(args)
   end
 
+  @@array_types = [ :array, :args, ]
+
+  def array_type?
+    type = self.first
+    @@array_types.include? type
+  end
+
   def sexp_type
-    unless self.first == :array then
+    unless array_type? then
       @sexp_type
     else
       types = self.sexp_types.flatten.uniq
+
       if types.size > 1 then
         Type.hetero
       else
@@ -54,12 +61,12 @@ class Sexp < Array # ZenTest FULL
   end
 
   def sexp_type=(o)
-    raise "You shouldn't call this on an array" if self.first == :array
+    raise "You shouldn't call this on an #{first}" if array_type?
     @sexp_type = o
   end
 
   def sexp_types
-    raise "You shouldn't call this if not an array" unless self.first == :array
+    raise "You shouldn't call this if not an #{@@array_types.join(' or ')}, was #{first}" unless array_type?
     self.grep(Sexp).map { |x| x.sexp_type }
   end
 
@@ -83,21 +90,17 @@ class Sexp < Array # ZenTest FULL
   end
 
   def inspect
-    if @sexp_type then
-      "Sexp.new(#{self.map {|x|x.inspect}.join(', ')}, #{@sexp_type})"
-    else
-      "Sexp.new(#{self.map {|x|x.inspect}.join(', ')})"
-    end
+    "Sexp.new(#{self.map {|x|x.inspect}.join(', ')}, #{array_type? ? sexp_types.inspect : sexp_type})"
   end
 
   def pretty_print(q)
-    q.group(1, 'Sexp.new(', ')') {
+    q.group(1, 'Sexp.new(', ')') do
       q.seplist(self) {|v| q.pp v }
       if @sexp_type then
         q.text ", "
         q.pp @sexp_type
       end
-    }
+    end
   end
 
   def to_s
@@ -107,7 +110,7 @@ class Sexp < Array # ZenTest FULL
   def shift
     raise "I'm empty" if self.empty?
     super
-  end
+  end if $DEBUG or $TESTING
 
 end
 

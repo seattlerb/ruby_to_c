@@ -150,6 +150,24 @@ class TestType < Test::Unit::TestCase
     assert_not_equal @long_list, type
   end
 
+  def test_equal_and_hash
+    long1 = Type.long
+    long2 = Type.long
+
+    a = Type.unknown
+    a.unify long1
+
+    b = Type.unknown
+    b.unify long2
+
+    assert a == b, "=="
+    assert a === b, "==="
+    assert a.eql?(b), ".eql?"
+    assert_equal a.hash, b.hash, "hash"
+
+    assert_equal 1, [a, b].uniq.size
+  end
+
   def test_list_equal
     type = Type.new(:long, true)
     assert_not_equal @unknown, type

@@ -40,7 +40,7 @@ new_classes.each do |klass|
         b += 1
       when :call, :fcall, :vcall, :yield then
         c += 1
-      when :args, :argscat, :array, :begin, :block, :bool, :colon2, :const, :cvar, :defined, :defn, :dregx, :dstr, :dvar, :dxstr, :ensure, :false, :fbody, :gvar, :hash, :ivar, :lit, :long, :lvar, :match2, :match3, :nil, :not, :nth_ref, :return, :scope, :self, :splat, :str, :to_ary, :true, :unknown, :value, :void, :zarray, :zarray, :zclass then
+      when :args, :argscat, :array, :begin, :block, :bool, :colon2, :const, :cvar, :defined, :defn, :dregx, :dstr, :dvar, :dxstr, :ensure, :false, :fbody, :gvar, :hash, :ivar, :lit, :long, :lvar, :match2, :match3, :nil, :not, :nth_ref, :return, :scope, :self, :splat, :str, :super, :to_ary, :true, :unknown, :value, :void, :zarray, :zarray, :zclass, :zsuper then
         # ignore
       else
         puts "unhandled token #{token.inspect}"
@@ -54,7 +54,9 @@ end
 
 puts "Method = assignments + branches + calls = total"
 puts
+count = 1
 score.sort_by { |k,v| v }.reverse.each do |key,val|
   name, a, b, c = *key
-  printf "%-50s = %2d + %2d + %2d = %3d\n", name, a, b, c, val
+  printf "%3d) %-50s = %2d + %2d + %2d = %3d\n", count, name, a, b, c, val
+  count += 1
 end

@@ -173,12 +173,18 @@ class Type
     @type.contents
   end
 
-  def ==(other)
+  def eql?(other)
     return nil unless other.class == self.class
 
-    return false unless other.type == self.type
-    return false unless other.list? == self.list?
-    return true
+    other.type == self.type && other.list? == self.list?
+  end
+
+  def ==(other)
+    eql? other
+  end
+
+  def hash
+    type.contents.hash ^ @list.hash
   end
 
   def unify(other)

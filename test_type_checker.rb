@@ -19,7 +19,6 @@ class TestTypeChecker_1 < Test::Unit::TestCase
 
     input =  [:args, "foo", "bar"]
     output = Sexp.new(:args, Sexp.new("foo", Type.unknown), Sexp.new("bar", Type.unknown))
-    output.sexp_type = [Type.unknown, Type.unknown]
 
     assert_equal output, @type_checker.process(input)
   end
@@ -28,7 +27,6 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     input =  [:args]
     output = Sexp.new(:args)
     # TODO: this should be superseded by the new array functionality
-    output.sexp_type = []
 
     assert_equal output, @type_checker.process(input)
   end
@@ -165,7 +163,6 @@ class TestTypeChecker_1 < Test::Unit::TestCase
                       Sexp.new(:args),
                       Sexp.new(:scope, Type.void),
                       function_type)
-    output[2].sexp_type = []
 
     assert_equal output, @type_checker.process(input)
   end
@@ -391,7 +388,6 @@ class TestTypeChecker_1 < Test::Unit::TestCase
 
 end
 
-=begin
 class TestTypeChecker_2 < Test::Unit::TestCase
 
   # TODO: need a good test of interpolated strings
@@ -400,28 +396,26 @@ class TestTypeChecker_2 < Test::Unit::TestCase
 
   @@empty = [:defn, "empty",
       [:args],
-      [:scope],
-      Type.function([], Type.void)],
-    Type.function([], Type.void)
+      [:scope, Type.void],
+      Type.function([], Type.void)]
 
   @@stupid = [:defn, "stupid",
       [:args],
       [:scope,
         [:block,
-          [:return, [:nil]]]],
-      Type.function([], Type.value)],
-    Type.function([], Type.value)
+          [:return, [:nil, Type.value], Type.void], Type.unknown], Type.void],
+      Type.function([], Type.value)]
 
   @@simple = [:defn, "simple",
       [:args, ["arg1", Type.str]],
         [:scope,
           [:block,
-            [:call, "print", nil, [:array, [:lvar, "arg1", Type.str]]],
+            [:call, "print", nil, [:array, [:lvar, "arg1", Type.str]], Type.void],
             [:call, "puts", nil, [:array,
               [:call, "to_s",
-                [:call, "+", [:lit, 4], [:array, [:lit, 2]]], nil]]]]],
-      Type.function([Type.str], Type.void)],
-  Type.function([Type.str], Type.void)
+                [:call, "+", [:lit, 4, Type.long], [:array, [:lit, 2, Type.long]], Type.long],
+              nil, Type.str]], Type.void], Type.unknown], Type.void],
+      Type.function([Type.str], Type.void)]
 
   @@global = [:defn, "global",
       [:args],
@@ -429,19 +423,17 @@ class TestTypeChecker_2 < Test::Unit::TestCase
         [:block,
           [:call, "fputs",
             [:gvar, "$stderr", Type.file],
-            [:array, [:str, "blah"]]]]],
-      Type.function([], Type.void)],
-    Type.function([], Type.void)
+            [:array, [:str, "blah", Type.str]], Type.unknown], Type.unknown], Type.void],
+      Type.function([], Type.void)]
 
   @@lasgn_call = [:defn, "lasgn_call",
       [:args],
         [:scope,
           [:block,
             [:lasgn, "c",
-              [:call, "+", [:lit, 2], [:array, [:lit, 3]]],
-           Type.long]]],
-      Type.function([], Type.void)],
-    Type.function([], Type.void)
+              [:call, "+", [:lit, 2, Type.long], [:array, [:lit, 3, Type.long]], Type.long],
+           Type.long], Type.unknown], Type.void],
+      Type.function([], Type.void)]
 
   @@conditional1 = [:defn, "conditional1",
       [:args, ["arg1", Type.long]],
@@ -450,11 +442,10 @@ class TestTypeChecker_2 < Test::Unit::TestCase
           [:if,
             [:call, "==",
               [:lvar, "arg1", Type.long],
-              [:array, [:lit, 0]]],
-            [:return, [:lit, 1]],
-            nil]]],
-      Type.function([Type.long], Type.long)],
-    Type.function([Type.long], Type.long)
+              [:array, [:lit, 0, Type.long]], Type.bool],
+            [:return, [:lit, 1, Type.long], Type.void],
+            nil, Type.void], Type.unknown], Type.void],
+      Type.function([Type.long], Type.long)]
 
   @@conditional2 = [:defn, "conditional2",
       [:args, ["arg1", Type.long]],
@@ -463,11 +454,10 @@ class TestTypeChecker_2 < Test::Unit::TestCase
           [:if,
             [:call, "==",
               [:lvar, "arg1", Type.long],
-              [:array, [:lit, 0]]],
+              [:array, [:lit, 0, Type.long]], Type.bool],
             nil,
-            [:return, [:lit, 2]]]]],
-      Type.function([Type.long], Type.long)],
-    Type.function([Type.long], Type.long)
+            [:return, [:lit, 2, Type.long], Type.void], Type.void], Type.unknown], Type.void],
+      Type.function([Type.long], Type.long)]
 
   @@conditional3 = [:defn, "conditional3",
       [:args, ["arg1", Type.long]],
@@ -476,11 +466,10 @@ class TestTypeChecker_2 < Test::Unit::TestCase
           [:if,
             [:call, "==",
               [:lvar, "arg1", Type.long],
-              [:array, [:lit, 0]]],
-            [:return, [:lit, 3]],
-            [:return, [:lit, 4]]]]],
-      Type.function([Type.long], Type.long)],
-    Type.function([Type.long], Type.long)
+              [:array, [:lit, 0, Type.long]], Type.bool],
+            [:return, [:lit, 3, Type.long], Type.void],
+            [:return, [:lit, 4, Type.long], Type.void], Type.void], Type.unknown], Type.void],
+      Type.function([Type.long], Type.long)]
 
   @@conditional4 = [:defn, "conditional4",
       [:args, ["arg1", Type.long]],
@@ -489,63 +478,66 @@ class TestTypeChecker_2 < Test::Unit::TestCase
           [:if,
             [:call, "==",
               [:lvar, "arg1", Type.long],
-              [:array, [:lit, 0]]],
-            [:return, [:lit, 2]],
+              [:array, [:lit, 0, Type.long]], Type.bool],
+            [:return, [:lit, 2, Type.long], Type.void],
             [:if,
               [:call, "<",
                 [:lvar, "arg1", Type.long],
-                [:array, [:lit, 0]]],
-              [:return, [:lit, 3]],
-              [:return, [:lit, 4]]]]]],
-      Type.function([Type.long], Type.long)],
-    Type.function([Type.long], Type.long)
+                [:array, [:lit, 0, Type.long]], Type.bool],
+              [:return, [:lit, 3, Type.long], Type.void],
+              [:return, [:lit, 4, Type.long], Type.void], Type.void], Type.void], Type.unknown], Type.void],
+      Type.function([Type.long], Type.long)]
 
   @@iteration_body = [[:args], [:scope,
       [:block,
         [:lasgn, "array",
-          [:array, [:lit, 1], [:lit, 2], [:lit, 3]],
+          [:array, [:lit, 1, Type.long], [:lit, 2, Type.long], [:lit, 3, Type.long]],
           Type.long_list],
       [:iter,
-        [:call, "each", [:lvar, "array", Type.long_list], nil],
+        [:call, "each", [:lvar, "array", Type.long_list], nil, Type.unknown],
         [:dasgn_curr, "x", Type.long],
         [:call, "puts", nil,
-          [:array, [:call, "to_s", [:dvar, "x", Type.long], nil]]]]]],
+          [:array, [:call, "to_s", [:dvar, "x", Type.long], nil, Type.str]], Type.void], Type.void], Type.unknown], Type.void],
       Type.function([], Type.void)]
 
-  @@iteration1 = [:defn, "iteration1", *@@iteration_body],
-    Type.function([], Type.void)
+  @@iteration1 = [:defn, "iteration1", *@@iteration_body]
 
-  @@iteration2 = [:defn, "iteration2", *@@iteration_body],
-    Type.function([], Type.void)
+  @@iteration2 = [:defn, "iteration2", *@@iteration_body]
 
   @@iteration3 = [:defn, "iteration3",
       [:args],
         [:scope,
         [:block,
           [:lasgn, "array1",
-            [:array, [:lit, 1], [:lit, 2], [:lit, 3]],
+            [:array,
+              [:lit, 1, Type.long],
+              [:lit, 2, Type.long],
+              [:lit, 3, Type.long]],
             Type.long_list],
           [:lasgn, "array2",
-            [:array, [:lit, 4], [:lit, 5], [:lit, 6], [:lit, 7]],
+            [:array,
+              [:lit, 4, Type.long],
+              [:lit, 5, Type.long],
+              [:lit, 6, Type.long],
+              [:lit, 7, Type.long]],
             Type.long_list],
           [:iter,
-            [:call, "each", [:lvar, "array1", Type.long_list], nil],
+            [:call, "each", [:lvar, "array1", Type.long_list], nil, Type.unknown],
             [:dasgn_curr, "x", Type.long],
               [:iter,
                 [:call, "each",
-                  [:lvar, "array2", Type.long_list], nil],
+                  [:lvar, "array2", Type.long_list], nil, Type.unknown],
                 [:dasgn_curr, "y", Type.long],
                 [:block,
                   [:call, "puts", nil,
                     [:array,
                       [:call, "to_s",
-                        [:dvar, "x", Type.long], nil]]],
+                        [:dvar, "x", Type.long], nil, Type.str]], Type.void],
                   [:call, "puts", nil,
                     [:array,
                       [:call, "to_s",
-                        [:dvar, "y", Type.long], nil]]]]]]]],
-      Type.function([], Type.void)],
-    Type.function([], Type.void)
+                        [:dvar, "y", Type.long], nil, Type.str]], Type.void], Type.unknown], Type.void], Type.void], Type.unknown], Type.void],
+      Type.function([], Type.void)]
 
   @@multi_args = [:defn, "multi_args",
       [:args, ["arg1", Type.long], ["arg2", Type.long]],
@@ -555,133 +547,123 @@ class TestTypeChecker_2 < Test::Unit::TestCase
               [:call, "*",
                 [:call, "*",
                   [:lvar, "arg1", Type.long],
-                  [:array, [:lvar, "arg2", Type.long]]],
-                [:array, [:lit, 7]]],
+                  [:array, [:lvar, "arg2", Type.long]], Type.long],
+                [:array, [:lit, 7, Type.long]], Type.long],
               Type.long],
             [:call, "puts",
               nil,
               [:array,
-                [:call, "to_s", [:lvar, "arg3", Type.long], nil]]],
-            [:return, [:str, "foo"]]]],
-      Type.function([Type.long, Type.long], Type.str)],
-    Type.function([Type.long, Type.long], Type.str)
+                [:call, "to_s", [:lvar, "arg3", Type.long], nil, Type.str]], Type.void],
+            [:return, [:str, "foo", Type.str], Type.void], Type.unknown], Type.void],
+      Type.function([Type.long, Type.long], Type.str)]
 
+  # TODO: why does return false have type void?
   @@bools = [:defn, "bools",
       [:args, ["arg1", Type.value]],
       [:scope,
         [:block,
           [:if,
-            [:call, "nil?", [:lvar, "arg1", Type.value], nil],
-            [:return, [:false]],
-            [:return, [:true]]]]],
-      Type.function([Type.value], Type.bool)],
-    Type.function([Type.value], Type.bool)
+            [:call, "nil?", [:lvar, "arg1", Type.value], nil, Type.bool],
+            [:return, [:false, Type.bool], Type.void],
+            [:return, [:true, Type.bool], Type.void], Type.void], Type.unknown], Type.void],
+      Type.function([Type.value], Type.bool)]
 
   @@case_stmt = [:defn, "case_stmt",
       [:args],
       [:scope,
         [:block,
-          [:lasgn, "var", [:lit, 2], Type.long],
-          [:lasgn, "result", [:str, ""], Type.str],
+          [:lasgn, "var", [:lit, 2, Type.long], Type.long],
+          [:lasgn, "result", [:str, "", Type.str], Type.str],
           [:if,
             [:call, "case_equal_long",
-            [:lvar, "var", Type.long], [:array, [:lit, 1]]],
+            [:lvar, "var", Type.long], [:array, [:lit, 1, Type.long]], Type.bool],
             [:block,
               [:call, "puts",
-                nil, [:array, [:str, "something"]]],
-              [:lasgn, "result", [:str, "red"], Type.str]],
+                nil, [:array, [:str, "something", Type.str]], Type.void],
+              [:lasgn, "result", [:str, "red", Type.str], Type.str], Type.str],
             [:if,
               [:or,
                 [:call, "case_equal_long",
-                [:lvar, "var", Type.long], [:array, [:lit, 2]]],
+                [:lvar, "var", Type.long], [:array, [:lit, 2, Type.long]], Type.bool],
                 [:call, "case_equal_long",
-                [:lvar, "var", Type.long], [:array, [:lit, 3]]]],
-              [:lasgn, "result", [:str, "yellow"], Type.str],
+                [:lvar, "var", Type.long], [:array, [:lit, 3, Type.long]], Type.bool], Type.bool],
+              [:lasgn, "result", [:str, "yellow", Type.str], Type.str],
               [:if,
                 [:call, "case_equal_long",
-                [:lvar, "var", Type.long], [:array, [:lit, 4]]],
+                [:lvar, "var", Type.long], [:array, [:lit, 4, Type.long]], Type.bool],
                 nil,
-                [:lasgn, "result", [:str, "green"], Type.str]]]],
+                [:lasgn, "result", [:str, "green", Type.str], Type.str], Type.str], Type.str], Type.str],
 
           [:if,
             [:call, "case_equal_str",
-            [:lvar, "result", Type.str], [:array, [:str, "red"]]],
-            [:lasgn, "var", [:lit, 1], Type.long],
+            [:lvar, "result", Type.str], [:array, [:str, "red", Type.str]], Type.bool],
+            [:lasgn, "var", [:lit, 1, Type.long], Type.long],
             [:if,
               [:call, "case_equal_str",
-              [:lvar, "result", Type.str], [:array, [:str, "yellow"]]],
-              [:lasgn, "var", [:lit, 2], Type.long],
+              [:lvar, "result", Type.str], [:array, [:str, "yellow", Type.str]], Type.bool],
+              [:lasgn, "var", [:lit, 2, Type.long], Type.long],
               [:if,
                 [:call, "case_equal_str",
-                [:lvar, "result", Type.str], [:array, [:str, "green"]]],
-                [:lasgn, "var", [:lit, 3], Type.long],
-                nil]]],
-          [:return, [:lvar, "result", Type.str]]]],
-      Type.function([], Type.str)],
-    Type.function([], Type.str)
+                [:lvar, "result", Type.str], [:array, [:str, "green", Type.str]], Type.bool],
+                [:lasgn, "var", [:lit, 3, Type.long], Type.long],
+                nil, Type.long], Type.long], Type.long],
+          [:return, [:lvar, "result", Type.str], Type.void], Type.unknown], Type.void],
+      Type.function([], Type.str)]
 
-  # HACK: Type.str is the correct return type
   @@eric_is_stubborn = [:defn, "eric_is_stubborn",
       [:args],
       [:scope,
         [:block,
           [:lasgn, "var",
-            [:lit, 42], Type.long],
+            [:lit, 42, Type.long], Type.long],
           [:lasgn, "var2",
-            [:call, "to_s", [:lvar, "var", Type.long], nil], Type.str],
+            [:call, "to_s", [:lvar, "var", Type.long], nil, Type.str], Type.str],
           [:call, "fputs",
             [:gvar, "$stderr", Type.file],
-            [:array, [:lvar, "var2", Type.str]]],
-          [:return, [:lvar, "var2", Type.str]]]],
-      Type.function([], Type.str)],
-    Type.function([], Type.str)
+            [:array, [:lvar, "var2", Type.str]], Type.unknown],
+          [:return, [:lvar, "var2", Type.str], Type.void], Type.unknown], Type.void],
+      Type.function([], Type.str)]
 
   @@interpolated = [:defn, "interpolated",
       [:args],
       [:scope,
         [:block,
-          [:lasgn, "var", [:lit, 14], Type.long],
+          [:lasgn, "var", [:lit, 14, Type.long], Type.long],
           [:lasgn, "var2",
             [:dstr,
               "var is ",
               [:lvar, "var", Type.long],
-              [:str, ". So there."]],
-            Type.str]]],
-      Type.function([], Type.void)],
-      Type.function([], Type.void)
+              [:str, ". So there.", Type.str], Type.str], Type.str], Type.unknown], Type.void],
+      Type.function([], Type.void)]
 
   @@unknown_args = [:defn, "unknown_args",
     [:args, ["arg1", Type.long], ["arg2", Type.str]],
     [:scope,
       [:block,
-        [:return, [:lvar, "arg1", Type.long]]]],
-        Type.function([Type.long, Type.str], Type.long)],
-    Type.function([Type.long, Type.str], Type.long)
+        [:return, [:lvar, "arg1", Type.long], Type.void], Type.unknown], Type.void],
+        Type.function([Type.long, Type.str], Type.long)]
 
   @@determine_args = [:defn, "determine_args",
       [:args],
       [:scope,
         [:block,
-          [:call, "==", [:lit, 5],
+          [:call, "==", [:lit, 5, Type.long],
             [:array,
               [:call, "unknown_args", nil,
                 [:array,
-                  [:lit, 4], [:str, "known"]]]]]]],
-      Type.function([], Type.void)],
-    Type.function([], Type.void)
+                  [:lit, 4, Type.long], [:str, "known", Type.str]], Type.long]], Type.bool], Type.unknown], Type.void],
+      Type.function([], Type.void)]
 
   @@__all = []
 
-  @@__parser = ParseTree.new
-  @@__rewriter = Rewriter.new
   @@__type_checker = TypeChecker.new
 
   Something.instance_methods(false).sort.each do |meth|
     if class_variables.include?("@@#{meth}") then
       @@__all << eval("@@#{meth}")
       eval "def test_#{meth}
-        
-        assert_equal @@#{meth}, @@__type_checker.process(@@__rewriter.process(@@__parser.parse_tree(Something, :#{meth})))
+        exp = @@__type_checker.translate Something, :#{meth}
+        assert_equal Sexp.from_array(@@#{meth}), exp
       end"
     else
       eval "def test_#{meth}; flunk \"You haven't added @@#{meth} yet\"; end"
@@ -696,4 +678,3 @@ class TestTypeChecker_2 < Test::Unit::TestCase
 
 end
 
-=end
