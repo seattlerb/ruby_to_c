@@ -1,5 +1,7 @@
 #!/usr/local/bin/ruby -w
 
+$TESTING = true
+
 require 'type_checker'
 require 'test/unit'
 

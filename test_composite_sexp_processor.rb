@@ -1,9 +1,9 @@
 #!/usr/local/bin/ruby -w
 
+$TESTING = true
+
 require 'composite_sexp_processor'
 require 'test/unit'
-
-$TESTING = true
 
 class FakeProcessor1 < SexpProcessor # ZenTest SKIP
 

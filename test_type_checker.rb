@@ -1,5 +1,7 @@
 #!/usr/local/bin/ruby -w
 
+$TESTING = true
+
 require 'test/unit'
 require 'type_checker'
 require 'something'
@@ -23,9 +25,9 @@ class TestTypeChecker < Test::Unit::TestCase
     # bootstrap is automatically called by initialize
     # TODO should we check for EVERYTHING we expect?
 
-    assert_equal Type.file, @type_checker.genv.lookup("$stderr")
-    assert_equal Type.file, @type_checker.genv.lookup("$stdout")
     assert_equal Type.file, @type_checker.genv.lookup("$stdin")
+    assert_equal Type.file, @type_checker.genv.lookup("$stdout")
+    assert_equal Type.file, @type_checker.genv.lookup("$stderr")
 
     assert_equal(Type.function(Type.long, [Type.long], Type.bool),
                  @type_checker.functions[">"])
@@ -224,7 +226,9 @@ class TestTypeChecker < Test::Unit::TestCase
   end
 
   def test_process_const
-    raise NotImplementedError, 'Need to write test_process_const'
+    assert_raises RuntimeError do
+      @type_checker.process s(:const, "Constant")
+    end
   end
 
   def test_process_block
@@ -467,19 +471,17 @@ class TestTypeChecker < Test::Unit::TestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_or
+  def test_process_or
     input  = s(:or, s(:true), s(:false))
     output = s(:or, s(:true, Type.bool), s(:false, Type.bool), Type.bool)
 
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_process_or
-    raise NotImplementedError, 'Need to write test_process_or'
-  end
-
   def test_process_rescue
-    raise NotImplementedError, 'Need to write test_process_rescue'
+    assert_raises RuntimeError do
+      @type_checker.process s(:rescue, s(:true), s(:true))
+    end
   end
 
   def test_process_return
@@ -549,7 +551,13 @@ class TestTypeChecker < Test::Unit::TestCase
   end
 
   def test_process_while
-    raise NotImplementedError, 'Need to write test_process_while'
+    input    = s(:while, s(:true), s(:call, s(:lit, 1), "to_s", nil))
+    expected = s(:while,
+                 s(:true, Type.bool),
+                 s(:call, s(:lit, 1, Type.long), "to_s", nil,
+                   Type.str))
+
+    assert_equal expected, @type_checker.process(input)
   end
 
   def add_fake_function(name, reciever_type = nil, return_type = Type.unknown, *arg_types)

@@ -1,3 +1,6 @@
+
+$TESTING = false unless defined? $TESTING
+
 require 'pp'
 require 'type_checker'
 require 'sexp_processor'

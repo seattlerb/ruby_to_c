@@ -1,6 +1,6 @@
 #!/usr/local/bin/ruby -w
 
-$TESTING = true unless defined? $TESTING
+$TESTING = true
 
 require 'test/unit'
 require 'ruby_to_c'

@@ -86,9 +86,9 @@ class TypeChecker < SexpProcessor
   end
 
   def bootstrap
-    @genv.add "$stderr", Type.file
-    @genv.add "$stdout", Type.file
     @genv.add "$stdin", Type.file
+    @genv.add "$stdout", Type.file
+    @genv.add "$stderr", Type.file
 
     $bootstrap.each do |name,signatures|
       # FIX: Using Type.send because it must go through method_missing, not new
@@ -416,16 +416,24 @@ class TypeChecker < SexpProcessor
   ##
   # :rescue expects a try and rescue block.  Unifies and returns their
   # type.
+  #--
+  # FIX isn't used anywhere
 
   def process_rescue(exp)
     # TODO: I think there is also an else stmt. Should make it
     # mandatory, not optional.
     # TODO: test me
-    try_block = check(exp.shift, tree)
-    rescue_block = check(exp.shift, tree)
-    try_block.unify rescue_block
+    try_block = process exp.shift
+    rescue_block = process exp.shift
+
+    try_type = try_block.sexp_type
+    rescue_type = rescue_block.sexp_type
+
+    try_type.unify rescue_type
+
     raise "not done yet"
-    return try_block
+
+    return s(:rescue, try_block, rescue_block, try_type)
   end
 
   ##
@@ -486,11 +494,13 @@ class TypeChecker < SexpProcessor
 
   ##
   # :const expects an expression.  Returns the type of the constant.
+  #--
+  # :const isn't supported anywhere.
 
   def process_const(exp)
     c = exp.shift
     if c =~ /^[A-Z]/ then
-      puts "class #{c}"
+      #puts "class #{c}" # HACK do something real here
     else
       raise "I don't know what to do with const #{c}. It doesn't look like a class."
     end
