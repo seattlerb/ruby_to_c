@@ -5,7 +5,7 @@ all:
 	$(RUBY) $(RUBY_FLAGS) test_all.rb
 
 test:
-	for f in test*.rb; do $(RUBY) $(RUBY_FLAGS) $$f; done
+	for f in $$(ls test*.rb|grep -v test_all); do echo testing $$f; $(RUBY) $(RUBY_FLAGS) $$f; done
 
 trouble:
 	$(RUBY) $(RUBY_FLAGS) translate.rb zcomparable.rb

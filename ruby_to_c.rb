@@ -1,5 +1,6 @@
 require 'type_checker'
 require 'sexp_processor'
+require 'composite_sexp_processor'
 require 'rewriter'
 
 module TypeMap
@@ -57,6 +58,20 @@ class RubyToC < SexpProcessor
     sexp = @@rewriter.process sexp
     sexp, = @@type_checker.process sexp
     self.process sexp
+  end
+
+# REFACTOR (and rename) - this should be the way to write this stuff
+# but typechecker is breaking contract right now.
+  def self.happy(klass, method=nil)
+
+    sexp = ParseTree.new.parse_tree(klass, method)
+
+    processor = CompositeSexpProcessor.new
+    processor << Rewriter.new
+    processor << TypeChecker.new
+    processor << self.new
+    processor.process(sexp)
+
   end
 
   def self.translate(klass, method = nil)

@@ -3,7 +3,7 @@
 require 'type_checker'
 require 'test/unit'
 
-class RandomCode
+class RandomCode # ZenTest SKIP
   def generic_method(x, y)
     specific_method(x, y)
   end
@@ -23,7 +23,7 @@ class RandomCode
 
 end
 
-class TestExtraTypeChecker < Test::Unit::TestCase
+class TestExtraTypeChecker < Test::Unit::TestCase # ZenTest SKIP
 
   def setup
     @parser = ParseTree.new

@@ -18,6 +18,7 @@ class ParseTree
     builder.add_compile_flags "-Wwrite-strings"
     builder.add_compile_flags "-Wmissing-noreturn"
     builder.add_compile_flags "-Werror"
+    builder.add_compile_flags "-Wno-strict-aliasing"
     # ruby.h screws these up hardcore:
     # builder.add_compile_flags "-Wundef"
     # builder.add_compile_flags "-Wconversion"

@@ -1,7 +1,68 @@
 
+require 'support'
+
 class Object
   def deep_clone
     Marshal.load(Marshal.dump(self))
+  end
+end
+
+class Sexp < Array # ZenTest FULL
+
+  attr_accessor :sexp_type
+
+  def self.from_array(a)
+    ary = Array === a ? a.dup : [a]
+    sexp_type = ary.last.kind_of?(Type) ? ary.pop : nil
+
+    result = self.new
+    result.sexp_type = sexp_type
+
+    ary.each do |x|
+      case x
+      when Sexp
+        result << x
+      when Array
+        result << self.from_array(x)
+      else
+        result << x
+      end
+    end
+
+    result
+  end
+
+  def initialize(a=[], t=nil)
+    super(a)
+    @sexp_type = t
+  end
+
+  def to_a
+    if @sexp_type then
+      Array.new(self + [ @sexp_type ])
+    else
+      Array.new(self)
+    end
+  end
+
+  def ==(obj)
+    case obj
+    when Sexp
+      # this sorta sucks, but it avoids circularity
+      self.inspect == obj.inspect
+    when Array
+      self == Sexp.from_array(obj)
+    else
+      false
+    end
+  end
+
+  def inspect
+    if @sexp_type then
+      "[#{super} |#{@sexp_type}]"
+    else
+      "[#{super}]"
+    end
   end
 end
 
@@ -62,17 +123,22 @@ class SexpProcessor
       unless @strict then
         until exp.empty? do
           sub_exp = exp.shift
+          sub_result = nil
           if Array === sub_exp then
-            result << process(sub_exp)
+            sub_result = process(sub_exp)
+            raise "Result is a bad type" unless Array === sub_exp
+            raise "Result does not have a type in front: #{sub_exp.inspect}" unless Symbol === sub_exp.first unless sub_exp.empty?
           else
-            result << sub_exp
+            sub_result = sub_exp
           end
+          result << sub_result
         end
       else
-        raise SyntaxError, "Bug! Unknown type #{type.inspect} in #{(exp).inspect}"
+        raise SyntaxError, "Bug! Unknown type #{type.inspect} to #{self.class}"
       end
     end
-    return result
+#    return Array === result ? Sexp.from_array(result) : result
+    result
   end
 
   def generate

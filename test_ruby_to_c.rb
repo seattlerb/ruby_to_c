@@ -465,28 +465,18 @@ return arg1;
 
   @@__all = []
   @@__expect_raise = [ "interpolated" ]
-  @@__parser = ParseTree.new
-  @@__rewriter = Rewriter.new
-  @@__type_checker = TypeChecker.new
-  @@__translator = RubyToC.new
 
   Something.instance_methods(false).sort.each do |meth|
     if class_variables.include?("@@#{meth}") then
       @@__all << eval("@@#{meth}")
       eval "def test_#{meth}
-        exp = @@__parser.parse_tree Something, :#{meth}
-        exp = @@__rewriter.process exp
-        exp, = @@__type_checker.process exp
-        exp = @@__translator.process exp
+        exp = RubyToC.translate Something, :#{meth}
         assert_equal @@#{meth}, exp
       end"
     else
       if @@__expect_raise.include? meth then
         eval "def test_#{meth}
-        exp = @@__parser.parse_tree Something, :#{meth}
-        exp = @@__rewriter.process exp
-        exp, = @@__type_checker.process exp
-        assert_raise(SyntaxError) { @@__translator.process exp }; end"
+        assert_raise(SyntaxError) { RubyToC.translate Something, :#{meth} }; end"
       else
         eval "def test_#{meth}; flunk \"You haven't added @@#{meth} yet\"; end"
       end

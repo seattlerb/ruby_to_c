@@ -10,7 +10,8 @@ class CompositeSexpProcessor < SexpProcessor
   end
 
   def <<(processor)
-    raise ArgumentError, "Can only add sexp processors" unless SexpProcessor === processor
+    raise ArgumentError, "Can only add sexp processors" unless
+      SexpProcessor === processor
     @processors << processor
   end
 
