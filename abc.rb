@@ -1,5 +1,11 @@
 #!/usr/local/bin/ruby -w
 
+# ABC metric
+#
+# Assignments, Branches, and Calls
+#
+# A simple way to measure the complexity of a function or method.
+
 old_classes = []
 ObjectSpace.each_object(Class) do |klass|
   old_classes << klass
@@ -15,6 +21,8 @@ new_classes = []
 ObjectSpace.each_object(Class) do |klass|
   new_classes << klass
 end
+
+score = {}
 
 new_classes -= old_classes
 
@@ -32,13 +40,21 @@ new_classes.each do |klass|
         b += 1
       when :call, :fcall, :vcall, :yield then
         c += 1
-      when :args, :argscat, :array, :begin, :block, :bool, :const, :defined, :defn, :dstr, :dvar, :ensure, :false, :fbody, :gvar, :hash, :ivar, :lit, :long, :lvar, :match3, :nil, :not, :nth_ref, :return, :scope, :self, :str, :to_ary, :true, :unknown, :value, :void, :zarray, :zarray, :zclass then
+      when :args, :argscat, :array, :begin, :block, :bool, :colon2, :const, :cvar, :defined, :defn, :dregx, :dstr, :dvar, :dxstr, :ensure, :false, :fbody, :gvar, :hash, :ivar, :lit, :long, :lvar, :match2, :match3, :nil, :not, :nth_ref, :return, :scope, :self, :splat, :str, :to_ary, :true, :unknown, :value, :void, :zarray, :zarray, :zclass then
         # ignore
-
       else
         puts "unhandled token #{token.inspect}"
       end
     end
-    puts "#{klass}.#{name}:#{a}:#{b}:#{c}=#{a+b+c}"
+    key = ["#{klass}.#{name}", a, b, c]
+    val = a+b+c
+    score[key] = val
   end
+end
+
+puts "Method = assignments + branches + calls = total"
+puts
+score.sort_by { |k,v| v }.reverse.each do |key,val|
+  name, a, b, c = *key
+  printf "%-50s = %2d + %2d + %2d = %3d\n", name, a, b, c, val
 end
