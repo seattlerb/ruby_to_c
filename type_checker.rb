@@ -84,15 +84,11 @@ class TypeChecker < SexpProcessor
 
   def initialize
     super
-    @current_function_name = nil
     @env = Environment.new
     @genv = Environment.new
-    @functions = {}
+    @functions = FunctionTable.new
     self.auto_shift_type = true
     self.strict = true
-
-    @env.extend
-    @genv.extend
 
     bootstrap
   end
@@ -106,7 +102,7 @@ class TypeChecker < SexpProcessor
       lhs_type = Type.send(signature[0])
       return_type = Type.send(signature[-1])
       arg_types = signature[1..-2].map { |t| Type.send(t) }
-      @functions[name] = Type.function(lhs_type, arg_types, return_type)
+      @functions.add_function(name, Type.function(lhs_type, arg_types, return_type))
     end
   end
 
@@ -189,19 +185,15 @@ class TypeChecker < SexpProcessor
       name = "case_equal_#{equal_type.list_type}"
     end
 
-    function_type = @functions[name]
     return_type = Type.unknown
     lhs_type = lhs.nil? ? Type.unknown : lhs.sexp_type # TODO: maybe void instead of unknown
 
-    if function_type.nil?  then
-      function_type = Type.function(lhs_type, arg_types, return_type)
-      @functions[name] = function_type
+    function_type = Type.function(lhs_type, arg_types, return_type)
+    @functions.unify(name, function_type) do
+      @functions.add_function(name, function_type)
       $stderr.puts "\nWARNING: function #{name} called w/o being defined. Registering #{function_type.inspect}" if $DEBUG
-    else
-      call_type = Type.function(lhs_type, arg_types, return_type)
-      function_type.unify call_type
-      return_type = function_type.list_type.return_type
     end
+    return_type = function_type.list_type.return_type
 
     return Sexp.new(:call, lhs, name, args, return_type)
   end
@@ -223,23 +215,22 @@ class TypeChecker < SexpProcessor
 
   def process_defn(exp)
     name = exp.shift
+    unprocessed_args = exp.shift
+    args = body = function_type = nil
 
-    @current_function_name = name # TODO: nuke this
-    @env.extend
+    @env.scope do
+      args = process unprocessed_args
 
-    args = process exp.shift
-
-    # It might already have the name as defined by a :call node.
-    unless @functions.has_key? name then
+      # Function might already have been defined by a :call node.
       # TODO: figure out the receiver type? Is that possible at this stage?
       function_type = Type.function Type.unknown, args.sexp_types, Type.unknown
-      @functions[name] = function_type
-      $stderr.puts "\nWARNING: Registering function #{name}: #{function_type.inspect}" if $DEBUG
-    end
-    body = process exp.shift
+      @functions.unify(name, function_type) do
+        @functions.add_function(name, function_type)
+        $stderr.puts "\nWARNING: Registering function #{name}: #{function_type.inspect}" if $DEBUG
+      end
 
-    @env.unextend
-    @current_function_name = nil # TODO: nuke this
+      body = process exp.shift
+    end
 
     function_type = @functions[name]
     return_type = function_type.list_type.return_type
@@ -434,13 +425,6 @@ class TypeChecker < SexpProcessor
 
   def process_return(exp)
     body = process exp.shift
-    fun_type = @functions[@current_function_name]
-
-    raise "Definition of #{@current_function_name.inspect} not found in function list" if fun_type.nil?
-
-    return_type = fun_type.list_type.return_type # HACK UGLY
-    return_type.unify body.sexp_type
-
     return Sexp.new(:return, body, Type.void) # TODO: why void?!?
   end
 

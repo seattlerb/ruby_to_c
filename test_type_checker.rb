@@ -419,20 +419,10 @@ class TestTypeChecker_1 < Test::Unit::TestCase
   end
 
   def test_return
-    add_fake_function Type.unknown, "foo" # TODO: what is this trying to do?
-
     input  = s(:return, s(:nil))
     output = s(:return, s(:nil, Type.value), Type.void)
 
     assert_equal output, @type_checker.process(input)
-  end
-
-  def test_return_raises
-    input = s(:return, s(:nil))
-
-    assert_raises RuntimeError do
-      @type_checker.process(input)
-    end
   end
 
   def test_str
@@ -502,7 +492,7 @@ class TestTypeChecker_1 < Test::Unit::TestCase
     # HACK!!! what is this and why is this??? current_function_name must die!
     @type_checker.instance_variable_set "@current_function_name", name
     functions = @type_checker.instance_variable_get "@functions"
-    functions[name] = Type.function reciever_type, arg_types, return_type
+    functions.add_function(name, Type.function(reciever_type, arg_types, return_type))
   end
 
   def add_fake_var(name, type)

@@ -1,9 +1,24 @@
 
+class Array
+  def unify(t)
+    success = false
+    each do |o|
+      begin
+        o.unify t
+        success = true
+      rescue
+        # ignore
+      end
+    end
+    raise TypeError, "Unable to unify #{self.inspect} with #{t.inspect}" unless success
+  end
+end
+
 class Environment
 
   attr_accessor :env
   def initialize
-    @env = []
+    @env = [{}]
   end
 
   def depth
@@ -34,6 +49,51 @@ class Environment
     @env.first
   end
 
+  def scope
+    self.extend
+    yield
+    self.unextend
+  end
+
+end
+
+class FunctionTable
+
+  def initialize
+    @functions = Hash.new do |h,k|
+      h[k] = []
+    end
+  end
+
+  def cheat(name) # HACK: just here for debugging
+    puts "\n# WARNING: FunctionTable.cheat called from #{caller[0]}" if $DEBUG
+    @functions[name]
+  end
+
+  def [](name) # HACK: just here for transition
+    puts "\n# WARNING: FunctionTable.[] called from #{caller[0]}" if $DEBUG
+    @functions[name].first
+  end
+
+  def has_key?(name) # HACK: just here for transition
+    puts "\n# WARNING: FunctionTable.has_key? called from #{caller[0]}" if $DEBUG
+    @functions.has_key?(name)
+  end
+
+  def add_function(name, type)
+    @functions[name] << type
+    type
+  end
+
+  def unify(name, type)
+    begin
+      @functions[name].unify(type)
+    rescue TypeError
+      yield(name, type) if block_given?
+    end
+    type
+  end
+
 end
 
 class FunctionType
@@ -59,7 +119,7 @@ class FunctionType
   end
 
   def unify_components(other)
-    raise "Unable to unify: different number of args #{self.inspect} vs #{other.inspect}" unless
+    raise TypeError, "Unable to unify: different number of args #{self.inspect} vs #{other.inspect}" unless
       @formal_types.length == other.formal_types.length
 
     @formal_types.each_with_index do |type, i|
@@ -196,6 +256,7 @@ class Type
   end
 
   def unify(other)
+    return other.unify(self) if Array === other
     return self if other == self and (not self.unknown?)
     return self if other.nil?
     if self.unknown? and other.unknown? then
@@ -216,9 +277,8 @@ class Type
 
       self_fun.unify_components other_fun
     else
-      raise "Unable to unify #{self.inspect} with #{other.inspect}"
+      raise TypeError, "Unable to unify #{self.inspect} with #{other.inspect}"
     end
-
     return self
   end
 

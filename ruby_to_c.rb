@@ -247,27 +247,25 @@ typedef struct { unsigned long length; long * contents; } long_array;
   end
 
   def process_iter(exp)
-    @env.extend
+    out = []
+    @env.scope do
+      enum = exp[0][1][1] # HACK ugly
+      call = process exp.shift
+      var  = process exp.shift
+      body = process exp.shift
+      index = "index_#{var}"
 
-#    p exp
+      body += ";" unless body =~ /[;}]\Z/
+      body.gsub!(/\n\n+/, "\n")
 
-    enum = exp[0][1][1] # HACK ugly
-    call = process exp.shift
-    var = process exp.shift
-    body = process exp.shift
-    index = "index_#{var}"
+      out << "unsigned long #{index};"
+      out << "for (#{index} = 0; #{index} < #{enum}.length; ++#{index}) {"
+      out << "#{c_type @env.lookup(var)} #{var} = #{enum}.contents[#{index}];"
+      out << body
+      out << "}"
+    end
 
-    body += ";" unless body =~ /[;}]\Z/
-
-    out =  "unsigned long #{index};\n"
-    out << "for (#{index} = 0; #{index} < #{enum}.length; ++#{index}) {\n"
-    out << "#{c_type @env.lookup(var)} #{var} = #{enum}.contents[#{index}];\n"
-    out << body
-    out << "\n" unless out =~ /[\n]\Z/
-    out << "}"
-
-    @env.unextend
-    return out
+    return out.join("\n")
   end
 
   def process_lasgn(exp)
@@ -327,19 +325,19 @@ typedef struct { unsigned long length; long * contents; } long_array;
   end
 
   def process_scope(exp)
-    @env.extend
-    body = process exp.shift unless exp.empty?
     declarations = []
-    @env.current.sort_by { |v,t| v }.each do |var, var_type|
-      var_type = c_type var_type
-      if var_type =~ /(.*)(?: \*)?\[\]/ then # TODO: readability
-        declarations << "#{$1}_array #{var};\n"
-      else
-        declarations << "#{var_type} #{var};\n"
+    body = nil
+    @env.scope do
+      body = process exp.shift unless exp.empty?
+      @env.current.sort_by { |v,t| v }.each do |var, var_type|
+        var_type = c_type var_type
+        if var_type =~ /(.*)(?: \*)?\[\]/ then # TODO: readability
+          declarations << "#{$1}_array #{var};\n"
+        else
+          declarations << "#{var_type} #{var};\n"
+        end
       end
     end
-
-    @env.unextend
     return "{\n#{declarations}#{body}}"
   end
 
