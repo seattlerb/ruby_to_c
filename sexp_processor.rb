@@ -64,11 +64,11 @@ class Sexp < Array # ZenTest FULL
   end
 
   def to_a
+    result = self.map { |o| Sexp === o ? o.to_a : o }
     unless @sexp_type.nil? then
-      Array.new(self + [ @sexp_type ])
-    else
-      Array.new(self)
+      result += [ @sexp_type ]
     end
+    result
   end
 
   def ==(obj)

@@ -44,6 +44,7 @@ class RubyToC < SexpProcessor
     "// BEGIN METARUBY PREAMBLE
 #include <ruby.h>
 #define RB_COMPARE(x, y) (x) == (y) ? 0 : (x) < (y) ? -1 : 1
+typedef struct { unsigned long length; long * contents; } long_array;
 
 // END METARUBY PREAMBLE
 "
@@ -129,8 +130,14 @@ class RubyToC < SexpProcessor
 
   def process_call(exp)
     name = exp.shift
-    receiver = process exp.shift
+    receiver = exp.shift
     args = process exp.shift
+
+    receiver_type = Type.unknown
+    unless receiver.nil? then
+      receiver_type = receiver.sexp_type
+    end
+    receiver = process receiver
 
     case name
     when "==", "<", ">", "<=", ">=", # TODO: these need to be numerics
@@ -140,6 +147,13 @@ class RubyToC < SexpProcessor
       return "RB_COMPARE(#{receiver}, #{args})"
     when "equal?"
       return "#{receiver} == #{args}" # equal? == address equality
+    when "[]"
+      if receiver_type.list? then
+        return "#{receiver}.contents[#{args}]"
+      else
+        # FIX: not sure about this one... hope for the best.
+        return "#{receiver}[#{args}]"
+      end
     else
       name = "NIL_P" if name == "nil?"
 
@@ -263,18 +277,25 @@ class RubyToC < SexpProcessor
     # grab the size of the args, if any, before process converts to a string
     arg_count = 0
     arg_count = value.length - 1 if value.first == :array
-    args = process value
+    args = value
 
     var_type = exp.sexp_type
     @env.add var, var_type
     var_type = c_type var_type
 
     if var_type =~ /\[\]$/ then
-      out << "#{var}.contents = { #{args} };\n"
-      out << "#{var}.length = #{arg_count}"
+      assert_type args, :array
+      args.shift
+      out << "#{var}.length = #{arg_count};\n"
+      out << "#{var}.contents = (long*) malloc(sizeof(long) * #{var}.length);\n"
+      args.each_with_index do |o,i|
+        out << "#{var}.contents[#{i}] = #{process o};\n"
+      end
     else
-      out << "#{var} = #{args}"
+      out << "#{var} = #{process args}"
     end
+
+    out.sub!(/;\n\Z/, '')
 
     return out
   end
@@ -310,7 +331,7 @@ class RubyToC < SexpProcessor
     declarations = []
     @env.current.sort_by { |v,t| v }.each do |var, var_type|
       var_type = c_type var_type
-      if var_type =~ /(.*)(?: \*)?\[\]/ then
+      if var_type =~ /(.*)(?: \*)?\[\]/ then # TODO: readability
         declarations << "#{$1}_array #{var};\n"
       else
         declarations << "#{var_type} #{var};\n"

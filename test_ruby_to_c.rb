@@ -270,7 +270,10 @@ puts(to_s(x));
                                Sexp.new(:str, "foo"),
                                Sexp.new(:str, "bar")),
                       Type.str_list)
-    output = "var.contents = { \"foo\", \"bar\" };\nvar.length = 2"
+    output = "var.length = 2;
+var.contents = (long*) malloc(sizeof(long) * var.length);
+var.contents[0] = \"foo\";
+var.contents[1] = \"bar\""
 
     assert_equal output, @ruby_to_c.process(input)
   end
@@ -423,8 +426,11 @@ return 4;
   @@iteration1 = "void
 iteration1() {
 long_array array;
-array.contents = { 1, 2, 3 };
 array.length = 3;
+array.contents = (long*) malloc(sizeof(long) * array.length);
+array.contents[0] = 1;
+array.contents[1] = 2;
+array.contents[2] = 3;
 unsigned long index_x;
 for (index_x = 0; index_x < array.length; ++index_x) {
 long x = array.contents[index_x];
@@ -434,8 +440,11 @@ puts(to_s(x));
   @@iteration2 = "void
 iteration2() {
 long_array array;
-array.contents = { 1, 2, 3 };
 array.length = 3;
+array.contents = (long*) malloc(sizeof(long) * array.length);
+array.contents[0] = 1;
+array.contents[1] = 2;
+array.contents[2] = 3;
 unsigned long index_x;
 for (index_x = 0; index_x < array.length; ++index_x) {
 long x = array.contents[index_x];
@@ -446,10 +455,17 @@ puts(to_s(x));
 iteration3() {
 long_array array1;
 long_array array2;
-array1.contents = { 1, 2, 3 };
 array1.length = 3;
-array2.contents = { 4, 5, 6, 7 };
+array1.contents = (long*) malloc(sizeof(long) * array1.length);
+array1.contents[0] = 1;
+array1.contents[1] = 2;
+array1.contents[2] = 3;
 array2.length = 4;
+array2.contents = (long*) malloc(sizeof(long) * array2.length);
+array2.contents[0] = 4;
+array2.contents[1] = 5;
+array2.contents[2] = 6;
+array2.contents[3] = 7;
 unsigned long index_x;
 for (index_x = 0; index_x < array1.length; ++index_x) {
 long x = array1.contents[index_x];
