@@ -12,6 +12,7 @@ class SexpProcessor
   attr_accessor :auto_shift_type
   attr_accessor :exclude
   attr_accessor :strict
+  attr_accessor :debug
 
   def initialize
     @collection = []
@@ -20,6 +21,7 @@ class SexpProcessor
     @auto_shift_type = false
     @strict = false
     @exclude = []
+    @debug = {}
 
     # we do this on an instance basis so we can subclass it for
     # different processors.
@@ -36,7 +38,13 @@ class SexpProcessor
 
     exp_orig = exp.deep_clone
     result = []
+
     type = exp.first
+
+    if @debug.include? type then
+      str = exp.inspect
+      puts "// DEBUG: #{str}" if str =~ @debug[type]
+    end
     
     raise SyntaxError, "'#{type}' is not a supported node type." if @exclude.include? type
 

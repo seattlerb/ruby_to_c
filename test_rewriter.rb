@@ -18,15 +18,15 @@ class TestRewriter < Test::Unit::TestCase
       [:str, "else"]]
 
     expected = [:if,
-      [:call, [:lvar, "var"], "==", [:array, [:lit, 1]]],
+      [:call, "===", [:lvar, "var"], [:array, [:lit, 1]]],
       [:str, "1"],
       [:if,
         [:or,
-          [:call, [:lvar, "var"], "==", [:array, [:lit, 2]]],
-          [:call, [:lvar, "var"], "==", [:array, [:lit, 3]]]],
+          [:call, "===", [:lvar, "var"], [:array, [:lit, 2]]],
+          [:call, "===", [:lvar, "var"], [:array, [:lit, 3]]]],
         [:str, "2, 3"],
         [:if,
-          [:call, [:lvar, "var"], "==", [:array, [:lit, 4]]],
+          [:call, "===", [:lvar, "var"], [:array, [:lit, 4]]],
           [:str, "4"],
           [:str, "else"]]]]
 
@@ -44,16 +44,16 @@ class TestRewriter < Test::Unit::TestCase
      [:lasgn, "ret", [:str, "else"]]]
 
     expected = [:if,
-      [:call, [:lvar, "var"], "==", [:array, [:lit, 1]]],
+      [:call, "===", [:lvar, "var"], [:array, [:lit, 1]]],
       [:lasgn, "ret", [:str, "1"]],
       [:if,
         [:or,
-          [:call, [:lvar, "var"], "==", [:array, [:lit, 2]]],
-          [:call, [:lvar, "var"], "==", [:array, [:lit, 3]]],
-          [:call, [:lvar, "var"], "==", [:array, [:lit, 5]]]],
+          [:call, "===", [:lvar, "var"], [:array, [:lit, 2]]],
+          [:call, "===", [:lvar, "var"], [:array, [:lit, 3]]],
+          [:call, "===", [:lvar, "var"], [:array, [:lit, 5]]]],
         [:lasgn, "ret", [:str, "2, 3"]],
         [:if,
-          [:call, [:lvar, "var"], "==", [:array, [:lit, 4]]],
+          [:call, "===", [:lvar, "var"], [:array, [:lit, 4]]],
           [:lasgn, "ret", [:str, "4"]],
           [:lasgn, "ret", [:str, "else"]]]]]
     

@@ -1,6 +1,6 @@
 #!/usr/local/bin/ruby -w
 
-require 'infer_types'
+require 'type_checker'
 require 'test/unit'
 
 class RandomCode
@@ -9,8 +9,8 @@ class RandomCode
   end
 
   def specific_method(x, y)
-    c = x <=> y # force x & y into long
-    c.to_i > 0
+    c = x = y = 0 # make x and y to be longs
+    return c.to_i > 0
   end
 
   def meth_a(x)
@@ -23,56 +23,73 @@ class RandomCode
 
 end
 
-class TestExtraInferTypes < Test::Unit::TestCase
+class TestExtraTypeChecker < Test::Unit::TestCase
+
+  def setup
+    @parser = ParseTree.new
+    @rewriter = Rewriter.new
+    @type_checker = TypeChecker.new
+  end
+
+  # HACK: this shouldn't be in test code. use augment or something
+  def process(klass, meth = nil)
+    sexp = @parser.parse_tree klass, meth
+    sexp = [sexp] unless meth.nil?
+    result = []
+    sexp.each do | sub_exp|
+      result << @type_checker.process(@rewriter.process(sub_exp))
+    end
+    return result
+  end
 
   def test_type_inference_across_args_known
-    inferer  = InferTypes.new
-    inferer.augment(RandomCode, :generic_method)
-    inferer.augment(RandomCode, :specific_method)
+    generic,  = process(RandomCode, :generic_method).first
+    specific, = process(RandomCode, :specific_method).first
 
-    tree = inferer.tree.tree # HACK augment doesn't return the processed method
+    args_g = generic[2] # FIX FUCK this is horrid
+    args_s = specific[2] # FIX FUCK this is horrid
 
-    generic = tree[0]
-    specific = tree[1]
-    
-    args_g = generic[2][1][1] # FIX FUCK this is horrid
-    args_s = specific[2][1][1] # FIX FUCK this is horrid
+    assert_equal(args_s[1].last.list_type.object_id, # FIX demeter
+                 args_s[2].last.list_type.object_id,
+                 "#specific_method's arguments are unified")
 
-    assert_equal(args_g[1].object_id, args_s[1].object_id)
-    assert_equal(args_g[2].object_id, args_s[2].object_id)
-    assert_equal(Type.long, args_s[1].last)
-    assert_equal(Type.long, args_s[2].last)
-    assert_equal(Type.long, args_g[1].last)
-    assert_equal(Type.long, args_g[2].last)
+    assert_equal(Type.long, args_s[1].last, "#specific_method's x is a Long")
+    assert_equal(Type.long, args_s[2].last, "#specific_method's y is a Long")
+
+    assert_equal(args_g[1].last.list_type.object_id,
+                 args_s[1].last.list_type.object_id,
+                 "#specific_method's x and #generic_method's x are unified")
+
+    assert_equal(args_g[2].last.list_type.object_id,
+                 args_s[2].last.list_type.object_id,
+                 "#specific_method's y and #generic_method's y are unified")
+
+    assert_equal(Type.long, args_g[1].last, "#geniric_method's x is a Long")
+    assert_equal(Type.long, args_g[2].last, "#geniric_method's y is a Long")
   end
 
   def test_type_inference_across_args_unknown
-    inferer  = InferTypes.new
-    inferer.augment(RandomCode, :meth_a)
-    inferer.augment(RandomCode, :meth_b)
+    meth_a, = process(RandomCode, :meth_a).first
+    meth_b, = process(RandomCode, :meth_b).first
 
-    tree = inferer.tree.tree # HACK augment doesn't return the processed method
+    args_a = meth_a[2][1] # FIX FUCK this is horrid
+    args_b = meth_b[2][1] # FIX FUCK this is horrid
 
-    meth_a = tree[0]
-    meth_b = tree[1]
-
-    args_a = meth_a[2][1][1] # FIX FUCK this is horrid
-    args_b = meth_b[2][1][1] # FIX FUCK this is horrid
-
-    assert_equal(args_a.object_id, args_b.object_id)
+    assert_equal(args_a.last.list_type.object_id,
+                 args_b.last.list_type.object_id,
+                 "#meth_a and meth_b arguments are unified")
   end
 
-  def test_augment_return_val
-    inferer  = InferTypes.new
-    inferer.augment(RandomCode, :meth_a)
-    result = inferer.augment(RandomCode, :meth_b)
+  def test_process_defn_return_val
+    ignore = process(RandomCode, :meth_a)
+    result = process(RandomCode, :meth_b).first
 
-    assert_equal("meth_b", result[1])
+    assert_equal("meth_b", result.first[1])
   end
 
-  def xtest_wtf?
+  def test_wtf?
     assert_nothing_thrown do
-      InferTypes.new.augment(RandomCode)
+      process RandomCode
     end
   end
 

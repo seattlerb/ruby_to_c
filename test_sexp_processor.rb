@@ -59,6 +59,8 @@ class TestSexpProcessor < Test::Unit::TestCase
 
   def test_process_default
     @processor = TestProcessorDefault.new
+    @processor.warn_on_default = false
+
     a = [:blah, 1, 2, 3]
     assert_equal(42, @processor.process(a))
   end

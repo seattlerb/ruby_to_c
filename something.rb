@@ -12,11 +12,11 @@ class Something
 
   def simple(arg1)
     print arg1
-    puts 4 + 2
+    puts((4 + 2).to_s)
   end
 
   def global
-    $stderr.puts("blah")
+    $stderr.fputs("blah")
   end
 
   def lasgn_call
@@ -56,13 +56,13 @@ class Something
   def iteration1
     array = [1, 2, 3]
     array.each do |x|
-      puts x
+      puts(x.to_s)
     end
   end
 
   def iteration2
     array = [1, 2, 3]
-    array.each { |x| puts x }
+    array.each { |x| puts(x.to_s) }
   end
 
   def iteration3
@@ -70,8 +70,8 @@ class Something
     array2 = [4, 5, 6, 7]
     array1.each do |x|
       array2.each do |y|
-	puts x
-	puts y
+	puts(x.to_s)
+	puts(y.to_s)
       end
     end
   end
@@ -108,7 +108,7 @@ class Something
 
   def multi_args(arg1, arg2)
     arg3 = arg1 * arg2 * 7
-    puts(arg3)
+    puts(arg3.to_s)
     return "foo"
   end
 
@@ -123,7 +123,7 @@ class Something
   def eric_is_stubborn
     var = 42
     var2 = var.to_s
-    $stderr.puts(var2)
+    $stderr.fputs(var2)
     return var2
   end
 
@@ -131,4 +131,14 @@ class Something
     var = 14
     var2 = "var is #{var}. So there."
   end
+
+  def unknown_args(arg1, arg2)
+    # does nothing
+    return arg1
+  end
+
+  def determine_args
+    5 == unknown_args(4, "known")
+  end
+
 end

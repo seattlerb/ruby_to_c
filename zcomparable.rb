@@ -6,7 +6,7 @@ class ZComparable
 #     VALUE val, a, b;
 # {
 #     if (NIL_P(val)) {
-# 	rb_cmperr(a, b);
+# 	zrb_cmperr(a, b);
 #     }
 #     if (FIXNUM_P(val)) return FIX2INT(val);
 #     if (TYPE(val) == T_BIGNUM) {
@@ -18,7 +18,7 @@ class ZComparable
 #     return 0;
 # }
 
-def rb_cmpint(val, a, b)
+def zrb_cmpint(val, a, b)
   return val.to_i
 end
 
@@ -39,7 +39,7 @@ end
 # 	     rb_obj_classname(x), classname);
 # }
 
-def rb_cmperr(x, y)
+def zrb_cmperr(x, y)
   $stderr.puts("comparison of " + x.class.to_s + " with " + y.class.to_s + " failed")
   exit 1
 #  raise ArgumentError, "comparison of #{x.class} with #{y.class} failed"
@@ -58,7 +58,7 @@ end
 #     return Qfalse;
 # }
 
-def cmp_eq(a, b)
+def zcmp_eq(a, b)
   c = a <=> b
   return false if c.nil?
   return c.to_i == 0
@@ -71,7 +71,7 @@ end
 # }
 
 # TODO RETIRE me
-def cmp_failed
+def zcmp_failed
   return nil
 end
 
@@ -96,12 +96,12 @@ end
 #     return rb_rescue(cmp_eq, (VALUE)a, cmp_failed, 0);
 # }
 
-def cmp_equal(x, y)
+def zcmp_equal(x, y)
 
   if x.equal? y then
     return true
   else
-    return cmp_eq(x, y) # HACK rescue false
+    return zcmp_eq(x, y) # HACK rescue false
   end
 
 end
@@ -125,10 +125,10 @@ end
 #     return Qfalse;
 # }
 
-def cmp_gt(x, y)
+def zcmp_gt(x, y)
   c = x <=> y
 
-  rb_cmperr(x, y) if c.nil?
+  zrb_cmperr(x, y) if c.nil?
 
   return c.to_i > 0
 end
@@ -152,10 +152,10 @@ end
 #     return Qfalse;
 # }
 
-def cmp_ge(x, y)
+def zcmp_ge(x, y)
   c = x <=> y
 
-  rb_cmperr(x, y) if c.nil?
+  zrb_cmperr(x, y) if c.nil?
 
   return c.to_i >= 0
 end
@@ -179,10 +179,10 @@ end
 #     return Qfalse;
 # }
 
-def cmp_lt(x, y)
+def zcmp_lt(x, y)
   c = x <=> y
 
-  rb_cmperr(x, y) if c.nil?
+  zrb_cmperr(x, y) if c.nil?
 
   return c.to_i < 0
 end
@@ -206,10 +206,10 @@ end
 #     return Qfalse;
 # }
 
-def cmp_le(x, y)
+def zcmp_le(x, y)
   c = x <=> y
 
-  rb_cmperr(x, y) if c.nil?
+  zrb_cmperr(x, y) if c.nil?
 
   return c.to_i <= 0
 end
@@ -238,10 +238,10 @@ end
 #     return Qtrue;
 # }
 
-def cmp_between(x, min, max)
+def zcmp_between(x, min, max)
 
-  return false if cmp_lt(x, min)
-  return false if cmp_gt(x, max)
+  return false if zcmp_lt(x, min)
+  return false if zcmp_gt(x, max)
   return true
 
 end

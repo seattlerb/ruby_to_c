@@ -1,7 +1,7 @@
 #!/usr/local/bin/ruby -w
 
 require 'test/unit'
-require 'infer_types'
+require 'type_checker'
 
 class TestHandle < Test::Unit::TestCase
 
@@ -34,6 +34,86 @@ class TestHandle < Test::Unit::TestCase
 
 end
 
+class TestFunctionType < Test::Unit::TestCase
+
+  def test_equal
+    funs = []
+    funs << FunctionType.new([], Type.unknown)
+    funs << FunctionType.new([Type.unknown], Type.unknown)
+    funs << FunctionType.new([], Type.long)
+    funs << FunctionType.new([Type.long], Type.unknown)
+    funs << FunctionType.new([Type.long], Type.long)
+    funs << FunctionType.new([Type.unknown, Type.unknown], Type.unknown)
+    funs << FunctionType.new([Type.long, Type.unknown], Type.unknown)
+    funs << FunctionType.new([Type.long, Type.long], Type.long)
+    #funs << FunctionType.new([], Type.long)
+
+    funs.each_with_index do |fun1, i|
+      funs.each_with_index do |fun2, j|
+        if i == j then
+          assert_equal fun1, fun2
+        else
+          assert_not_equal fun1, fun2
+        end
+      end
+    end
+  end
+
+  def test_unify_components
+    fun1 = FunctionType.new([Type.unknown], Type.unknown)
+    fun2 = FunctionType.new([Type.long], Type.long)
+    fun1.unify_components fun2
+    assert_equal fun2, fun1
+
+    fun3 = FunctionType.new([Type.long], Type.unknown)
+    fun4 = FunctionType.new([Type.unknown], Type.long)
+    fun3.unify_components fun4
+    assert_equal fun4, fun3
+
+    fun5 = FunctionType.new([], Type.unknown)
+    fun6 = FunctionType.new([], Type.long)
+    fun5.unify_components fun6
+    assert_equal fun6, fun5
+  end
+
+  def test_new_fail
+    assert_raises(RuntimeError) do
+      FunctionType.new(nil, Type.long)
+    end
+
+    assert_raises(RuntimeError)do
+      FunctionType.new([], nil)
+    end
+  end
+
+  def test_unify_components_fail
+    fun1 = FunctionType.new([Type.str], Type.unknown)
+    fun2 = FunctionType.new([Type.long], Type.long)
+    assert_raises(RuntimeError) do
+      fun1.unify_components fun2
+    end
+
+    fun3 = FunctionType.new([], Type.unknown)
+    fun4 = FunctionType.new([Type.unknown], Type.long)
+    assert_raises(RuntimeError) do
+      fun3.unify_components fun4
+    end
+
+    fun5 = FunctionType.new([Type.unknown], Type.unknown)
+    fun6 = FunctionType.new([], Type.long)
+    assert_raises(RuntimeError) do
+      fun5.unify_components fun6
+    end
+
+    fun7 = FunctionType.new([], Type.str)
+    fun8 = FunctionType.new([], Type.long)
+    assert_raises(RuntimeError) do
+      fun7.unify_components fun8
+    end
+  end
+
+end
+
 class TestType < Test::Unit::TestCase
 
   def setup
@@ -46,6 +126,16 @@ class TestType < Test::Unit::TestCase
   def test_unknown_types
     assert_raises(RuntimeError) do
       Type.new(:some_made_up_type)
+    end
+
+    assert_raises(RuntimeError) do
+      Type.some_made_up_type
+    end
+  end
+
+  def test_function
+    assert_nothing_raised do
+      Type.function([Type.unknown], Type.unknown)
     end
   end
 
@@ -69,15 +159,17 @@ class TestType < Test::Unit::TestCase
 
   def test_to_s
     assert_equal "Integer", @long.to_s
-    assert_equal "Integer list", @long_list.to_s
+    assert_equal "Integer_list", @long_list.to_s
   end
 
   def test_unknown
-    assert_equal @unknown, Type.unknown
+    assert_equal Type.unknown, Type.unknown
+    assert_not_same Type.unknown, Type.unknown
   end
 
   def test_unknown_list
     assert_equal @unknown_list, Type.unknown_list
+    assert_not_same Type.unknown_list, Type.unknown_list
     assert @unknown_list.list?
   end
 
@@ -134,6 +226,12 @@ class TestType < Test::Unit::TestCase
     assert_equal(long, unknown2)
     assert_equal(long, unknown1,
                  "Type unified across all linked Types")
+  end
+
+  def test_unify_function
+    fun = Type.function [Type.unknown], Type.unknown
+    @unknown.unify fun
+    assert_equal fun, @unknown
   end
 
 end

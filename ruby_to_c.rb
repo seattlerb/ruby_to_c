@@ -1,4 +1,4 @@
-require 'infer_types'
+require 'type_checker'
 require 'sexp_processor'
 require 'rewriter'
 
@@ -36,141 +36,154 @@ class RubyToC < SexpProcessor
   include TypeMap
 
   attr_reader :env
+  attr_reader :prototypes
 
   def self.preamble
-    "#include <ruby.h>"
+    "// BEGIN METARUBY PREAMBLE
+#include <ruby.h>
+#define RB_COMPARE(x, y) (x) == (y) ? 0 : (x) < (y) ? -1 : 1
+
+// END METARUBY PREAMBLE
+"
+  end
+
+  @@parser = ParseTree.new
+  @@rewriter = Rewriter.new
+  @@type_checker = TypeChecker.new
+
+  def translate(klass, method = nil)
+    # HACK FIX this is horrid, and entirely eric's fault, and requires a real pipeline
+    sexp = @@parser.parse_tree klass, method
+    sexp = @@rewriter.process sexp
+    sexp, = @@type_checker.process sexp
+    self.process sexp
   end
 
   def self.translate(klass, method = nil)
-    checker = self.new
-    sexp = InferTypes.new.augment(klass, method)
-    sexp = Rewriter.new.process(sexp)
-    checker.process(sexp)
+    self.new.translate(klass, method)
   end
 
   def self.translate_all_of(klass, catch_exceptions=false)
-    klass.instance_methods(false).sort.map do |method|
+    translator = self.new
+    result = []
+
+    klass.instance_methods(false).sort.each do |method|
       if catch_exceptions then
         begin
-          translate(klass, method)
+          result << translator.translate(klass, method)
         rescue RuntimeError => err
           [ "// ERROR translating #{method}: #{err}",
             "//   #{err.backtrace.join("\n//   ")}",
             "//   #{ParseTree.new.parse_tree(klass, method).inspect}" ]
         end
       else
-        translate(klass, method)
+        result << translator.translate(klass, method)
       end
-    end.join "\n\n"
+    end
+
+    translator.prototypes.join('') + "\n\n" + result.join("\n\n")
   end
 
   def initialize
     super
+    @env = Environment.new
     self.auto_shift_type = true
-    self.default_method = :translate
     self.exclude = [:case, :when, :rescue, :const, :dstr]
     self.strict = true
+
+    @prototypes = []
   end
 
   def process_args(exp)
-    unless exp.empty? then
-      args = []
-      until exp.empty? do
-        arg, typ = exp.shift
-        args << "#{c_type(typ)} #{arg}"
-      end
-      args.join ', '
-    else
-      ""
+    args = []
+
+    until exp.empty? do
+      arg, typ = exp.shift
+      args << "#{c_type(typ)} #{arg}"
     end
+
+    return "(#{args.join ', '})"
   end
 
   def process_array(exp)
     code = []
+
     until exp.empty? do
-      code << process(exp.shift)
+      code << process(exp.shift) 
     end
-    code
+
+    return "#{code.join ', '}"
   end
 
   def process_block(exp)
     code = []
     until exp.empty? do
-      thingy = exp.shift
-      result = process(thingy)
-      code << result
+      code << process(exp.shift)
     end
-    args = code.shift
+
     body = code.join(";\n")
     body += ";" unless body =~ /[;}]\Z/
     body += "\n"
-    [args, body]
+
+    return body
   end
 
   def process_call(exp)
-    lvar = process exp.shift
-    method = exp.shift
-    unless exp.empty? then
-      rvar = process exp.shift
-      case method
-      when '==', 'equal?',
-        '<', '>', '<=', '>=',
-        '+', '-', '*', '/', '%' then
-        method = "==" if method == 'equal?'
-        "#{lvar} #{method} #{rvar.shift}"
-      when "<=>" then
-        "#{lvar} != #{rvar.shift}"
-      when "puts"
-        "fputs(#{rvar}, #{lvar})"
-      else
-        raise "Bug! Unhandled method #{method}"
-      end
+    name = exp.shift
+    receiver = process exp.shift
+    args = process exp.shift
+
+    case name
+    when "==", "<", ">", "<=", ">=", # TODO: these need to be numerics
+         "-", "+", "*", "/", "%" then
+      return "#{receiver} #{name} #{args}"
+    when "<=>"
+      return "RB_COMPARE(#{receiver}, #{args})"
+    when "equal?"
+      return "#{receiver} == #{args}" # equal? == address equality
     else
-      case method
-      when "each" then
-        # iter needs to know the lvar and the method being called
-        [lvar, method]
-      when "nil?" then
-        "NIL_P(#{lvar})"
-      when "to_i" then
-        "#{lvar}"
-      when "to_s" then
-        "HACK"
-      when "class" then
-        "HACK"
+      name = "NIL_P" if name == "nil?"
+
+      if receiver.nil? and args.nil? then
+        args = ""
+      elsif receiver.nil? then
+        # nothing to do 
+      elsif args.nil? then
+        args = receiver
       else
-        raise "Bug! Unhandled method #{method}"
+        args = "#{receiver}, #{args}"
       end
+
+      return "#{name}(#{args})"
     end
   end
 
   def process_dasgn_curr(exp)
     var = exp.shift
-    arg = var.shift
-    typ = c_type var.shift
-    [typ, arg]
+    @env.add var, exp.shift
+    return var
   end
 
   def process_defn(exp)
     name = exp.shift
-    args, body = process exp.shift
-    ret_type = c_type exp.shift
-    "#{ret_type}\n#{name}(#{args}) {#{body}}"
+    args = process exp.shift
+    body = process exp.shift
+    function = exp.shift
+    ret_type = c_type function.list_type.return_type
+
+    @prototypes << "#{ret_type} #{name}#{args};\n"
+    "#{ret_type}\n#{name}#{args} #{body}"
   end
 
   def process_dvar(exp)
-    exp.shift
+    var = exp.shift
+    var_type = exp.shift
+    @env.add var, var_type
+    return var
   end
 
   def process_false(exp)
-    "0"
-  end
-
-  def process_fcall(exp)
-    name = exp.shift
-    args = process exp.shift
-    args = args.join ', '
-    "#{name}(#{args})"
+    return "Qfalse"
   end
 
   def process_gvar(exp)
@@ -199,7 +212,6 @@ class RubyToC < SexpProcessor
 
     result += " {\n"
     
-    # HACK: rewrite blocks you stupid fucker
     then_part = then_part.join(";\n") if Array === then_part
     then_part += ";" unless then_part =~ /[;}]\Z/
     # HACK: um... deal with nil correctly (see unless support)
@@ -219,88 +231,99 @@ class RubyToC < SexpProcessor
     result
   end
 
-  def process_iter(exp)
-    iter, method = process exp.shift
-    arg_type, arg_name = process exp.shift
-    body_part = process exp.shift
-    body_part = body_part.join(";\n") if Array === body_part
-    body_part += ";" unless body_part =~ /[;}]\Z/
-    index = "index_#{arg_name}"
-    res = ""
-    res << "unsigned long #{index};\n"
-    res << "for (#{index} = 0; #{index} < #{iter}.length; ++#{index}) {\n"
-    res << "#{arg_type} #{arg_name} = #{iter}.contents[#{index}];\n"
-    res << body_part
-    res << "\n" unless res =~ /[\n]\Z/
-    res << "}"
-    res
+  def process_iter(exp) # TODO add ;\n as appropriate
+    @env.extend
+    enum = exp[0][2][1] # HACK ugly
+    call = process exp.shift
+    var = process exp.shift
+    body = process exp.shift
+    index = "index_#{var}"
+
+    body += ";" unless body =~ /[;}]\Z/
+
+    out = "unsigned long #{index};\n"
+    out << "for (#{index} = 0; #{index} < #{enum}.length; ++#{index}) {\n"
+    out << "#{c_type @env.lookup(var)} #{var} = #{enum}.contents[#{index}];\n"
+    out << body
+    out << "\n" unless out =~ /[\n]\Z/
+    out << "}"
+
+    @env.unextend
+    return out
   end
 
   def process_lasgn(exp)
-    typ = exp.pop
-    unless typ.nil? then
-      typ = c_type typ
-    end
-    name = exp.shift
-    args = []
-    until exp.empty? do
-      sub_exp = exp.shift
-      args << process(sub_exp)
-    end
-    args = args.shift # arg list is enclosed by array [[arg1, arg2]]
-    res = ""
-    if typ.nil? then
-      res << "#{name} = #{args}"
-    elsif typ =~ /(.*)\[\]/ then
-      res << "#{$1}_array #{name};\n"
-      res << "#{name}.contents = { #{args.join ', '} };\n"
-      res << "#{name}.length = #{args.length}"
+    out = ""
+
+    var = exp.shift
+    value = exp.shift
+    # grab the size of the args, if any, before process converts to a string
+    arg_count = 0
+    arg_count = value.length - 1 if value.first == :array
+    args = process value
+
+    var_type = exp.shift
+    @env.add var, var_type
+    var_type = c_type var_type
+
+    if var_type =~ /\[\]$/ then
+      out << "#{var}.contents = { #{args} };\n"
+      out << "#{var}.length = #{arg_count}"
     else
-      res << "#{typ} #{name} = #{args}"
+      out << "#{var} = #{args}"
     end
-    res
+
+    return out
   end
 
   def process_lit(exp)
-    exp.shift.to_s
+    return exp.shift.to_s # TODO what about floats and big numbers?
   end
 
   def process_lvar(exp)
-    exp.shift
+    name = exp.shift
+    type = exp.shift
+    return name
   end
 
   def process_nil(exp)
-    "Qnil"
+    return "Qnil"
   end
 
   def process_or(exp)
-    exps = []
-    until exp.empty? do
-      exps << process(exp.shift)
-    end
-    exps.join(" || ")
+    lhs = process exp.shift
+    rhs = process exp.shift
+
+    return "#{lhs} || #{rhs}"
   end
 
   def process_return(exp)
-    "return #{process exp.shift}"
+    return "return #{process exp.shift}"
   end
 
   def process_scope(exp)
-    args, body = process exp.shift
-    if body.nil? or body.empty? then
-      body = "\n"
-    else
-      body = "\n#{body}"
+    @env.extend
+    body = process exp.shift unless exp.empty?
+    declarations = []
+    @env.current.sort_by { |v,t| v }.each do |var, var_type|
+      var_type = c_type var_type
+      if var_type =~ /(.*)(?: \*)?\[\]/ then
+        declarations << "#{$1}_array #{var};\n"
+      else
+        declarations << "#{var_type} #{var};\n"
+      end
     end
-    [args, body]
+
+    @env.unextend
+    return "{\n#{declarations}#{body}}"
   end
 
   def process_str(exp)
-    "\"#{exp.shift}\""
+    return "\"#{exp.shift}\""
   end
 
   def process_true(exp)
-    "1"
+    return "Qtrue"
   end
 
 end

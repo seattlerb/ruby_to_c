@@ -26,16 +26,18 @@ class TestParseTree < Test::Unit::TestCase
         [:fcall, "puts",
           [:array,
             [:call,
-              [:lit, 4],
-              "+",
-              [:array, [:lit, 2]]]]]]]]
+              [:call,
+                [:lit, 4],
+                "+",
+                [:array, [:lit, 2]]],
+             "to_s"]]]]]]
   @@global = [:defn, "global",
     [:scope,
       [:block,
         [:args],
         [:call,
           [:gvar, "$stderr"],
-          "puts",
+          "fputs",
           [:array, [:str, "blah"]]]]]]
   @@lasgn_call = [:defn, "lasgn_call",
     [:scope,
@@ -107,7 +109,7 @@ class TestParseTree < Test::Unit::TestCase
         [:call,
           [:lvar, "array"], "each"],
         [:dasgn_curr, "x"],
-        [:fcall, "puts", [:array, [:dvar, "x"]]]]]]
+        [:fcall, "puts", [:array, [:call, [:dvar, "x"], "to_s"]]]]]]
   @@iteration1 = [:defn, "iteration1", @@iteration_body]
   @@iteration2 = [:defn, "iteration2", @@iteration_body]
   @@iteration3 = [:defn, "iteration3",
@@ -128,9 +130,9 @@ class TestParseTree < Test::Unit::TestCase
             [:dasgn_curr, "y"],
             [:block,
               [:fcall, "puts",
-                [:array, [:dvar, "x"]]],
+                [:array, [:call, [:dvar, "x"], "to_s"]]],
               [:fcall, "puts",
-                [:array, [:dvar, "y"]]]]]]]]]
+                [:array, [:call, [:dvar, "y"], "to_s"]]]]]]]]]
   @@multi_args = [:defn, "multi_args",
     [:scope,
       [:block,
@@ -143,7 +145,7 @@ class TestParseTree < Test::Unit::TestCase
               [:array, [:lvar, "arg2"]]],
             "*",
             [:array, [:lit, 7]]]],
-        [:fcall, "puts", [:array, [:lvar, "arg3"]]],
+        [:fcall, "puts", [:array, [:call, [:lvar, "arg3"], "to_s"]]],
         [:return,
           [:str, "foo"]]]]]
   @@bools = [:defn, "bools",
@@ -189,7 +191,7 @@ class TestParseTree < Test::Unit::TestCase
         [:args],
         [:lasgn, "var", [:lit, 42]],
         [:lasgn, "var2", [:call, [:lvar, "var"], "to_s"]],
-        [:call, [:gvar, "$stderr"], "puts", [:array, [:lvar, "var2"]]],
+        [:call, [:gvar, "$stderr"], "fputs", [:array, [:lvar, "var2"]]],
         [:return, [:lvar, "var2"]]]]]
   @@interpolated = [:defn,
     "interpolated",
@@ -198,6 +200,22 @@ class TestParseTree < Test::Unit::TestCase
         [:args],
         [:lasgn, "var", [:lit, 14]],
         [:lasgn, "var2", [:dstr, "var is ", [:lvar, "var"], [:str, ". So there."]]]]]]
+  @@unknown_args = [:defn, "unknown_args",
+    [:scope,
+      [:block,
+        [:args, "arg1", "arg2"],
+        [:return, [:lvar, "arg1"]]]]]
+  @@determine_args = [:defn, "determine_args",
+    [:scope,
+      [:block,
+        [:args],
+          [:call,
+            [:lit, 5],
+            "==",
+            [:array,
+              [:fcall,
+                "unknown_args",
+                [:array, [:lit, 4], [:str, "known"]]]]]]]]
 
   @@__all = []
 
