@@ -3,7 +3,7 @@
 	<metadata>
 		<application-name>Keynote</application-name>
 		<application-version>update3-20030829_1</application-version>
-		<time-stamp>2004-11-07 18:42:55 -0800</time-stamp>
+		<time-stamp>2004-12-16 11:25:14 -0800</time-stamp>
 	</metadata>
 	<theme slide-size="800 600">
 		<prototype-drawables>
@@ -1499,8 +1499,8 @@
 					<dash-style pattern="solid" id="dash-style-4"/>
 					<string>CPCellOpacityProperty</string>
 					<number>1</number>
-					<string>CPFillProperty</string>
-					<fill-style fill-type="none"/>
+					<string>CPStrokeWidthProperty</string>
+					<number>2</number>
 					<string>CPBorderOpacityProperty</string>
 					<number>1</number>
 					<string>TableNodeSnapShotProperty1</string>
@@ -1587,8 +1587,8 @@
 					<number>1</number>
 					<string>CPVerticalAlignmentProperty</string>
 					<number>2</number>
-					<string>CPStrokeWidthProperty</string>
-					<number>2</number>
+					<string>CPFillProperty</string>
+					<fill-style fill-type="none"/>
 				</prototype-data>
 				<styles>
 					<shadow-style opacity="0" radius="0"/>
@@ -1999,8 +1999,8 @@
 							<reference id-ref="dash-style-4"/>
 							<string>CPCellOpacityProperty</string>
 							<number>1</number>
-							<string>CPFillProperty</string>
-							<fill-style fill-type="none"/>
+							<string>CPStrokeWidthProperty</string>
+							<number>2</number>
 							<string>CPBorderOpacityProperty</string>
 							<number>1</number>
 							<string>TableNodeSnapShotProperty1</string>
@@ -2087,8 +2087,8 @@
 							<number>1</number>
 							<string>CPVerticalAlignmentProperty</string>
 							<number>2</number>
-							<string>CPStrokeWidthProperty</string>
-							<number>2</number>
+							<string>CPFillProperty</string>
+							<fill-style fill-type="none"/>
 						</prototype-data>
 						<styles>
 							<shadow-style opacity="0" radius="0"/>
@@ -2259,8 +2259,8 @@
 							<dash-style pattern="solid"/>
 							<string>CPCellOpacityProperty</string>
 							<number>1</number>
-							<string>CPStrokeWidthProperty</string>
-							<number>2</number>
+							<string>CPFillProperty</string>
+							<fill-style fill-type="none"/>
 							<string>CPBorderOpacityProperty</string>
 							<number>1</number>
 							<string>TableNodeSnapShotProperty1</string>
@@ -2347,8 +2347,8 @@
 							<number>1</number>
 							<string>CPVerticalAlignmentProperty</string>
 							<number>2</number>
-							<string>CPFillProperty</string>
-							<fill-style fill-type="none"/>
+							<string>CPStrokeWidthProperty</string>
+							<number>2</number>
 						</prototype-data>
 						<styles>
 							<shadow-style opacity="0" radius="0"/>
@@ -2488,8 +2488,8 @@
 				</prototype-bullets>
 				<transition-style type="none" duration="0"/>
 				<guides>
-					<guide offset="346" orientation="horizontal"/>
 					<guide offset="91" orientation="horizontal"/>
+					<guide offset="346" orientation="horizontal"/>
 				</guides>
 				<thumbnails>
 					<thumbnail byte-size="8234" size="60 45" file="thumbs/mt2.tiff"/>
@@ -2536,8 +2536,8 @@
 							<reference id-ref="dash-style-4"/>
 							<string>CPCellOpacityProperty</string>
 							<number>1</number>
-							<string>CPFillProperty</string>
-							<fill-style fill-type="none"/>
+							<string>CPStrokeWidthProperty</string>
+							<number>2</number>
 							<string>CPBorderOpacityProperty</string>
 							<number>1</number>
 							<string>TableNodeSnapShotProperty1</string>
@@ -2624,8 +2624,8 @@
 							<number>1</number>
 							<string>CPVerticalAlignmentProperty</string>
 							<number>2</number>
-							<string>CPStrokeWidthProperty</string>
-							<number>2</number>
+							<string>CPFillProperty</string>
+							<fill-style fill-type="none"/>
 						</prototype-data>
 						<styles>
 							<shadow-style opacity="0" radius="0"/>
@@ -2763,8 +2763,8 @@
 				</prototype-bullets>
 				<transition-style type="none" duration="0"/>
 				<guides>
-					<guide offset="91" orientation="horizontal"/>
 					<guide offset="346" orientation="horizontal"/>
+					<guide offset="91" orientation="horizontal"/>
 				</guides>
 				<thumbnails>
 					<thumbnail byte-size="4762" size="60 45" file="thumbs/mt3.tiff"/>
@@ -2811,8 +2811,8 @@
 							<dash-style pattern="solid"/>
 							<string>CPCellOpacityProperty</string>
 							<number>1</number>
-							<string>CPStrokeWidthProperty</string>
-							<number>2</number>
+							<string>CPFillProperty</string>
+							<fill-style fill-type="none"/>
 							<string>CPBorderOpacityProperty</string>
 							<number>1</number>
 							<string>TableNodeSnapShotProperty1</string>
@@ -2899,8 +2899,8 @@
 							<number>1</number>
 							<string>CPVerticalAlignmentProperty</string>
 							<number>2</number>
-							<string>CPFillProperty</string>
-							<fill-style fill-type="none"/>
+							<string>CPStrokeWidthProperty</string>
+							<number>2</number>
 						</prototype-data>
 						<styles>
 							<shadow-style opacity="0" radius="0"/>
@@ -3084,8 +3084,8 @@
 							<dash-style pattern="solid"/>
 							<string>CPCellOpacityProperty</string>
 							<number>1</number>
-							<string>CPFillProperty</string>
-							<fill-style fill-type="none"/>
+							<string>CPStrokeWidthProperty</string>
+							<number>2</number>
 							<string>CPBorderOpacityProperty</string>
 							<number>1</number>
 							<string>TableNodeSnapShotProperty1</string>
@@ -3172,8 +3172,8 @@
 							<number>1</number>
 							<string>CPVerticalAlignmentProperty</string>
 							<number>2</number>
-							<string>CPStrokeWidthProperty</string>
-							<number>2</number>
+							<string>CPFillProperty</string>
+							<fill-style fill-type="none"/>
 						</prototype-data>
 						<styles>
 							<shadow-style opacity="0" radius="0"/>
@@ -3355,8 +3355,8 @@
 							<dash-style pattern="solid"/>
 							<string>CPCellOpacityProperty</string>
 							<number>1</number>
-							<string>CPStrokeWidthProperty</string>
-							<number>2</number>
+							<string>CPFillProperty</string>
+							<fill-style fill-type="none"/>
 							<string>CPBorderOpacityProperty</string>
 							<number>1</number>
 							<string>TableNodeSnapShotProperty1</string>
@@ -3443,8 +3443,8 @@
 							<number>1</number>
 							<string>CPVerticalAlignmentProperty</string>
 							<number>2</number>
-							<string>CPFillProperty</string>
-							<fill-style fill-type="none"/>
+							<string>CPStrokeWidthProperty</string>
+							<number>2</number>
 						</prototype-data>
 						<styles>
 							<shadow-style opacity="0" radius="0"/>
@@ -3628,8 +3628,8 @@
 							<dash-style pattern="solid"/>
 							<string>CPCellOpacityProperty</string>
 							<number>1</number>
-							<string>CPFillProperty</string>
-							<fill-style fill-type="none"/>
+							<string>CPStrokeWidthProperty</string>
+							<number>2</number>
 							<string>CPBorderOpacityProperty</string>
 							<number>1</number>
 							<string>TableNodeSnapShotProperty1</string>
@@ -3716,8 +3716,8 @@
 							<number>1</number>
 							<string>CPVerticalAlignmentProperty</string>
 							<number>2</number>
-							<string>CPStrokeWidthProperty</string>
-							<number>2</number>
+							<string>CPFillProperty</string>
+							<fill-style fill-type="none"/>
 						</prototype-data>
 						<styles>
 							<shadow-style opacity="0" radius="0"/>
@@ -3899,8 +3899,8 @@
 							<dash-style pattern="solid"/>
 							<string>CPCellOpacityProperty</string>
 							<number>1</number>
-							<string>CPStrokeWidthProperty</string>
-							<number>2</number>
+							<string>CPFillProperty</string>
+							<fill-style fill-type="none"/>
 							<string>CPBorderOpacityProperty</string>
 							<number>1</number>
 							<string>TableNodeSnapShotProperty1</string>
@@ -3987,8 +3987,8 @@
 							<number>1</number>
 							<string>CPVerticalAlignmentProperty</string>
 							<number>2</number>
-							<string>CPFillProperty</string>
-							<fill-style fill-type="none"/>
+							<string>CPStrokeWidthProperty</string>
+							<number>2</number>
 						</prototype-data>
 						<styles>
 							<shadow-style opacity="0" radius="0"/>
@@ -4128,8 +4128,8 @@
 				</prototype-bullets>
 				<transition-style type="none" duration="0"/>
 				<guides>
-					<guide offset="346" orientation="horizontal"/>
 					<guide offset="91" orientation="horizontal"/>
+					<guide offset="346" orientation="horizontal"/>
 				</guides>
 				<thumbnails>
 					<thumbnail byte-size="8356" size="60 45" file="thumbs/mt8.tiff"/>
@@ -4176,8 +4176,8 @@
 							<dash-style pattern="solid"/>
 							<string>CPCellOpacityProperty</string>
 							<number>1</number>
-							<string>CPFillProperty</string>
-							<fill-style fill-type="none"/>
+							<string>CPStrokeWidthProperty</string>
+							<number>2</number>
 							<string>CPBorderOpacityProperty</string>
 							<number>1</number>
 							<string>TableNodeSnapShotProperty1</string>
@@ -4264,8 +4264,8 @@
 							<number>1</number>
 							<string>CPVerticalAlignmentProperty</string>
 							<number>2</number>
-							<string>CPStrokeWidthProperty</string>
-							<number>2</number>
+							<string>CPFillProperty</string>
+							<fill-style fill-type="none"/>
 						</prototype-data>
 						<styles>
 							<shadow-style opacity="0" radius="0"/>
@@ -4451,8 +4451,8 @@
 							<dash-style pattern="solid"/>
 							<string>CPCellOpacityProperty</string>
 							<number>1</number>
-							<string>CPStrokeWidthProperty</string>
-							<number>2</number>
+							<string>CPFillProperty</string>
+							<fill-style fill-type="none"/>
 							<string>CPBorderOpacityProperty</string>
 							<number>1</number>
 							<string>TableNodeSnapShotProperty1</string>
@@ -4539,8 +4539,8 @@
 							<number>1</number>
 							<string>CPVerticalAlignmentProperty</string>
 							<number>2</number>
-							<string>CPFillProperty</string>
-							<fill-style fill-type="none"/>
+							<string>CPStrokeWidthProperty</string>
+							<number>2</number>
 						</prototype-data>
 						<styles>
 							<shadow-style opacity="0" radius="0"/>
@@ -4709,8 +4709,8 @@
 							<reference id-ref="dash-style-4"/>
 							<string>CPCellOpacityProperty</string>
 							<number>1</number>
-							<string>CPFillProperty</string>
-							<fill-style fill-type="none"/>
+							<string>CPStrokeWidthProperty</string>
+							<number>2</number>
 							<string>CPBorderOpacityProperty</string>
 							<number>1</number>
 							<string>TableNodeSnapShotProperty1</string>
@@ -4797,8 +4797,8 @@
 							<number>1</number>
 							<string>CPVerticalAlignmentProperty</string>
 							<number>2</number>
-							<string>CPStrokeWidthProperty</string>
-							<number>2</number>
+							<string>CPFillProperty</string>
+							<fill-style fill-type="none"/>
 						</prototype-data>
 						<styles>
 							<shadow-style opacity="0" radius="0"/>
@@ -4965,8 +4965,8 @@
 							<dash-style pattern="solid"/>
 							<string>CPCellOpacityProperty</string>
 							<number>1</number>
-							<string>CPStrokeWidthProperty</string>
-							<number>2</number>
+							<string>CPFillProperty</string>
+							<fill-style fill-type="none"/>
 							<string>CPBorderOpacityProperty</string>
 							<number>1</number>
 							<string>TableNodeSnapShotProperty1</string>
@@ -5053,8 +5053,8 @@
 							<number>1</number>
 							<string>CPVerticalAlignmentProperty</string>
 							<number>2</number>
-							<string>CPFillProperty</string>
-							<fill-style fill-type="none"/>
+							<string>CPStrokeWidthProperty</string>
+							<number>2</number>
 						</prototype-data>
 						<styles>
 							<shadow-style opacity="0" radius="0"/>
@@ -5244,8 +5244,8 @@
 							<dash-style pattern="solid"/>
 							<string>CPCellOpacityProperty</string>
 							<number>1</number>
-							<string>CPFillProperty</string>
-							<fill-style fill-type="none"/>
+							<string>CPStrokeWidthProperty</string>
+							<number>2</number>
 							<string>CPBorderOpacityProperty</string>
 							<number>1</number>
 							<string>TableNodeSnapShotProperty1</string>
@@ -5332,8 +5332,8 @@
 							<number>1</number>
 							<string>CPVerticalAlignmentProperty</string>
 							<number>2</number>
-							<string>CPStrokeWidthProperty</string>
-							<number>2</number>
+							<string>CPFillProperty</string>
+							<fill-style fill-type="none"/>
 						</prototype-data>
 						<styles>
 							<shadow-style opacity="0" radius="0"/>
@@ -5471,10 +5471,10 @@
 				</prototype-bullets>
 				<transition-style type="none" duration="0"/>
 				<guides>
-					<guide offset="346" orientation="horizontal"/>
-					<guide offset="554" orientation="vertical"/>
-					<guide offset="233" orientation="vertical"/>
 					<guide offset="91" orientation="horizontal"/>
+					<guide offset="346" orientation="horizontal"/>
+					<guide offset="233" orientation="vertical"/>
+					<guide offset="554" orientation="vertical"/>
 				</guides>
 				<thumbnails>
 					<thumbnail byte-size="4652" size="60 45" file="thumbs/mt13.tiff"/>
@@ -5521,8 +5521,8 @@
 							<dash-style pattern="solid"/>
 							<string>CPCellOpacityProperty</string>
 							<number>1</number>
-							<string>CPStrokeWidthProperty</string>
-							<number>2</number>
+							<string>CPFillProperty</string>
+							<fill-style fill-type="none"/>
 							<string>CPBorderOpacityProperty</string>
 							<number>1</number>
 							<string>TableNodeSnapShotProperty1</string>
@@ -5609,8 +5609,8 @@
 							<number>1</number>
 							<string>CPVerticalAlignmentProperty</string>
 							<number>2</number>
-							<string>CPFillProperty</string>
-							<fill-style fill-type="none"/>
+							<string>CPStrokeWidthProperty</string>
+							<number>2</number>
 						</prototype-data>
 						<styles>
 							<shadow-style opacity="0" radius="0"/>
@@ -5750,10 +5750,10 @@
 				</prototype-bullets>
 				<transition-style type="none" duration="0"/>
 				<guides>
-					<guide offset="258" orientation="vertical"/>
 					<guide offset="91" orientation="horizontal"/>
 					<guide offset="600" orientation="vertical"/>
 					<guide offset="346" orientation="horizontal"/>
+					<guide offset="258" orientation="vertical"/>
 				</guides>
 				<thumbnails>
 					<thumbnail byte-size="8308" size="60 45" file="thumbs/mt14.tiff"/>
@@ -5800,8 +5800,8 @@
 							<dash-style pattern="solid"/>
 							<string>CPCellOpacityProperty</string>
 							<number>1</number>
-							<string>CPFillProperty</string>
-							<fill-style fill-type="none"/>
+							<string>CPStrokeWidthProperty</string>
+							<number>2</number>
 							<string>CPBorderOpacityProperty</string>
 							<number>1</number>
 							<string>TableNodeSnapShotProperty1</string>
@@ -5888,8 +5888,8 @@
 							<number>1</number>
 							<string>CPVerticalAlignmentProperty</string>
 							<number>2</number>
-							<string>CPStrokeWidthProperty</string>
-							<number>2</number>
+							<string>CPFillProperty</string>
+							<fill-style fill-type="none"/>
 						</prototype-data>
 						<styles>
 							<shadow-style opacity="0" radius="0"/>
@@ -6027,10 +6027,10 @@
 				</prototype-bullets>
 				<transition-style type="none" duration="0"/>
 				<guides>
-					<guide offset="600" orientation="vertical"/>
-					<guide offset="91" orientation="horizontal"/>
 					<guide offset="258" orientation="vertical"/>
+					<guide offset="91" orientation="horizontal"/>
 					<guide offset="346" orientation="horizontal"/>
+					<guide offset="600" orientation="vertical"/>
 				</guides>
 				<thumbnails>
 					<thumbnail byte-size="5042" size="60 45" file="thumbs/mt15.tiff"/>
@@ -6077,8 +6077,8 @@
 							<dash-style pattern="solid"/>
 							<string>CPCellOpacityProperty</string>
 							<number>1</number>
-							<string>CPStrokeWidthProperty</string>
-							<number>2</number>
+							<string>CPFillProperty</string>
+							<fill-style fill-type="none"/>
 							<string>CPBorderOpacityProperty</string>
 							<number>1</number>
 							<string>TableNodeSnapShotProperty1</string>
@@ -6165,8 +6165,8 @@
 							<number>1</number>
 							<string>CPVerticalAlignmentProperty</string>
 							<number>2</number>
-							<string>CPFillProperty</string>
-							<fill-style fill-type="none"/>
+							<string>CPStrokeWidthProperty</string>
+							<number>2</number>
 						</prototype-data>
 						<styles>
 							<shadow-style opacity="0" radius="0"/>
@@ -6243,7 +6243,7 @@
 		</master-slides>
 	</theme>
 	<slide-list>
-		<slide id="slide-1" master-slide-id="master-slide-11">
+		<slide master-slide-id="master-slide-11">
 			<drawables>
 				<title visibility="tracks-master" location="78 163" size="644 273" vertical-alignment="tracks-master"/>
 				<body visibility="tracks-master" vertical-alignment="tracks-master"/>
@@ -6780,7 +6780,7 @@ Eric Hodel ]]>
 				<property name="direction" value="11"/>
 			</transition-style>
 			<thumbnails>
-				<thumbnail byte-size="8372" size="60 45" file="thumbs/st17.tiff"/>
+				<thumbnail byte-size="8372" size="60 45" file="thumbs/st161.tiff"/>
 			</thumbnails>
 			<bullets>
 				<bullet level="0" marker-type="inherited">
@@ -6796,25 +6796,22 @@ Eric Hodel ]]>
 		</slide>
 		<slide master-slide-id="master-slide-5">
 			<drawables>
-				<image byte-size="20727" display-name="pasted.pdf" transformation="1 0 0 1 91 4" lock-aspect-ratio="true" image-data="pasted7.pdf" opacity="1" natural-size="618 198">
-					<styles>
-						<shadow-style opacity="0" radius="0"/>
-					</styles>
-				</image>
-				<shape path="M 0 0 L 100 0 L 100 100 L 0 100 Z M 0 0" transformation="3.33 0 0 0.369999 429 420" opacity="0.563433">
+				<shape path="M 0 0 L 100 0 L 100 100 L 0 100 Z M 0 0" transformation="3.33 0 0 0.369999 429 427" opacity="0.563433">
 					<styles>
 						<fill-style fill-type="color" fill-color="0.293478 0.293478 0.293478"/>
 					</styles>
 				</shape>
-				<textbox size="672 304" transformation="1 0 0 1 396 285">
-					<content font-color="g1" tab-stops="L 66" font-size="16" font-name="Courier">
-<![CDATA[[:defn,
+				<textbox size="672 304" transformation="1 0 0 1 396 292">
+					<content font-color="g1" tab-stops="L 66" font-size="16" font-name="Courier">[<span font-color="0 1 0">:defn</span>
+<![CDATA[,
  "hello",
  [:args, "n"],
  [:scope,
   [:block,
    [:lasgn, "temp_var1", [:lit, 1]],
-   [:while,
+   []]>
+						<span font-color="0 1 0">:while</span>
+<![CDATA[,
     [:call, [:lvar, "temp_var1"],
       "<=", [:array, [:lvar, "n"]]],
     [:block,
@@ -6822,30 +6819,45 @@ Eric Hodel ]]>
        [:array, [:str, "hello world"]]],
      [:lasgn,
       "temp_var1",
-      [:call, [:lvar, "temp_var1"], "+",
+      []]>
+						<span font-color="0 1 0">:call</span>
+<![CDATA[, [:lvar, "temp_var1"], "+",
         [:array, [:lit, 1]]]]]]]]]]]>
 					</content>
 				</textbox>
-				<textbox size="644 72" transformation="1 0 0 1 78 201">
+				<image byte-size="20727" display-name="pasted.pdf" transformation="1 0 0 1 91 4" lock-aspect-ratio="true" image-data="pasted7.pdf" opacity="1" natural-size="618 198">
+					<styles>
+						<shadow-style opacity="0" radius="0"/>
+					</styles>
+				</image>
+				<textbox size="644 100" transformation="1 0 0 1 78 191">
 					<content font-color="g1" paragraph-head-indent="5" paragraph-first-line-indent="5" tab-stops="L 45" font-size="32" font-name="GillSans">Rewriter cleans up sexps from ParseTree.<span font-color="g0" font-size="12" font-name="Helvetica">
 <![CDATA[
 ]]>
-						</span>Makes it easier to deal with. More uniform.</content>
+						</span>
+<![CDATA[Makes it easier to deal with. More uniform.
+]]>
+						<div paragraph-alignment="center" tab-stops="L 85" font-size="24">Rewritten nodes colored green</div>
+					</content>
 				</textbox>
 				<textbox size="337 285" transformation="1 0 0 1 6 304">
-					<content font-color="g1" paragraph-alignment="left" tab-stops="L 66" font-size="16" font-name="Courier">
-<![CDATA[[:defn,
+					<content font-color="g1" paragraph-alignment="left" tab-stops="L 66" font-size="16" font-name="Courier">[<span font-color="0 1 0">:defn</span>
+<![CDATA[,
   "hello",
   [:scope,
    [:block,
     [:args, "n"],
-    [:iter,
+    []]>
+						<span font-color="0 1 0">:iter</span>
+<![CDATA[,
      [:call,
       [:lit, 1],
       "upto",
       [:array, [:lvar, "n"]]],
      nil,
-     [:fcall,
+     []]>
+						<span font-color="0 1 0">:fcall</span>
+<![CDATA[,
       "puts",
       [:array,
        [:str, "hello world"]]]]]]]]]>
@@ -6857,7 +6869,7 @@ Eric Hodel ]]>
 				<textbox size="94 42" transformation="1 0 0 1 705 279">
 					<content font-color="0.266667 0.298039 1" paragraph-alignment="center" tab-stops="L 66" font-size="18" font-name="GillSans">focus for next slide</content>
 				</textbox>
-				<shape path="M 0 33.3 L 0 66.7 L 60 66.7 L 60 100 L 100 50 L 60 0 L 60 33.3 Z M 0 33.3" transformation="-2.65104e-08 0.606486 -0.542499 -2.37134e-08 779.25 331">
+				<shape path="M 0 33.3 L 0 66.7 L 60 66.7 L 60 100 L 100 50 L 60 0 L 60 33.3 Z M 0 33.3" transformation="-2.65104e-08 0.606486 -0.542499 -2.37134e-08 779.25 340">
 					<styles>
 						<fill-style fill-type="color" fill-color="0.293478 0.293478 0.293478"/>
 					</styles>
@@ -6869,7 +6881,7 @@ Eric Hodel ]]>
 				<property name="direction" value="11"/>
 			</transition-style>
 			<thumbnails>
-				<thumbnail byte-size="8372" size="60 45" file="thumbs/st18.tiff"/>
+				<thumbnail byte-size="8372" size="60 45" file="thumbs/st17.tiff"/>
 			</thumbnails>
 			<bullets>
 				<bullet level="0" marker-type="inherited">
@@ -6885,25 +6897,31 @@ Eric Hodel ]]>
 					</styles>
 				</image>
 				<body visibility="tracks-master" location="78 201" size="644 164" vertical-alignment="tracks-master"/>
-				<textbox size="260 76" transformation="1 0 0 1 14 405">
+				<textbox size="260 95" transformation="1 0 0 1 11 392">
 					<content font-color="g1" tab-stops="L 66" font-size="16" font-name="Courier">
 <![CDATA[[:call,
   [:lvar, "temp_var1"],
   "<=",
-  [:array, [:lvar, "n"]]],]]>
+  [:array, [:lvar, "n"]]],
+]]>
 					</content>
 				</textbox>
-				<textbox grow-horizontally="true" size="133 36" transformation="1 0 0 1 294.5 425">
+				<textbox grow-horizontally="true" size="133 36" transformation="1 0 0 1 285.5 425">
 					<content font-color="1 0.994031 0" paragraph-alignment="center" tab-stops="L 66" font-size="32" font-name="GillSans">becomes:</content>
 				</textbox>
-				<textbox size="338 133" transformation="1 0 0 1 448 376">
+				<textbox size="359 114" transformation="1 0 0 1 433 392">
 					<content font-color="g1" tab-stops="L 66" font-size="16" font-name="Courier">
 <![CDATA[[:call,
-  [:lvar, "temp_var1", Type.long],
+  [:lvar, "temp_var1", ]]>
+						<span font-color="0 1 0">Type.long</span>
+<![CDATA[],
   "<=",
-  [:array,
-    [:lvar, "n", Type.long]],
-  Type.bool],
+  [:array, [:lvar, "n", ]]>
+						<span font-color="0 1 0">Type.long</span>
+<![CDATA[]],
+  ]]>
+						<span font-color="0 1 0">Type.bool</span>
+<![CDATA[],
 ]]>
 					</content>
 				</textbox>
@@ -6913,7 +6931,7 @@ Eric Hodel ]]>
 				<property name="direction" value="11"/>
 			</transition-style>
 			<thumbnails>
-				<thumbnail byte-size="8372" size="60 45" file="thumbs/st19.tiff"/>
+				<thumbnail byte-size="8372" size="60 45" file="thumbs/st18.tiff"/>
 			</thumbnails>
 			<bullets>
 				<bullet level="0" marker-type="inherited">
@@ -6996,6 +7014,63 @@ temp_var1 = temp_var1 + 1;
 					<content paragraph-alignment="center" tab-stops="L 75" font-size="64" font-name="GillSans"/>
 				</bullet>
 			</bullets>
+		</slide>
+		<slide id="slide-1" master-slide-id="master-slide-13">
+			<drawables>
+				<image byte-size="29359" display-name="pasted.pdf" transformation="1 0 0 1 415.5 29" lock-aspect-ratio="true" image-data="pasted10.pdf" natural-size="301 542"/>
+				<title visibility="tracks-master" location="70 16" size="280 150" vertical-alignment="tracks-master"/>
+				<body size="355 352" visibility="tracks-master" vertical-alignment="tracks-master" location="32 219" id="body-1"/>
+			</drawables>
+			<transition-style type="inherited"/>
+			<thumbnails>
+				<thumbnail byte-size="8372" size="60 45" file="thumbs/st201.tiff"/>
+			</thumbnails>
+			<bullets>
+				<bullet level="0" marker-type="inherited">
+					<content font-color="g1" paragraph-alignment="left" tab-stops="L 75" font-size="64" font-name="GillSans">
+<![CDATA[A Smaller
+Example:]]>
+					</content>
+				</bullet>
+				<bullet level="1" spacing="17" marker-type="character">
+					<content font-color="g1" paragraph-head-indent="5" paragraph-first-line-indent="5" tab-stops="L 45" font-size="24" font-name="GillSans">Ruby parses code</content>
+					<character-bullet-style size-technique="relative" size="1.71">
+						<bullet-characters font-color="g1" tab-stops="L 66" font-size="8" font-name="GillSans">•</bullet-characters>
+					</character-bullet-style>
+				</bullet>
+				<bullet level="1" spacing="17" marker-type="character">
+					<content font-color="g1" paragraph-head-indent="5" paragraph-first-line-indent="5" tab-stops="L 45" font-size="24" font-name="GillSans">ParseTree extracts AST</content>
+					<character-bullet-style size-technique="relative" size="1.71">
+						<bullet-characters font-color="g1" tab-stops="L 66" font-size="8" font-name="GillSans">•</bullet-characters>
+					</character-bullet-style>
+				</bullet>
+				<bullet level="1" spacing="17" marker-type="character">
+					<content font-color="g1" paragraph-head-indent="5" paragraph-first-line-indent="5" tab-stops="L 45" font-size="24" font-name="GillSans">Rewriter doesn’t touch it</content>
+					<character-bullet-style size-technique="relative" size="1.71">
+						<bullet-characters font-color="g1" tab-stops="L 66" font-size="8" font-name="GillSans">•</bullet-characters>
+					</character-bullet-style>
+				</bullet>
+				<bullet level="2" spacing="17" marker-type="none">
+					<content font-color="g1" paragraph-head-indent="5" paragraph-first-line-indent="5" tab-stops="L 45" font-size="24" font-name="GillSans">(SexpProcessor.process converts it to a Sexp)</content>
+				</bullet>
+				<bullet level="1" spacing="17" marker-type="character">
+					<content font-color="g1" paragraph-head-indent="5" paragraph-first-line-indent="5" tab-stops="L 45" font-size="24" font-name="GillSans">TypeChecker unifies it</content>
+					<character-bullet-style size-technique="relative" size="1.71">
+						<bullet-characters font-color="g1" tab-stops="L 66" font-size="8" font-name="GillSans">•</bullet-characters>
+					</character-bullet-style>
+				</bullet>
+				<bullet level="1" spacing="17" marker-type="character">
+					<content font-color="g1" paragraph-head-indent="5" paragraph-first-line-indent="5" tab-stops="L 45" font-size="24" font-name="GillSans">Ruby2C translates to C</content>
+					<character-bullet-style size-technique="relative" size="1.71">
+						<bullet-characters font-color="g1" tab-stops="L 66" font-size="8" font-name="GillSans">•</bullet-characters>
+					</character-bullet-style>
+				</bullet>
+			</bullets>
+			<events>
+				<build type="apple:appear" duration="1" delivery="1" target-id="body-1">
+					<property name="animationType" value="1"/>
+				</build>
+			</events>
 		</slide>
 		<slide master-slide-id="master-slide-3">
 			<drawables>
@@ -7102,7 +7177,7 @@ end]]>
 					</content>
 				</textbox>
 				<title visibility="tracks-master" vertical-alignment="tracks-master"/>
-				<textbox grow-horizontally="true" size="133 36" transformation="1 0 0 1 279.5 328">
+				<textbox grow-horizontally="true" size="133 36" transformation="1 0 0 1 315.5 299">
 					<content font-color="1 0.994031 0" paragraph-alignment="center" tab-stops="L 66" font-size="32" font-name="GillSans">becomes:</content>
 				</textbox>
 				<textbox size="338 266" transformation="1 0 0 1 455 213">
@@ -7124,16 +7199,16 @@ return INT2NUM(f);
 					</content>
 				</textbox>
 				<textbox size="609 73" transformation="1 0 0 1 95 492">
-					<content font-color="1 0.994031 0" paragraph-alignment="center" tab-stops="L 66" font-size="32" font-name="GillSans">and <span font-name="GillSans-BoldItalic">dynamically</span>
+					<content font-color="1 0.994031 0" paragraph-alignment="center" tab-stops="L 66" font-size="32" font-name="GillSans">and <span font-color="1 0 0" font-name="GillSans-BoldItalic">dynamically</span>
 <![CDATA[ replaces the ruby version!
-in this case, a 8.8x speed-up!]]>
-					</content>
+in this case, an ]]>
+						<span font-name="GillSans-Italic" font-underline="true">8.8x speed-up</span>!</content>
 				</textbox>
 				<body visibility="hidden" vertical-alignment="tracks-master"/>
 			</drawables>
 			<transition-style type="inherited"/>
 			<thumbnails>
-				<thumbnail byte-size="8370" size="60 45" file="thumbs/st231.tiff"/>
+				<thumbnail byte-size="8370" size="60 45" file="thumbs/st24.tiff"/>
 			</thumbnails>
 			<bullets>
 				<bullet level="0" marker-type="inherited">
@@ -7167,6 +7242,7 @@ in this case, a 8.8x speed-up!]]>
 		</slide>
 	</slide-list>
 	<ui-state>
+		<number key="BGShowUIStateRulersVisible">1</number>
 		<number key="BGShowUIStateNotesVisible">0</number>
 		<array key="BGShowUIStateSelectedSlides">
 			<reference id-ref="slide-1"/>
@@ -7175,7 +7251,7 @@ in this case, a 8.8x speed-up!]]>
 		<reference key="BGShowUIStateActiveSlide" id-ref="slide-1"/>
 		<array key="BGShowUIStateSelectedBulletPoints"/>
 		<string key="BGShowUIStateCanvasOrigin">{0, 0}</string>
-		<string key="BGShowUIStateWindowSize">0 109 959 637 0 0 1024 746 </string>
+		<string key="BGShowUIStateWindowSize">0 93 976 653 0 0 1024 746 </string>
 		<number key="BGShowUIStateMasterNavigatorHeight">0</number>
 		<string key="BGShowUIStateCanvasZoom">1.000000</string>
 	</ui-state>
