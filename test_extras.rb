@@ -67,8 +67,6 @@ class TestExtraInferTypes < Test::Unit::TestCase
     inferer.augment(RandomCode, :meth_a)
     result = inferer.augment(RandomCode, :meth_b)
 
-    p result
-
     assert_equal("meth_b", result[1])
   end
 

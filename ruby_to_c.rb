@@ -31,7 +31,7 @@ module TypeMap
 
 end
 
-class RubyToC
+class RubyToC < SexpProcessor
 
   include TypeMap
 
@@ -45,7 +45,7 @@ class RubyToC
     checker = self.new
     sexp = InferTypes.new.augment(klass, method)
     sexp = Rewriter.new.process(sexp)
-    checker.translate(sexp)
+    checker.process(sexp)
   end
 
   def self.translate_all_of(klass, catch_exceptions=false)
@@ -62,6 +62,11 @@ class RubyToC
         translate(klass, method)
       end
     end.join "\n\n"
+  end
+
+  def initialize
+    super
+    self.default_method = :translate
   end
 
   def translate(exp)

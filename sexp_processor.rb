@@ -7,8 +7,13 @@ end
 
 class SexpProcessor
   
+  attr_accessor :default_method
+  attr_accessor :warn_on_default
+
   def initialize
     @collection = []
+    @default_method = nil
+    @warn_on_default = true
     # we do this on an instance basis so we can subclass it for
     # different processors.
     @methods = {}
@@ -24,8 +29,11 @@ class SexpProcessor
     result = []
     return nil if exp.nil?
     type = exp.first
-    meth = @methods[type]
+    meth = @methods[type] || @default_method
     if meth then
+      if @warn_on_default and meth == @default_method then
+        $stderr.puts "WARNING: falling back to default method #{meth}"
+      end
       exp.shift if @auto_shift_type
       result = self.send(meth, exp)
       raise "exp not empty after #{self.class}.#{meth} on #{exp.inspect} from #{exp_orig.inspect}" unless exp.empty?

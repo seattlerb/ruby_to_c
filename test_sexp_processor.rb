@@ -23,6 +23,18 @@ class TestProcessor < SexpProcessor
   end
 end
 
+class TestProcessorDefault < SexpProcessor
+  def initialize
+    super
+    self.default_method = :def_method
+  end
+
+  def def_method(exp)
+    exp.clear
+    42
+  end
+end
+
 class TestSexpProcessor < Test::Unit::TestCase
 
   def setup
@@ -43,6 +55,12 @@ class TestSexpProcessor < Test::Unit::TestCase
     assert_raise(RuntimeError) do
       @processor.process([:nonempty, 1, 2, 3])
     end
+  end
+
+  def test_process_default
+    @processor = TestProcessorDefault.new
+    a = [:blah, 1, 2, 3]
+    assert_equal(42, @processor.process(a))
   end
 
   def test_process_strip
