@@ -6,24 +6,156 @@ require 'something'
 
 class TestRubyToC < Test::Unit::TestCase
 
-  @@empty = "void\nempty() {\n}"
+  @@empty = "void
+empty() {
+}"
   # TODO: this test is not good... the args should type-resolve or raise
   # TODO: this test is good, we should know that print takes objects... or something
-  @@simple = "void\nsimple(VALUE arg1) {\nprint(arg1);\nputs(4 + 2);\n}"
-  @@stupid = "VALUE\nstupid() {\nreturn Qnil;\n}"
-  @@global = "void\nglobal() {\nfputs(\"blah\", stderr);\n}"
-  @@lasgn_call = "void\nlasgn_call() {\nlong c = 2 + 3;\n}"
-  @@conditional1 = "long\nconditional1(long arg1) {\nif (arg1 == 0) {\nreturn 1;\n};\n}"
-  @@conditional2 = "long\nconditional2(long arg1) {\nif (arg1 == 0) {\n;\n} else {\nreturn 2;\n};\n}"
-  @@conditional3 = "long\nconditional3(long arg1) {\nif (arg1 == 0) {\nreturn 3;\n} else {\nreturn 4;\n};\n}"
-  @@conditional4 = "long\nconditional4(long arg1) {\nif (arg1 == 0) {\nreturn 2;\n} else {\nif (arg1 < 0) {\nreturn 3;\n} else {\nreturn 4;\n};\n};\n}"
-  @@iteration1 = "void\niteration1() {\nlong_array array;\narray.contents = { 1, 2, 3 };\narray.length = 3;\nunsigned long index_x;\nfor (index_x = 0; index_x < array.length; ++index_x) {\nlong x = array.contents[index_x];\nputs(x);\n};\n}"
-  @@iteration2 = "void\niteration2() {\nlong_array array;\narray.contents = { 1, 2, 3 };\narray.length = 3;\nunsigned long index_x;\nfor (index_x = 0; index_x < array.length; ++index_x) {\nlong x = array.contents[index_x];\nputs(x);\n};\n}"
-  @@iteration3 = "void\niteration3() {\nlong_array array1;\narray1.contents = { 1, 2, 3 };\narray1.length = 3;\nlong_array array2;\narray2.contents = { 4, 5, 6, 7 };\narray2.length = 4;\nunsigned long index_x;\nfor (index_x = 0; index_x < array1.length; ++index_x) {\nlong x = array1.contents[index_x];\nunsigned long index_y;\nfor (index_y = 0; index_y < array2.length; ++index_y) {\nlong y = array2.contents[index_y];\nputs(x);\nputs(y);\n};\n};\n}"
-  @@multi_args = "char *\nmulti_args(long arg1, long arg2) {\nlong arg3 = arg1 * arg2 * 7;\nputs(arg3);\nreturn \"foo\";\n}"
-  @@bools = "long\nbools(VALUE arg1) {\nif (NIL_P(arg1)) {\nreturn 0;\n} else {\nreturn 1;\n};\n}"
-  @@case_stmt = "char *\ncase_stmt() {\nlong var = 2;\nchar * result = \"\";\nswitch (var) {\ncase 1:\nputs(\"something\");\nresult = \"red\";\nbreak;\ncase 2:\ncase 3:\nresult = \"yellow\";\nbreak;\ncase 4:\nbreak;\ndefault:\nresult = \"green\";\nbreak;\n};\nswitch (result) {\ncase \"red\":\nvar = 1;\nbreak;\ncase \"yellow\":\nvar = 2;\nbreak;\ncase \"green\":\nvar = 3;\nbreak;\n};\nreturn result;\n}"
-  @@eric_is_stubborn = "char *\neric_is_stubborn() {\nlong var = 42;\nchar * var2 = sprintf(\"%ld\", var);\nfputs(var2, stderr);\nreturn var2;\n}"
+  @@simple = "void
+simple(VALUE arg1) {
+print(arg1);
+puts(4 + 2);
+}"
+  @@stupid = "VALUE
+stupid() {
+return Qnil;
+}"
+  @@global = "void
+global() {
+fputs(\"blah\", stderr);
+}"
+  @@lasgn_call = "void
+lasgn_call() {
+long c = 2 + 3;
+}"
+  @@conditional1 = "long
+conditional1(long arg1) {
+if (arg1 == 0) {
+return 1;
+}
+}"
+  @@conditional2 = "long
+conditional2(long arg1) {
+if (arg1 == 0) {
+;
+} else {
+return 2;
+}
+}"
+  @@conditional3 = "long
+conditional3(long arg1) {
+if (arg1 == 0) {
+return 3;
+} else {
+return 4;
+}
+}"
+  @@conditional4 = "long
+conditional4(long arg1) {
+if (arg1 == 0) {
+return 2;
+} else {
+if (arg1 < 0) {
+return 3;
+} else {
+return 4;
+}
+}
+}"
+  @@iteration1 = "void
+iteration1() {
+long_array array;
+array.contents = { 1, 2, 3 };
+array.length = 3;
+unsigned long index_x;
+for (index_x = 0; index_x < array.length; ++index_x) {
+long x = array.contents[index_x];
+puts(x);
+}
+}"
+  @@iteration2 = "void
+iteration2() {
+long_array array;
+array.contents = { 1, 2, 3 };
+array.length = 3;
+unsigned long index_x;
+for (index_x = 0; index_x < array.length; ++index_x) {
+long x = array.contents[index_x];
+puts(x);
+}
+}"
+  @@iteration3 = "void
+iteration3() {
+long_array array1;
+array1.contents = { 1, 2, 3 };
+array1.length = 3;
+long_array array2;
+array2.contents = { 4, 5, 6, 7 };
+array2.length = 4;
+unsigned long index_x;
+for (index_x = 0; index_x < array1.length; ++index_x) {
+long x = array1.contents[index_x];
+unsigned long index_y;
+for (index_y = 0; index_y < array2.length; ++index_y) {
+long y = array2.contents[index_y];
+puts(x);
+puts(y);
+}
+}
+}"
+  @@multi_args = "char *
+multi_args(long arg1, long arg2) {
+long arg3 = arg1 * arg2 * 7;
+puts(arg3);
+return \"foo\";
+}"
+  @@bools = "long
+bools(VALUE arg1) {
+if (NIL_P(arg1)) {
+return 0;
+} else {
+return 1;
+}
+}"
+# HACK: I don't like the semis after the if blocks, but it is a compromise right now
+  @@case_stmt = "char *
+case_stmt() {
+long var = 2;
+char * result = \"\";
+if (var == 1) {
+puts(\"something\");
+result = \"red\";
+} else {
+if (var == 2 || var == 3) {
+result = \"yellow\";
+} else {
+if (var == 4) {
+;
+} else {
+result = \"green\";
+}
+}
+};
+if (result == \"red\") {
+var = 1;
+} else {
+if (result == \"yellow\") {
+var = 2;
+} else {
+if (result == \"green\") {
+var = 3;
+}
+}
+};
+return result;
+}"
+  @@eric_is_stubborn = "char *
+eric_is_stubborn() {
+long var = 42;
+char * var2 = sprintf(\"%ld\", var);
+fputs(var2, stderr);
+return var2;
+}"
 
   @@__all = []
   @@__expect_raise = [ "interpolated" ]

@@ -1,3 +1,4 @@
+#!/usr/local/bin/ruby -w
 
 require 'sexp_processor'
 require 'test/unit'
@@ -51,13 +52,13 @@ class TestSexpProcessor < Test::Unit::TestCase
 
   def test_assert_type_hit
     assert_nothing_raised do
-      @processor.assert_type(:blah, [:blah, 1, 2, 3])
+      @processor.assert_type([:blah, 1, 2, 3], :blah)
     end
   end
 
   def test_assert_type_miss
     assert_raise(TypeError) do
-      @processor.assert_type(:blah, [:thingy, 1, 2, 3])
+      @processor.assert_type([:thingy, 1, 2, 3], :blah)
     end
   end
 

@@ -1,5 +1,6 @@
 require 'infer_types'
 require 'sexp_processor'
+require 'rewriter'
 
 module TypeMap
 
@@ -42,7 +43,9 @@ class RubyToC
 
   def self.translate(klass, method = nil)
     checker = self.new
-    checker.translate(InferTypes.new.augment(klass, method))
+    sexp = InferTypes.new.augment(klass, method)
+    sexp = Rewriter.new.process(sexp)
+    checker.translate(sexp)
   end
 
   def self.translate_all_of(klass, catch_exceptions=false)
@@ -94,7 +97,11 @@ class RubyToC
           result = translate(thingy)
           code << result
         end
-        [code.shift, (code.join(";\n"))]
+        args = code.shift
+        body = code.join(";\n")
+        body += ";" unless body =~ /[;}]\Z/
+        body += "\n"
+        [args, body]
       when :call then
         lvar = translate exp.shift
         method = exp.shift
@@ -130,16 +137,6 @@ class RubyToC
             raise "Bug! Unhandled method #{method}"
           end
         end
-      when :case then
-        var = translate(exp.shift)
-        bod = []
-        els = translate(exp.pop)
-        until exp.empty? do
-          thingy = exp.shift
-          result = translate(thingy)
-          bod << result
-        end
-        "switch (#{var}) {\n#{bod.join('')}" + (els.nil? ? '' : "default:\n#{els};\nbreak;\n") + "}"
       when :dasgn_curr then
         var = exp.shift
         arg = var.shift
@@ -170,25 +167,67 @@ class RubyToC
         end
       when :if then
         cond_part = translate exp.shift
-        then_part = translate exp.shift
-        else_part = translate exp.shift
-        if else_part then
-          "if (#{cond_part}) {\n#{then_part};\n} else {\n#{else_part};\n}"
-        else
-          "if (#{cond_part}) {\n#{then_part};\n}"
+
+        result = "if (#{cond_part})"
+
+        then_block = ! exp.first.nil? && exp.first.first == :block
+        then_part  = translate exp.shift
+        else_block = ! exp.first.nil? && exp.first.first == :block
+        else_part  = translate exp.shift
+
+        then_part = "" if then_part.nil?
+        else_part = "" if else_part.nil?
+
+        # TODO: I want braces all the time
+#        result += " {" if then_block
+        result += " {\n"
+        
+        # HACK: rewrite blocks you stupid fucker
+        then_part = then_part.join(";\n") if Array === then_part
+        then_part += ";" unless then_part =~ /[;}]\Z/
+        # HACK: um... deal with nil correctly (see unless support)
+        result += then_part.to_s # + ";"
+        result += ";" if then_part.nil?
+        #result += "\n" if then_block or not else_block
+#        result += "}" if then_block
+        result += "\n" unless result =~ /\n\Z/
+        result += "}"
+
+        if else_part != "" then
+#          result += "\n" if not then_block
+#          result += " " if then_block
+          result += " else {\n"
+#          result += " {" if else_block
+#          result += " {"
+#          result += "\n"
+          else_part = else_part.join(";\n") if Array === else_part
+          else_part += ";" unless else_part =~ /[;}]\Z/
+          result += else_part
+#          result += ";" if else_part.nil?
+#          result += "\n}" if else_block
+          result += "\n}"
         end
+
+#         if else_part then
+#           "if (#{cond_part}) {\n#{then_part};\n} else {\n#{else_part};\n}"
+#         else
+#           "if (#{cond_part}) {\n#{then_part};\n}"
+#         end
+        result
       when :iter then
         iter, method = translate exp.shift
         arg_type, arg_name = translate exp.shift
         body_part = translate exp.shift
         body_part = body_part.join(";\n") if Array === body_part
+        body_part += ";" unless body_part =~ /[;}]\Z/
         index = "index_#{arg_name}"
         res = ""
         res << "unsigned long #{index};\n"
         res << "for (#{index} = 0; #{index} < #{iter}.length; ++#{index}) {\n"
         res << "#{arg_type} #{arg_name} = #{iter}.contents[#{index}];\n"
         res << body_part
-        res << ";\n}"
+        res << "\n" unless res =~ /[\n]\Z/
+        res << "}"
         res
       when :lasgn then
         typ = exp.pop
@@ -219,35 +258,51 @@ class RubyToC
         exp.shift
       when :nil then
         "Qnil"
+      when :or then
+        exps = []
+        until exp.empty? do
+          exps << translate(exp.shift)
+        end
+        exps.join(" || ")
       when :return then
         "return #{translate exp.shift}"
       when :scope then
-        args, *body = translate exp.shift
-        if body.empty? then
+        args, body = translate exp.shift
+        if body.nil? or body.empty? then
           body = "\n"
         else
-          body = "\n#{body};\n"
+          body = "\n#{body}"
         end
         [args, body]
       when :str then
         "\"#{exp.shift}\""
-      when :true then
+      when :true then # FIX: this should be not zero
         "1"
         # We purposefully do not support these node types
-      when :when then
-        code = []
-        ary = exp.shift
-        ary.shift # nuke :array
-        code << ary.map do |thingy|
-          "case " + translate(thingy) + ":\n"
-        end
-        body = translate(exp.shift).to_a
-        unless body.empty? then
-          code << "#{body.join(";\n")};\nbreak;\n"
-        else
-          code << "break;\n"
-        end#{body.join
-      when :rescue, :const, :dstr then
+#       when :case then
+#         var = translate(exp.shift)
+#         bod = []
+#         els = translate(exp.pop)
+#         until exp.empty? do
+#           thingy = exp.shift
+#           result = translate(thingy)
+#           bod << result
+#         end
+#         "switch (#{var}) {\n#{bod.join('')}" + (els.nil? ? '' : "default:\n#{els};\nbreak;\n") + "}"
+#       when :when then
+#         code = []
+#         ary = exp.shift
+#         ary.shift # nuke :array
+#         code << ary.map do |thingy|
+#           "case " + translate(thingy) + ":\n"
+#         end
+#         body = translate(exp.shift).to_a
+#         unless body.empty? then
+#           code << "#{body.join(";\n")};\nbreak;\n"
+#         else
+#           code << "break;\n"
+#         end
+      when :case, :when, :rescue, :const, :dstr then
         raise SyntaxError, "'#{node_type}' is not a supported node type for translation (yet?)."
       else
         raise "Bug! Unknown node type #{node_type.inspect} in #{([node_type] + exp).inspect}"

@@ -327,7 +327,8 @@ class InferTypes
         cond_type = check(exp.shift, tree)
         then_type = check(exp.shift, tree)
         else_type = check(exp.shift, tree)
-        cond_type.unify Type.new(:bool)
+        cond_type.unify Type.new(:bool) unless cond_type.nil?
+        # HACK: wtf would the cond be nil for?
         then_type.unify else_type
       # :iter expects a call, dargs and body expression.  Unifies the type of
       # the call and dargs expressions.  Returns the type of the body.
@@ -438,6 +439,13 @@ class InferTypes
       when :when then
         args = check(exp.shift, tree)
         body = check(exp.shift, tree)
+      when :or then
+        # HACK: looks like we might have > 2, not sure if this is right
+        until exp.empty? do
+          sub_exp = exp.shift
+          sub_type = check(sub_exp, tree)
+          sub_type.unify Type.new(:bool) unless sub_type.nil?
+        end
       else
         raise "Bug! Unknown node type #{node_type.inspect} in #{([node_type] + exp).inspect}"
       end # case

@@ -2,11 +2,6 @@ require 'sexp_processor'
 
 class Rewriter < SexpProcessor
 
-  def rewrite(exp)
-    $stderr.puts "WARNING: this method is deprecated, use process(exp)"
-    process(exp)
-  end
-
   def process_case(exp)
     result = []
     exp.shift # nuke the type
@@ -16,13 +11,13 @@ class Rewriter < SexpProcessor
     new_exp = result
     
     until exp.empty? do
-      sub_exp = exp.shift
+      c = exp.shift
       # start a new scope and move to it
       new_exp << [:if]
-      new_exp = new_exp.last    # grab the last element for the else block
+      new_exp = new_exp.last
 
-      assert_type(:when, sub_exp)
-      vars, stmts = process(sub_exp)
+      assert_type c, :when
+      vars, stmts = process(c)
 
       vars = vars.map { |v| [:call, var.deep_clone, "==", [:array, v]]}
       if vars.size > 1 then
@@ -40,9 +35,10 @@ class Rewriter < SexpProcessor
   def process_when(exp)
     exp.shift # nuke type
     vars = exp.shift
-    vars.shift # nuke type
-    stmts = process(exp.shift)
-    return vars, stmts
+    assert_type vars, :array
+    vars.shift # nuke vars type
+    stmts = process(exp)
+    return vars, stmts.first
   end
 end
 

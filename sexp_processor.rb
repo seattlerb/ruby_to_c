@@ -20,15 +20,18 @@ class SexpProcessor
   end
 
   def process(exp)
+    exp_orig = exp.deep_clone
     result = []
     return nil if exp.nil?
     type = exp.first
-    if @methods[type] then
+    meth = @methods[type]
+    if meth then
       exp.shift if @auto_shift_type
-      result = self.send(@methods[type], exp)
-      raise "exp not empty on #{type}: #{exp.inspect}" unless exp.empty?
+      result = self.send(meth, exp)
+      raise "exp not empty after #{self.class}.#{meth} on #{exp.inspect} from #{exp_orig.inspect}" unless exp.empty?
     else
-      exp.each do |sub_exp|
+      until exp.empty? do
+        sub_exp = exp.shift
         if Array === sub_exp then
           result << process(sub_exp)
         else
@@ -43,9 +46,9 @@ class SexpProcessor
     raise "not implemented yet"
   end
 
-  def assert_type(x, l)
-    raise TypeError, "Expected type #{x.inspect} in #{l.inspect}" \
-      if l.first != x
+  def assert_type(list, typ)
+    raise TypeError, "Expected type #{typ.inspect} in #{list.inspect}" \
+      if list.first != typ
   end
 
 end
