@@ -14,6 +14,7 @@ class Sexp < Array # ZenTest FULL
   attr_accessor :unpack
   # def unpack?; @unpack; end
   alias_method :unpack?, :unpack
+
   def initialize(*args)
     # TODO: should probably be Type.unknown
     @sexp_type = Type === args.last ? args.pop : nil
@@ -80,7 +81,7 @@ class Sexp < Array # ZenTest FULL
 
   def to_a
     result = self.map { |o| Sexp === o ? o.to_a : o }
-    unless @sexp_type.nil? then
+    if defined?(@sexp_type) and not @sexp_type.nil? then
       result += [ @sexp_type ]
     end
     result
@@ -118,6 +119,10 @@ class Sexp < Array # ZenTest FULL
     super
   end if $DEBUG or $TESTING
 
+end
+
+def s(*args) # stupid shortcut to make indentation much cleaner
+  Sexp.new(*args)
 end
 
 class SexpProcessor
@@ -193,6 +198,10 @@ class SexpProcessor
           else
             result << sub_result
           end
+        end
+
+        if Sexp === exp and not exp.sexp_type.nil? then
+          result.sexp_type = exp.sexp_type
         end
       else
         raise SyntaxError, "Bug! Unknown type #{type.inspect} to #{self.class}"

@@ -134,12 +134,20 @@ class TestSexpProcessor < Test::Unit::TestCase
 
   def test_process_specific
     a = [:specific, 1, 2, 3]
-    assert_equal(a[1..-1], @processor.process(a))
+    expected = a[1..-1]
+    assert_equal(expected, @processor.process(a))
   end
 
   def test_process_general
     a = [:blah, 1, 2, 3]
-    assert_equal(a.deep_clone, @processor.process(a))
+    expected = a.deep_clone
+    assert_equal(expected, @processor.process(a))
+  end
+
+  def test_process_general_with_type
+    a = Sexp.new(:blah, 1, 2, 3, Type.bool)
+    expected = a.deep_clone
+    assert_equal(expected, @processor.process(a))
   end
 
   def test_process_nonempty
