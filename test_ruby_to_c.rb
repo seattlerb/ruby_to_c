@@ -6,18 +6,24 @@ require 'something'
 
 class TestRubyToC < Test::Unit::TestCase
 
+  @@empty = "void\nempty() {\n}"
+  @@simple = "void\nsimple(arg1) {\nprint(arg1);\nputs(4 + 2);\n}"
+  @@conditional = ""
+  @@iteration1 = ""
+  @@iteration2 = ""
+
   def setup
     @thing = RubyToC.new
   end
 
   def test_empty
-    assert_equal("void\nempty() {\n}",
+    assert_equal(@@empty,
 		 @thing.translate(Something, :empty),
 		 "Must return an empty method body")
   end
 
-  def ztest_simple
-    assert_equal("",
+  def test_simple
+    assert_equal(@@simple,
 		 @thing.translate(Something, :simple),
 		 "Must return a basic method body")
   end
