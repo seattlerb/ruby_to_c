@@ -1,11 +1,11 @@
 #!/usr/local/bin/ruby -ws
 
+require 'ruby_to_c'
+
 old_classes = []
 ObjectSpace.each_object(Class) do |klass|
   old_classes << klass
 end
-
-require 'ruby_to_c'
 
 ARGV.each do |name|
   require name
