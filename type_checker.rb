@@ -428,6 +428,8 @@ class TypeChecker < SexpProcessor
     return Sexp.new(:true, Type.bool)
   end
 
+  # TODO: move these into alphabetical order
+
   ##
   # Empty expression. Returns the expression and the boolean type.
 
@@ -449,5 +451,12 @@ class TypeChecker < SexpProcessor
     raise "not done yet"
   end
 
+  def process_while(exp)
+    cond = process exp.shift
+    body = process exp.shift
+    Type.bool.unify cond.sexp_type
+    Sexp.new(:while, cond, body)
+  end
+  
 end
 

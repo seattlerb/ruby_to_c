@@ -60,6 +60,34 @@ class TestRewriter < Test::Unit::TestCase
     assert_equal expected, @rewrite.process(input)
   end
 
+  def test_iter
+    input = [[:iter,
+        [:call, [:lit, 3], "downto", [:array, [:lit, 1]]],
+        [:dasgn_curr, "n"],
+        [:fcall, "puts", [:array, [:call, [:dvar, "n"], "to_s"]]]]]
+    expected = Sexp.new(Sexp.new(:lasgn, "n", Sexp.new(:lit, 3)),
+                        Sexp.new(:while,
+                                 Sexp.new(:call,
+                                          ">=",
+                                          Sexp.new(:lvar, "n"),
+                                          Sexp.new(:array, Sexp.new(:lit, 1))),
+                                 Sexp.new(:block,
+                                          Sexp.new(:call,
+                                                   "puts",
+                                                   nil,
+                                                   Sexp.new(:array,
+                                                            Sexp.new(:call,
+                                                                     "to_s",
+                                                                     Sexp.new(:lvar, "n"),
+                                                                     nil))),
+                                          Sexp.new(:lasgn, "n", Sexp.new(:call,
+                                                                         "-",
+                                                                         Sexp.new(:lvar, "n"),
+                                                                         Sexp.new(:array, Sexp.new(:lit, 1)))))))
+    
+    assert_equal expected, @rewrite.process(input)
+  end
+
   def test_when
     input = [:when, [:array, [:lit, 1]], [:str, "1"]]
 

@@ -233,6 +233,9 @@ class RubyToC < SexpProcessor
 
   def process_iter(exp) # TODO add ;\n as appropriate
     @env.extend
+
+#    p exp
+
     enum = exp[0][2][1] # HACK ugly
     call = process exp.shift
     var = process exp.shift
@@ -241,7 +244,7 @@ class RubyToC < SexpProcessor
 
     body += ";" unless body =~ /[;}]\Z/
 
-    out = "unsigned long #{index};\n"
+    out =  "unsigned long #{index};\n"
     out << "for (#{index} = 0; #{index} < #{enum}.length; ++#{index}) {\n"
     out << "#{c_type @env.lookup(var)} #{var} = #{enum}.contents[#{index}];\n"
     out << body
@@ -324,6 +327,12 @@ class RubyToC < SexpProcessor
 
   def process_true(exp)
     return "Qtrue"
+  end
+
+  def process_while(exp)
+    cond = process exp.shift
+    body = process exp.shift
+    return "while (#{cond}) {\n#{body.strip}\n}"
   end
 
 end

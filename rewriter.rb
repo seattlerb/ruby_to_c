@@ -85,6 +85,75 @@ class Rewriter < SexpProcessor
   end
 
   ##
+  # Rewrites specific :iter nodes into while loops:
+  # [DOC]
+
+  def process_iter(exp)
+    call = process exp.shift
+    var  = process exp.shift
+    body = process exp.shift
+
+    if call.first == :call and call[1] != "each" then
+      call.shift # :call
+      method_name = call.shift
+
+      case method_name
+      when "downto" then
+        var.shift # 
+        start_value = call.shift
+        finish_value = call.pop.pop # not sure about this
+        var_name = var.shift
+        body.find_and_replace_all(:dvar, :lvar)
+        result = Sexp.new()
+        result.unpack = true
+        result << Sexp.new(:lasgn, var_name, start_value)
+        result << Sexp.new(:while,
+                           Sexp.new(:call,
+                                    ">=",
+                                    Sexp.new(:lvar, var_name),
+                                    Sexp.new(:array, finish_value)),
+                           Sexp.new(:block,
+                                    body,
+                                    Sexp.new(:lasgn,
+                                             var_name,
+                                             Sexp.new(:call,
+                                                      "-",
+                                                      Sexp.new(:lvar, var_name),
+                                                      Sexp.new(:array, Sexp.new(:lit, 1))))
+                                    ))
+      when "upto" then
+        # REFACTOR: completely duped from above and direction changed
+        var.shift # 
+        start_value = call.shift
+        finish_value = call.pop.pop # not sure about this
+        var_name = var.shift
+        body.find_and_replace_all(:dvar, :lvar)
+        result = Sexp.new()
+        result.unpack = true
+        result << Sexp.new(:lasgn, var_name, start_value)
+        result << Sexp.new(:while,
+                           Sexp.new(:call,
+                                    "<=",
+                                    Sexp.new(:lvar, var_name),
+                                    Sexp.new(:array, finish_value)),
+                           Sexp.new(:block,
+                                    body,
+                                    Sexp.new(:lasgn,
+                                             var_name,
+                                             Sexp.new(:call,
+                                                      "+",
+                                                      Sexp.new(:lvar, var_name),
+                                                      Sexp.new(:array, Sexp.new(:lit, 1))))
+                                    ))
+      else
+        raise "unknown iter method #{method_name}"
+      end
+    else
+      Sexp.new(:iter, call, var, body)
+    end
+  end
+
+  ##
   # Rewrites :vcall nodes to the unified :call format:
   # [:call, name, lhs, args]
 

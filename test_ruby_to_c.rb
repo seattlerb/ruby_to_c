@@ -461,6 +461,24 @@ puts(to_s(y));
 }
 }
 }"
+  @@iteration4 = "void
+iteration4() {
+long n;
+n = 1;
+while (n <= 3) {
+puts(to_s(n));
+n = n + 1;
+}
+}"
+  @@iteration5 = "void
+iteration5() {
+long n;
+n = 3;
+while (n >= 1) {
+puts(to_s(n));
+n = n - 1;
+}
+}"
   @@multi_args = "char *
 multi_args(long arg1, long arg2) {
 long arg3;

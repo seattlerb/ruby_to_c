@@ -76,6 +76,18 @@ class Something
     end
   end
 
+  def iteration4
+    1.upto(3) do |n|
+      puts n.to_s
+    end
+  end
+
+  def iteration5
+    3.downto(1) do |n|
+      puts n.to_s
+    end
+  end
+
   def case_stmt
     var = 2
     result = ""

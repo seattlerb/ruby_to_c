@@ -11,13 +11,28 @@ end
 
 class Sexp < Array # ZenTest FULL
 
+  attr_accessor :unpack
+  # def unpack?; @unpack; end
+  alias_method :unpack?, :unpack
   def initialize(*args)
     # TODO: should probably be Type.unknown
     @sexp_type = Type === args.last ? args.pop : nil
+    @unpack = false
     super(args)
   end
 
   @@array_types = [ :array, :args, ]
+
+  # TODO: need to write test
+  def find_and_replace_all(from, to)
+    each_with_index do | elem, index |
+      if Sexp === elem then
+        elem.find_and_replace_all(from, to)
+      else
+        self[index] = to if elem == from
+      end
+    end
+  end
 
   def array_type?
     type = self.first
@@ -144,6 +159,7 @@ class SexpProcessor
         exp.shift
       end
       result = self.send(meth, exp)
+      raise "Result must be a #{@expected}, was #{result.class}:#{result.inspect}" unless @expected === result
       raise "exp not empty after #{self.class}.#{meth} on #{exp.inspect} from #{exp_orig.inspect}" unless exp.empty?
     else
       unless @strict then
@@ -157,13 +173,16 @@ class SexpProcessor
           else
             sub_result = sub_exp
           end
-          result << sub_result
+          if Sexp === sub_result && sub_result.unpack? then
+            result.push(*sub_result)
+          else
+            result << sub_result
+          end
         end
       else
         raise SyntaxError, "Bug! Unknown type #{type.inspect} to #{self.class}"
       end
     end
-    raise "Result must be a #{@expected}, was #{result.class}:#{result.inspect}" unless @expected === result
     result
   end
 
