@@ -1,4 +1,21 @@
-###############################################################################
-2004-05-06 1.0.0				   01 major / 00 minor / 00 bug
- 
- 	! Birthday!
+*** 1.0.0-a2 / 2004-12-31
+
++ 7 major enhancements
+	+ Alpha 2 released to private group for critique.
+	+ Refactored and split out ParseTree package.
+	+ Gemified dependency on ParseTree.
+	+ Added iter rewriting
+	+ Added post type inference rewriting specific to C library.
+	+ Massive increase to the base we can translate.
+	+ We have stabilized the architecture but still have a ways to go.
++ 2 minor enhancements
+	+ Added propaganda (presentations).
+	+ Much better test coverage, now with ZenTest compliant naming.
++ 2+ bug fixes
+	+ Gem-proofed makefile.
+	+ Tons of little fixes we didn't bother to track.
+
+*** 1.0.0-a1 / 2004-09-24
+
++ 1 major enhancement
+	+ Birthday! Alpha 1 released to private group for critique.
