@@ -63,6 +63,20 @@ class TestSexpProcessor < Test::Unit::TestCase
     assert_equal(42, @processor.process(a))
   end
 
+  def test_exclude
+    @processor.exclude = [ :blah ]
+    assert_raise(SyntaxError) do
+      @processor.process([:blah, 1, 2, 3])
+    end
+  end
+
+  def test_strict
+    @processor.strict = true
+    assert_raise(SyntaxError) do
+      @processor.process([:blah, 1, 2, 3])
+    end
+  end
+
   def test_process_strip
     @processor.auto_shift_type = true
     assert_equal([1, 2, 3], @processor.process([:strip, 1, 2, 3]))
