@@ -41,6 +41,10 @@ class RubyToC
 
   attr_reader :env
 
+  def self.preamble
+    "#include <ruby.h>"
+  end
+
   def self.translate(klass, method = nil)
     checker = self.new
     checker.translate(InferTypes.new.augment(klass, method))
@@ -52,9 +56,9 @@ class RubyToC
         begin
           translate(klass, method)
         rescue RuntimeError => err
-          puts "// ERROR translating #{method}: #{err}"
-          puts "//   #{err.backtrace.join("\n//   ")}"
-          puts "//   #{ParseTree.new.parse_tree(klass, method).inspect}"
+          [ "// ERROR translating #{method}: #{err}",
+            "//   #{err.backtrace.join("\n//   ")}",
+            "//   #{ParseTree.new.parse_tree(klass, method).inspect}" ]
         end
       else
         translate(klass, method)
@@ -95,17 +99,20 @@ class RubyToC
           result = translate(thingy)
           code << result
         end
-        code
+        [code.shift, (code.join(";\n"))]
       when :call then
         lvar = translate exp.shift
         method = exp.shift
         unless exp.empty? then
           rvar = translate exp.shift
           case method
-          when '==', '<=>', 'equal?',
+          when '==', 'equal?',
             '<', '>', '<=', '>=',
             '+', '-', '*', '/', '%' then
+            method = "==" if method == 'equal?'
             "#{lvar} #{method} #{rvar.shift}"
+          when "<=>" then
+            "#{lvar} != #{rvar.shift}"
           when "puts"
             "fputs(#{rvar}, #{lvar})"
           else
@@ -128,6 +135,16 @@ class RubyToC
             raise "Bug! Unhandled method #{method}"
           end
         end
+      when :case then
+        var = translate(exp.shift)
+        bod = []
+        els = translate(exp.pop)
+        until exp.empty? do
+          thingy = exp.shift
+          result = translate(thingy)
+          bod << result
+        end
+        "switch (#{var}) {\n#{bod.join('')}" + (els.nil? ? '' : "default:\n#{els};\nbreak;\n") + "}"
       when :dasgn_curr then
         var = exp.shift
         arg = var.shift
@@ -141,7 +158,7 @@ class RubyToC
       when :dvar then
         exp.shift
       when :false then
-        0
+        "0"
       when :fcall then
         name = exp.shift
         args = translate exp.shift
@@ -179,7 +196,10 @@ class RubyToC
         res << ";\n}"
         res
       when :lasgn then
-        typ = c_type exp.pop
+        typ = exp.pop
+        unless typ.nil? then
+          typ = c_type typ
+        end
         name = exp.shift
         args = []
         until exp.empty? do
@@ -188,7 +208,9 @@ class RubyToC
         end
         args = args.shift # arg list is enclosed by array [[arg1, arg2]]
         res = ""
-        if typ =~ /(.*)\[\]/ then
+        if typ.nil? then
+          res << "#{name} = #{args}"
+        elsif typ =~ /(.*)\[\]/ then
           res << "#{$1}_array #{name};\n"
           res << "#{name}.contents = { #{args.join ', '} };\n"
           res << "#{name}.length = #{args.length}"
@@ -197,7 +219,7 @@ class RubyToC
         end
         res
       when :lit then
-        exp.shift
+        exp.shift.to_s
       when :lvar then
         exp.shift
       when :nil then
@@ -209,14 +231,27 @@ class RubyToC
         if body.empty? then
           body = "\n"
         else
-          body = "\n#{body.join ";\n"};\n"
+          body = "\n#{body};\n"
         end
         [args, body]
       when :str then
         "\"#{exp.shift}\""
       when :true then
-        1
+        "1"
         # We purposefully do not support these node types
+      when :when then
+        code = []
+        ary = exp.shift
+        ary.shift # nuke :array
+        code << ary.map do |thingy|
+          "case " + translate(thingy) + ":\n"
+        end
+        body = translate(exp.shift).to_a
+        unless body.empty? then
+          code << "#{body.join(";\n")};\nbreak;\n"
+        else
+          code << "break;\n"
+        end#{body.join
       when :rescue, :const then
         raise SyntaxError, "'#{node_type}' is not a supported node type for translation (yet?)."
       else

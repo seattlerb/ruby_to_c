@@ -21,6 +21,8 @@ end
 
 new_classes -= old_classes
 
+puts RubyToC.preamble
+
 new_classes.each do |klass|
   puts RubyToC.translate_all_of(klass, ! $s)
 end

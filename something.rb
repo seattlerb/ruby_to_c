@@ -74,7 +74,8 @@ class Something
   end
 
   def multi_args(arg1, arg2)
-    puts(arg1 * arg2)
+    arg3 = arg1 * arg2 * 7
+    puts(arg3)
     return "foo"
   end
 
@@ -84,6 +85,41 @@ class Something
     else
       return false
     end
+  end
+
+  def case_stmt
+    var = 2
+    result = ""
+    case var
+    when 1 then
+      # block
+      puts "something"
+      result = "red"
+    when 2, 3 then
+      result = "yellow"
+    when 4 then
+      # nothing
+    else
+      result = "green"
+    end
+
+    case result
+    when "red" then
+      var = 1
+    when "yellow" then
+      var = 2
+    when "green" then
+      var = 3
+    end
+
+    return result
+  end
+
+  def eric_is_stubborn
+    var = 42
+    var2 = var.to_s
+    $stderr.puts(var2)
+    return var2
   end
 
 end

@@ -12,3 +12,10 @@ test:
 
 trouble:
 	$(RUBY) $(RUBY_FLAGS) translate.rb zcomparable.rb
+
+c:
+	$(MAKE) trouble | tail +2 > trouble.c
+	gcc -I/usr/local/lib/ruby/1.8/powerpc-darwin/ -c trouble.c -o trouble.o
+
+clean:
+	rm -f *~ trouble.c diff.txt

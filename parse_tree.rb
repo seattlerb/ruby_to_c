@@ -136,31 +136,28 @@ again_no_block:
       }
       break;
 
-  case NODE_WHEN:
   case NODE_CASE:
-    {
-      NODE *tag;
-      if (nd_type(node) == NODE_CASE) {
-	add_to_parse_tree(current, node->nd_head);
-	node = node->nd_body;
+    add_to_parse_tree(current, node->nd_head);          /* expr */
+    node = node->nd_body;
+    while (node) {
+      add_to_parse_tree(current, node);
+      if (nd_type(node) == NODE_WHEN) {                 /* when */
+        node = node->nd_next; 
+      } else {
+        break;                                          /* else */
       }
-      while (node) {
-	if (nd_type(node) != NODE_WHEN) {
-	  add_to_parse_tree(current, node);
-	  break;
-	}
-	tag = node->nd_head;
-	while (tag) {
-	  if (nd_type(tag->nd_head) == NODE_WHEN) {
-	    add_to_parse_tree(current, tag->nd_head->nd_head);
-	  } else {
-	    add_to_parse_tree(current, tag->nd_head);
-	  }
-	  tag = tag->nd_next;
-	}
-	add_to_parse_tree(current, node->nd_body);
-	node = node->nd_next;
+      if (! node) {
+        rb_ary_push(current, Qnil);                     /* no else */
       }
+    }
+    break;
+
+  case NODE_WHEN:
+    add_to_parse_tree(current, node->nd_head);          /* args */
+    if (node->nd_body) {
+      add_to_parse_tree(current, node->nd_body);        /* body */
+    } else {
+      rb_ary_push(current, Qnil);
     }
     break;
 

@@ -36,32 +36,27 @@ class Type
 
   TYPES = {}
 
-  def self.method_missing(meth, *args)
-    raise "Unknown type #{meth}" unless TYPES.has_key?(meth)
-    TYPES[meth]
+  def self.method_missing(type, *args)
+    raise "Unknown type #{type}" unless KNOWN_TYPES.has_key?(type)
+    TYPES[type] = self.new(type) unless TYPES.has_key?(type)
+    TYPES[type]
   end
 
   attr_accessor :type
   attr_accessor :list
 
   def self.make_unknown
-    self.new
+    self.new(:unknown, false)
   end
 
   def self.make_unknown_list
-    unknown_list = self.new
-    unknown_list.list = true
-    unknown_list
+    self.new(:unknown, true)
   end
 
-  def initialize(type = :unknown, list = false)
+  def initialize(type, list=false)
     raise "Unknown type #{type.inspect}" unless KNOWN_TYPES.has_key? type
     @type = Handle.new type
     @list = list
-  end
-
-  KNOWN_TYPES.keys.each do |type|
-    TYPES[type] = Type.new(type)
   end
 
   def unknown?
@@ -72,6 +67,7 @@ class Type
     @list
   end
 
+  # REFACTOR: this should be named type, but that'll break code at the moment
   def list_type
     @type.contents
   end
@@ -111,7 +107,7 @@ class Type
   end
 
   def inspect
-    "Type(#{self})"
+    "Type.#{self.type.contents}"
   end
 
 end
@@ -267,10 +263,10 @@ class InferTypes
         unless exp.empty? then
           rvar = check(exp.shift, tree)[0]
           case method
-          when '==', 'equal?' then
+          when '==', 'equal?', '<', '>', '<=', '>=' then
             rvar.unify lvar
             Type.new(:bool)
-          when '<', '>', '<=', '>=', '<=>',
+          when '<=>',
             '+', '-', '*', '/', '%' then
             # HACK HACK HACK: unify rvar, :long
             # TODO: unify and use real type
@@ -286,13 +282,26 @@ class InferTypes
           case method
           when 'each' then
             lvar.unify Type.make_unknown_list
-          when 'nil?', 'to_i', 'class' then
+          when 'nil?' then
+            Type.bool
+          when 'to_i', 'class' then
             lvar
           when 'to_s' then
             Type.new(:str)
           else
             raise "unhandled method '#{method}'"
           end
+        end
+      # :case expects a test expression followed by a list of when
+      # expressions and an else expression.  Unifies the when expressions
+      # and the else expressions, and returns this type.
+      when :case then
+        # TODO add magical expression variable to environment so :when can
+        # unify with it.
+        expression = check(exp.shift, tree)
+        body = []
+        until exp.empty? do
+          body << check(exp.shift, tree)
         end
       # :defn expects a method name and an expression.  Returns the return
       # type of the method.
@@ -324,7 +333,7 @@ class InferTypes
         cond_type = check(exp.shift, tree)
         then_type = check(exp.shift, tree)
         else_type = check(exp.shift, tree)
-        # TODO: cond_type.unify Type.new(:bool)
+        cond_type.unify Type.new(:bool)
         then_type.unify else_type
       # :iter expects a call, dargs and body expression.  Unifies the type of
       # the call and dargs expressions.  Returns the type of the body.
@@ -359,11 +368,11 @@ class InferTypes
 
         unless name_type.nil? then
           name_type.unify arg_type
+          tree.add nil
+        else
+          tree.add arg_type
+          @env.add name, arg_type
         end
-
-        tree.add arg_type
-
-        @env.add name, arg_type
 
         arg_type
       # :lit is a literal value.  Returns the type of the literal.
@@ -390,7 +399,7 @@ class InferTypes
           gvar_type = Type.make_unknown
           @genv.add name, gvar_type
         end
-        tree.add gvar_type
+#        tree.add gvar_type
         gvar_type
       # :nil returns the type :nil.
       when :nil then
@@ -421,7 +430,7 @@ class InferTypes
       when :true, :false then
         Type.new(:bool)
       # :const expects an expression.  Returns the type of the constant.
-      when :const
+      when :const then
         c = exp.shift
         if c =~ /^[A-Z]/ then
           puts "class #{c}"
@@ -429,6 +438,10 @@ class InferTypes
           raise "I don't know what to do with const #{c}. It doesn't look like a class."
         end
         Type.new(:zclass)
+      # :when expects DOC
+      when :when then
+        args = check(exp.shift, tree)
+        body = check(exp.shift, tree)
       else
         raise "Bug! Unknown node type #{node_type.inspect} in #{([node_type] + exp).inspect}"
       end # case

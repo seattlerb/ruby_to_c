@@ -39,19 +39,14 @@ class TestType < Test::Unit::TestCase
   def setup
     @unknown = Type.make_unknown
     @unknown_list = Type.make_unknown_list
-    @long = Type.new :long
-    @long_list = Type.new :long, true
+    @long = Type.long
+    @long_list = Type.new(:long, true)
   end
 
   def test_unknown_types
     assert_raises(RuntimeError) do
-      Type.new :some_made_up_type
+      Type.new(:some_made_up_type)
     end
-  end
-
-  def test_default_unknown
-    type = Type.new
-    assert_equal @unknown, type
   end
 
   def test_list_type
@@ -59,14 +54,14 @@ class TestType < Test::Unit::TestCase
   end
 
   def test_equal
-    type = Type.new :long
+    type = Type.long
     assert_not_equal @unknown, type
     assert_equal @long, type
     assert_not_equal @long_list, type
   end
 
   def test_list_equal
-    type = Type.new :long, true
+    type = Type.new(:long, true)
     assert_not_equal @unknown, type
     assert_not_equal @long, type
     assert_equal @long_list, type
