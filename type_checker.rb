@@ -142,6 +142,10 @@ class TypeChecker < SexpProcessor
     @genv.add :$stdout, Type.file
     @genv.add :$stderr, Type.file
 
+    ObjectSpace.each_object(Class) do |klass|
+      @genv.add klass.name.intern, Type.fucked
+    end
+
     $bootstrap.each do |name,signatures|
       # FIX: Using Type.send because it must go through method_missing, not new
       signatures.each do |signature|
@@ -334,9 +338,11 @@ class TypeChecker < SexpProcessor
     result = t(:class, Type.zclass)
     result << name
     result << superclass
-
-    until exp.empty? do
-      result << process(exp.shift)
+      
+    @env.scope do
+      until exp.empty? do
+        result << process(exp.shift)
+      end
     end
 
     return result
@@ -533,14 +539,19 @@ class TypeChecker < SexpProcessor
   ##
   # Instance variable assignment is currently unsupported.  Does no
   # unification and returns an untyped sexp
-  #--
-  # TODO support instance variables
 
   def process_iasgn(exp)
     var = exp.shift
     val = process exp.shift
-    # TODO: do we need to unify these?
-    return t(:iasgn, var, val)
+
+    var_type = @env.lookup var rescue nil
+    if var_type.nil? then
+      @env.add var, val.sexp_type
+    else
+      val.sexp_type.unify var_type
+    end
+
+    return t(:iasgn, var, val, val.sexp_type)
   end
 
   ##
@@ -587,7 +598,14 @@ class TypeChecker < SexpProcessor
 
   def process_ivar(exp)
     name = exp.shift
-    return t(:ivar, name, Type.unknown)
+
+    var_type = @env.lookup name rescue nil
+    if var_type.nil? then
+      var_type = Type.unknown
+      @env.add name, var_type
+    end
+
+    return t(:ivar, name, var_type)
   end
 
   ##

@@ -67,9 +67,7 @@ end
 #
 # NOT SUPPORTED: (keep in sync w/ initialize)
 # 
-# :begin, :block_arg, :case, :const, :dstr, :iasgn, :ivar, :rescue,
-# :self, :super, :when
-
+# :begin, :block_arg, :case, :const, :dstr, :rescue, :self, :super, :when
 
 class RubyToC < SexpProcessor
 
@@ -166,7 +164,7 @@ typedef struct { unsigned long length; str * contents; } str_array;
     super
     @env = Environment.new
     self.auto_shift_type = true
-    self.unsupported = [ :begin, :block_arg, :case, :const, :dstr, :iasgn, :ivar, :rescue, :self, :super, :when, ]
+    self.unsupported = [ :begin, :block_arg, :case, :const, :dstr, :rescue, :self, :super, :when, ]
     self.strict = true
     self.expected = String
 
@@ -384,6 +382,15 @@ typedef struct { unsigned long length; str * contents; } str_array;
   end
 
   ##
+  # Instance Variable Assignment
+
+  def process_iasgn(exp)
+    name = exp.shift
+    val = process exp.shift
+    "self->#{name.to_s.sub(/^@/, '')} = #{val}"
+  end
+
+  ##
   # Conditional statements
   #
   # TODO: implementation is ugly as hell... PLEASE try to clean
@@ -447,6 +454,14 @@ typedef struct { unsigned long length; str * contents; } str_array;
     end
 
     return out.join("\n")
+  end
+
+  ##
+  # Instance Variable Access
+
+  def process_ivar(exp)
+    name = exp.shift
+    "self->#{name.to_s.sub(/^@/, '')}"
   end
 
   ##
