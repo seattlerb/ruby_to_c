@@ -30,7 +30,7 @@ class TestRewriter < Test::Unit::TestCase
           [:str, "4"],
           [:str, "else"]]]]
 
-    assert_equal expected, @rewrite.process(input)
+    assert_equal Sexp.from_array(expected), @rewrite.process(Sexp.from_array(input))
   end
 
   def test_case2
@@ -63,7 +63,7 @@ class TestRewriter < Test::Unit::TestCase
   def test_when
     input = [:when, [:array, [:lit, 1]], [:str, "1"]]
 
-    expected = [[[:lit, 1]], [:str, "1"]]
+    expected = [:when, [[:lit, 1]], [:str, "1"]]
 
     assert_equal expected, @rewrite.process(input)
   end

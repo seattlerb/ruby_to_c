@@ -158,8 +158,8 @@ class TestType < Test::Unit::TestCase
   end
 
   def test_to_s
-    assert_equal "Integer", @long.to_s
-    assert_equal "Integer_list", @long_list.to_s
+    assert_equal "Type.long", @long.to_s
+    assert_equal "Type.long_list", @long_list.to_s
   end
 
   def test_unknown

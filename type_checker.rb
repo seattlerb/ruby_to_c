@@ -3,6 +3,8 @@ require 'parse_tree'
 require 'rewriter'
 require 'support'
 
+# TODO: calls to sexp_type should probably be replaced w/ better Sexp API
+
 class TypeChecker < SexpProcessor
 
   require 'bootstrap'
@@ -37,6 +39,8 @@ class TypeChecker < SexpProcessor
     self.auto_shift_type = true
     self.strict = true
 
+    @env.extend
+
     bootstrap
   end
 
@@ -46,6 +50,7 @@ class TypeChecker < SexpProcessor
 
     parser = ParseTree.new
     rewriter = Rewriter.new
+    # TODO use the chain
     TypeChecker::Bootstrap.instance_methods(false).each do |meth|
       parsed = parser.parse_tree TypeChecker::Bootstrap, meth
       rewritten = rewriter.process parsed
@@ -58,19 +63,21 @@ class TypeChecker < SexpProcessor
   # name, type pairs.
 
   def process_args(exp)
-    return [:args], [] if exp.empty?
-    formals = []
+    formals = Sexp.new :args
     types = []
 
     until exp.empty? do
       arg = exp.shift
       type = Type.unknown
       @env.add arg, type
-      formals << [arg, type]
+      formals << Sexp.new(arg, type)
       types << type
     end
 
-    return [:args, *formals], types
+    # HACK: should not set w/ array of types... bad bad bad
+    formals.sexp_type = types
+
+    return formals
   end
 
   ##
@@ -79,13 +86,15 @@ class TypeChecker < SexpProcessor
 
   def process_array(exp)
     types = []
-    vars = []
+    vars = Sexp.new :array
     until exp.empty? do
-      var, type = process exp.shift
+      var = process exp.shift
       vars << var
-      types << type
+      types << var.sexp_type
     end
-    return [:array, *vars], types
+    # HACK!!! omg types cannot be an array, but we don't ... yeah. brokey.
+    # vars.sexp_type = types
+    vars
   end
 
   ##
@@ -93,12 +102,11 @@ class TypeChecker < SexpProcessor
   # returns the unknown type.
 
   def process_block(exp)
-    nodes = []
+    nodes = Sexp.new :block, Type.unknown
     until exp.empty? do
-      body, type = process exp.shift
-      nodes << body
+      nodes << process(exp.shift)
     end
-    return [:block, *nodes], Type.unknown
+    nodes
   end
 
   ##
@@ -109,28 +117,34 @@ class TypeChecker < SexpProcessor
 
   def process_call(exp)
     name = exp.shift
-    rhs, rhs_type = process exp.shift
-    args, arg_types = process exp.shift
+    lhs = process exp.shift     # can be nil
+    args = process exp.shift
+
+    arg_types = if args.nil? then
+                  []
+                else
+                  if args.first == :array then
+                    args.sexp_types
+                  else
+                    [args.sexp_type]
+                  end
+                end
 
     if name == "===" then
-      equal_type = nil
-      if rhs_type.unknown? and lhs_type.unknown? then
-        raise "Help! I can't figure out what kind of #=== comparison to use"
-      elsif not rhs_type.unknown? then
-        equal_type = rhs_type
-      else
-        equal_type = lhs_type
-      end
-
+      rhs = args[1]
+      raise "lhs of === may not be nil" if lhs.nil?
+      raise "rhs of === may not be nil" if rhs.nil?
+      raise "Help! I can't figure out what kind of #=== comparison to use" if
+        lhs.sexp_type.unknown? and rhs.sexp_type.unknown?
+      equal_type = lhs.sexp_type.unknown? ? rhs.sexp_type : lhs.sexp_type
       name = "case_equal_#{equal_type.list_type}"
     end
 
     function_type = @functions[name]
     return_type = Type.unknown
 
-    arg_types = [] if arg_types.nil?
-    unless rhs_type.nil? then
-      arg_types.unshift rhs_type
+    unless lhs.nil? or lhs.sexp_type.nil? then
+      arg_types.unshift lhs.sexp_type
     end
 
     if function_type.nil?  then
@@ -140,7 +154,7 @@ class TypeChecker < SexpProcessor
       return_type = function_type.list_type.return_type
     end
 
-    return [:call, name, rhs, args], return_type
+    return Sexp.new(:call, name, lhs, args, return_type)
   end
 
   ##
@@ -151,7 +165,7 @@ class TypeChecker < SexpProcessor
     type = Type.unknown
     @env.add name, type
 
-    return [:dasgn_curr, name, type], type
+    return Sexp.new(:dasgn_curr, name, type)
   end
 
   ##
@@ -166,11 +180,14 @@ class TypeChecker < SexpProcessor
     @current_function_name = name
     @env.extend
 
-    args, arg_types = process exp.shift
+    args = process exp.shift
+    arg_types = args.sexp_type
+
     unless @functions.has_key? name then
       @functions[name] = Type.function arg_types, return_type
     end
-    body, body_type = process exp.shift
+    body = process exp.shift
+    body_type = body.sexp_type
 
     @env.unextend
     @current_function_name = nil
@@ -183,7 +200,7 @@ class TypeChecker < SexpProcessor
       type.unify function_type.list_type.formal_types[i]
     end
 
-    return [:defn, name, args, body, function_type], function_type
+    return Sexp.new(:defn, name, args, body, function_type)
   end
 
   ##
@@ -192,7 +209,7 @@ class TypeChecker < SexpProcessor
   def process_dvar(exp)
     name = exp.shift
     type = @env.lookup name
-    return [:dvar, name, type], type
+    return Sexp.new(:dvar, name, type)
   end
 
   ##
@@ -200,15 +217,18 @@ class TypeChecker < SexpProcessor
   # Unifies and returns the type of the three expressions.
 
   def process_if(exp)
-    cond_exp, cond_type = process exp.shift
-    then_exp, then_type = process exp.shift
-    else_exp, else_type = process exp.shift
-    cond_type.unify Type.bool
-    then_type.unify else_type unless then_exp.nil? or else_exp.nil?
-    type = then_type unless then_type.nil?
-    type = else_type unless else_type.nil?
+    cond_exp  = process exp.shift
+    then_exp  = process exp.shift
+    else_exp  = process exp.shift rescue nil # might be empty
 
-    return [:if, cond_exp, then_exp, else_exp], type
+    cond_exp.sexp_type.unify Type.bool
+    then_exp.sexp_type.unify else_exp.sexp_type unless then_exp.nil? or else_exp.nil?
+
+    # FIX: at least document this
+    type = then_exp.sexp_type unless then_exp.nil?
+    type = else_exp.sexp_type unless else_exp.nil?
+
+    return Sexp.new(:if, cond_exp, then_exp, else_exp, type)
   end
 
   ##
@@ -219,21 +239,15 @@ class TypeChecker < SexpProcessor
   # Returns the expression and the void type.
 
   def process_iter(exp)
-    call_exp = exp.shift
+    call_exp = process exp.shift
+    dargs_exp = process exp.shift
+    body_exp = process exp.shift
 
-    rhs = call_exp[2].deep_clone
-    rhs, rhs_type = process rhs
+    lhs = call_exp[2]
+    Type.unknown_list.unify lhs.sexp_type
+    Type.new(lhs.sexp_type.list_type).unify dargs_exp.sexp_type
 
-    list_type = Type.unknown_list
-    list_type.unify rhs_type
-
-    call_exp, call_type = process call_exp
-    dargs_exp, dargs_type = process exp.shift
-
-    Type.new(rhs_type.list_type).unify dargs_type
-    body_exp, body_type = process exp.shift
-
-    return [:iter, call_exp, dargs_exp, body_exp], Type.void
+    return Sexp.new(:iter, call_exp, dargs_exp, body_exp, Type.void)
   end
 
   ##
@@ -247,16 +261,18 @@ class TypeChecker < SexpProcessor
     var_type = @env.lookup name rescue nil
 
     sub_exp = exp.shift
-    case sub_exp.first
-    when :array then
-      arg_exp, arg_type = process sub_exp
+    sub_exp_type = sub_exp.first
+    arg_exp = process sub_exp
+
+    if sub_exp_type == :array then
+      arg_type = arg_exp.sexp_types
       arg_type = arg_type.inject(Type.unknown) do |t1, t2|
         t1.unify t2
       end
       arg_type = arg_type.dup # singleton type
       arg_type.list = true
     else
-      arg_exp, arg_type = process sub_exp
+      arg_type = arg_exp.sexp_type
     end
 
     if var_type.nil? then
@@ -266,7 +282,7 @@ class TypeChecker < SexpProcessor
       var_type.unify arg_type
     end
 
-    return [:lasgn, name, arg_exp, var_type], var_type
+    return Sexp.new(:lasgn, name, arg_exp, var_type)
   end
 
   ##
@@ -283,7 +299,7 @@ class TypeChecker < SexpProcessor
       raise "Bug! Unknown literal #{value}"
     end
 
-    return [:lit, value], type
+    return Sexp.new(:lit, value, type)
   end
 
   ##
@@ -293,7 +309,7 @@ class TypeChecker < SexpProcessor
     name = exp.shift
     type = @env.lookup name
     
-    return [:lvar, name, type], type
+    return Sexp.new(:lvar, name, type)
   end
 
   ##
@@ -307,7 +323,7 @@ class TypeChecker < SexpProcessor
       type = Type.unknown
       @genv.add name, type
     end
-    return [:gvar, name, type], type
+    return Sexp.new(:gvar, name, type)
   end
 
   ##
@@ -315,18 +331,21 @@ class TypeChecker < SexpProcessor
 
   def process_nil(exp)
     # don't do a fucking thing until... we have something to do
-    # HACK: wtf to do here?
-    return [:nil], Type.value
+    # HACK: wtf to do here? (what type is nil?!?!)
+    return Sexp.new(:nil, Type.value)
   end
 
   def process_or(exp)
-    rhs, rhs_type = process exp.shift
-    lhs, lhs_type = process exp.shift
+    rhs = process exp.shift
+    lhs = process exp.shift
+
+    rhs_type = rhs.sexp_type
+    lhs_type = lhs.sexp_type
 
     rhs_type.unify lhs_type
     rhs_type.unify Type.bool
 
-    return [:or, rhs, lhs], Type.bool
+    return Sexp.new(:or, rhs, lhs, Type.bool)
   end
 
   ##
@@ -353,12 +372,12 @@ class TypeChecker < SexpProcessor
   # return type and returns the expression and the void type.
 
   def process_return(exp)
-    body, type = process exp.shift
+    body = process exp.shift
     fun_type = @functions[@current_function_name]
     raise "Definition of #{@current_function_name.inspect} not found in function list" if fun_type.nil?
     return_type = fun_type.list_type.return_type # HACK UGLY
-    return_type.unify type
-    return [:return, body], Type.void
+    return_type.unify body.sexp_type
+    return Sexp.new(:return, body, Type.void)
   end
 
   ##
@@ -366,44 +385,44 @@ class TypeChecker < SexpProcessor
   # void type.
 
   def process_scope(exp)
-    return [:scope], Type.void if exp.empty?
+    return Sexp.new(:scope, Type.void) if exp.empty?
 
-    body, = process exp.shift
+    body = process exp.shift
 
-    return [:scope, body], Type.void
+    return Sexp.new(:scope, body, Type.void)
   end
 
   ##
   # A literal string.  Returns the string and the string type.
 
   def process_str(exp)
-    return [:str, exp.shift], Type.str
+    return Sexp.new(:str, exp.shift, Type.str)
   end
 
   ##
   # :dstr is a dynamic string.  Returns the type :str.
 
   def process_dstr(exp)
-    out = [:dstr, exp.shift]
+    out = Sexp.new(:dstr, exp.shift, Type.str)
     until exp.empty? do
-      result, type = process exp.shift
+      result = process exp.shift
       out << result
     end
-    return out, Type.str
+    return out
   end
 
   ##
   # Empty expression. Returns the expression and the boolean type.
 
   def process_true(exp)
-    return [:true], Type.bool
+    return Sexp.new(:true, Type.bool)
   end
 
   ##
   # Empty expression. Returns the expression and the boolean type.
 
   def process_false(exp)
-    return [:false], Type.bool
+    return Sexp.new(:false, Type.bool)
   end
 
   ##

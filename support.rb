@@ -101,6 +101,7 @@ end
 
 class Type
 
+  # REFACTOR: nuke this
   KNOWN_TYPES = {
     :unknown => "Unknown",
     :unknown_list => "Unknown list",
@@ -115,6 +116,8 @@ class Type
     :value_list => "Value list",
     :function => "Function",
     :file => "File",
+    :homo => "Homogenous",
+    :hetero => "Heterogenous",
   }
 
   TYPES = {}
@@ -181,10 +184,6 @@ class Type
   def unify(other)
     return self if other == self and (not self.unknown?)
     return self if other.nil?
-#p self
-#p other
-#puts caller.join("\n") unless Type === other
-    raise "fuck me" unless Type === other
     if self.unknown? and other.unknown? then
       # link types between unknowns
       @type = other.type
@@ -210,13 +209,7 @@ class Type
   end
 
   def to_s
-    unless KNOWN_TYPES[@type.contents].nil? then
-      str = KNOWN_TYPES[@type.contents]
-      str << "_list" if self.list?
-      str
-    else
-      @type.contents.inspect
-    end
+    self.inspect
   end
 
   def inspect

@@ -9,9 +9,8 @@ end
 
 class Sexp < Array # ZenTest FULL
 
-  attr_accessor :sexp_type
-
   def self.from_array(a)
+    raise "fuck you ryan... you stupid hack" if Sexp === a
     ary = Array === a ? a.dup : [a]
     sexp_type = ary.last.kind_of?(Type) ? ary.pop : nil
 
@@ -32,13 +31,40 @@ class Sexp < Array # ZenTest FULL
     result
   end
 
-  def initialize(a=[], t=nil)
-    super(a)
-    @sexp_type = t
+  def initialize(*args)
+    if Type === args.last then
+      @sexp_type = args.pop
+    else
+      @sexp_type = nil # TODO: should probably be Type.unknown
+    end
+    super(args)
+  end
+
+  def sexp_type
+    unless self.first == :array then
+      @sexp_type
+    else
+      types = self.sexp_types.flatten.uniq
+      if types.size > 1 then
+        Type.hetero
+      else
+        Type.homo
+      end
+    end
+  end
+
+  def sexp_type=(o)
+    raise "You shouldn't call this on an array" if self.first == :array
+    @sexp_type = o
+  end
+
+  def sexp_types
+    raise "You shouldn't call this if not an array" unless self.first == :array
+    self.grep(Sexp).map { |x| x.sexp_type }
   end
 
   def to_a
-    if @sexp_type then
+    unless @sexp_type.nil? then
       Array.new(self + [ @sexp_type ])
     else
       Array.new(self)
@@ -48,8 +74,7 @@ class Sexp < Array # ZenTest FULL
   def ==(obj)
     case obj
     when Sexp
-      # this sorta sucks, but it avoids circularity
-      self.inspect == obj.inspect
+      super && sexp_type == obj.sexp_type
     when Array
       self == Sexp.from_array(obj)
     else
@@ -59,11 +84,31 @@ class Sexp < Array # ZenTest FULL
 
   def inspect
     if @sexp_type then
-      "[#{super} |#{@sexp_type}]"
+      "Sexp.new(#{self.map {|x|x.inspect}.join(', ')}, #{@sexp_type})"
     else
-      "[#{super}]"
+      "Sexp.new(#{self.map {|x|x.inspect}.join(', ')})"
     end
   end
+
+  def pretty_print(q)
+    q.group(1, 'Sexp.new(', ')') {
+      q.seplist(self) {|v| q.pp v }
+      if @sexp_type then
+        q.text ", "
+        q.pp @sexp_type
+      end
+    }
+  end
+
+  def to_s
+    self.join(" ")
+  end
+
+  def shift
+    raise "I'm empty" if self.empty?
+    super
+  end
+
 end
 
 class SexpProcessor
@@ -74,6 +119,7 @@ class SexpProcessor
   attr_accessor :exclude
   attr_accessor :strict
   attr_accessor :debug
+  attr_accessor :expected
 
   def initialize
     @collection = []
@@ -83,6 +129,7 @@ class SexpProcessor
     @strict = false
     @exclude = []
     @debug = {}
+    @expected = Sexp
 
     # we do this on an instance basis so we can subclass it for
     # different processors.
@@ -98,7 +145,7 @@ class SexpProcessor
     return nil if exp.nil?
 
     exp_orig = exp.deep_clone
-    result = []
+    result = Sexp.new
 
     type = exp.first
 
@@ -138,6 +185,7 @@ class SexpProcessor
       end
     end
 #    return Array === result ? Sexp.from_array(result) : result
+    raise "Result must be a #{@expected}, was #{result.class}:#{result.inspect}" unless @expected === result
     result
   end
 

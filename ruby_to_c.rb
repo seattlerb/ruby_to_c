@@ -1,3 +1,4 @@
+require 'pp'
 require 'type_checker'
 require 'sexp_processor'
 require 'composite_sexp_processor'
@@ -56,7 +57,7 @@ class RubyToC < SexpProcessor
     # HACK FIX this is horrid, and entirely eric's fault, and requires a real pipeline
     sexp = @@parser.parse_tree klass, method
     sexp = @@rewriter.process sexp
-    sexp, = @@type_checker.process sexp
+    sexp = @@type_checker.process sexp
     self.process sexp
   end
 
@@ -105,6 +106,7 @@ class RubyToC < SexpProcessor
     self.auto_shift_type = true
     self.exclude = [:case, :when, :rescue, :const, :dstr]
     self.strict = true
+    self.expected = String
 
     @prototypes = []
   end
@@ -113,8 +115,8 @@ class RubyToC < SexpProcessor
     args = []
 
     until exp.empty? do
-      arg, typ = exp.shift
-      args << "#{c_type(typ)} #{arg}"
+      arg = exp.shift
+      args << "#{c_type(arg.sexp_type)} #{arg}"
     end
 
     return "(#{args.join ', '})"
@@ -175,16 +177,18 @@ class RubyToC < SexpProcessor
 
   def process_dasgn_curr(exp)
     var = exp.shift
-    @env.add var, exp.shift
+    @env.add var, exp.sexp_type
     return var
   end
 
   def process_defn(exp)
+
     name = exp.shift
     args = process exp.shift
     body = process exp.shift
-    function = exp.shift
-    ret_type = c_type function.list_type.return_type
+    function_type = exp.sexp_type
+
+    ret_type = c_type function_type.list_type.return_type
 
     @prototypes << "#{ret_type} #{name}#{args};\n"
     "#{ret_type}\n#{name}#{args} #{body}"
@@ -192,8 +196,7 @@ class RubyToC < SexpProcessor
 
   def process_dvar(exp)
     var = exp.shift
-    var_type = exp.shift
-    @env.add var, var_type
+    @env.add var, exp.sexp_type
     return var
   end
 
@@ -203,7 +206,7 @@ class RubyToC < SexpProcessor
 
   def process_gvar(exp)
     name = exp.shift
-    type = exp.shift
+    type = exp.sexp_type
     case name
     when "$stderr" then
       "stderr"
@@ -277,7 +280,7 @@ class RubyToC < SexpProcessor
     arg_count = value.length - 1 if value.first == :array
     args = process value
 
-    var_type = exp.shift
+    var_type = exp.sexp_type
     @env.add var, var_type
     var_type = c_type var_type
 
@@ -297,7 +300,7 @@ class RubyToC < SexpProcessor
 
   def process_lvar(exp)
     name = exp.shift
-    type = exp.shift
+    # HACK: wtf??? there is no code! do nothing? if so, comment that!
     return name
   end
 

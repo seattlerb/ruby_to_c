@@ -16,14 +16,14 @@ class Rewriter < SexpProcessor
     name = exp.shift
     args = process exp.shift
 
-    [:call, name, lhs, args]
+    Sexp.new(:call, name, lhs, args)
   end
 
   ##
   # Rewrites :case/:when nodes as nested :if nodes
 
   def process_case(exp)
-    result = []
+    result = Sexp.new
     var = exp.shift
     else_stmt = exp.pop
 
@@ -32,15 +32,15 @@ class Rewriter < SexpProcessor
     until exp.empty? do
       c = exp.shift
       # start a new scope and move to it
-      new_exp << [:if]
+      new_exp << Sexp.new(:if)
       new_exp = new_exp.last
 
       assert_type c, :when
-      vars, stmts = process(c)
+      ignored_type, vars, stmts = process(c)
 
-      vars = vars.map { |v| [:call, "===", var.deep_clone, [:array, v]]}
+      vars = vars.map { |v| Sexp.new(:call, "===", var.deep_clone, Sexp.new(:array, v))}
       if vars.size > 1 then
-        new_exp << [:or, *vars ] # HACK FIX FUCK - this will break if > 2
+        new_exp << Sexp.new(:or, *vars)
       else
         new_exp << vars.first
       end
@@ -70,7 +70,7 @@ class Rewriter < SexpProcessor
       raise "Unknown :defn format"
     end
 
-    [:defn, name, args, body]
+    Sexp.new(:defn, name, args, body)
   end
 
   ##
@@ -81,7 +81,7 @@ class Rewriter < SexpProcessor
     name = exp.shift
     args = process exp.shift
 
-    [:call, name, nil, args]
+    Sexp.new(:call, name, nil, args)
   end
 
   ##
@@ -91,15 +91,19 @@ class Rewriter < SexpProcessor
   def process_vcall(exp)
     name = exp.shift
 
-    [:call, name, nil, nil]
+    Sexp.new(:call, name, nil, nil)
   end
+
+  ##
+  # Rewrites :when nodes so :case can digest it into if/else structure
+  # [:when, [args], body]
 
   def process_when(exp)
     vars = exp.shift
     assert_type vars, :array
     vars.shift # nuke vars type
     stmts = process(exp)
-    return vars, stmts.first
+    return Sexp.new(:when, vars, stmts.first)
   end
 end
 

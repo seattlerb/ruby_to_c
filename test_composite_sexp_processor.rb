@@ -1,3 +1,5 @@
+#!/usr/local/bin/ruby -w
+
 require 'composite_sexp_processor'
 require 'test/unit'
 
@@ -9,6 +11,7 @@ class FakeProcessor1 < SexpProcessor # ZenTest SKIP
     super
     self.warn_on_default = false
     self.default_method = :default_processor
+    self.expected = Array
   end
 
   def default_processor(exp)
