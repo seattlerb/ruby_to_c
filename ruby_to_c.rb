@@ -542,7 +542,8 @@ typedef struct { unsigned long length; long * contents; } long_array;
   # Strings. woot.
 
   def process_str(exp)
-    return "\"#{exp.shift}\""
+    s = exp.shift.gsub(/\n/, '\\n')
+    return "\"#{s}\""
   end
 
   ##

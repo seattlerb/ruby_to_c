@@ -379,6 +379,21 @@ var.contents[1] = \"bar\""
     assert_equal output, @ruby_to_c.process(input)
   end
 
+  def test_process_str_multi
+    input  = t(:str, "foo
+bar", Type.str)
+    output = "\"foo\\nbar\""
+
+    assert_equal output, @ruby_to_c.process(input)
+  end
+
+  def test_process_str_backslashed
+    input  = t(:str, "foo\nbar", Type.str)
+    output = "\"foo\\nbar\""
+
+    assert_equal output, @ruby_to_c.process(input)
+  end
+
   def test_process_scope
     input =  t(:scope,
                t(:block,
