@@ -1,26 +1,50 @@
 ruby_to_c
     http://www.zenspider.com/
-    support@zenspider.com
+    ryand-ruby@zenspider.com
+
+NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE
+
+                   THIS IS ALPHA SOFTWARE!
+
+NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE
+
 
 DESCRIPTION:
   
-DOC
+RubyToC has the following modules:
+
+	SexpProcessor - a generic sexp processor.
+	ParseTree     - converts ruby's internal parse tree to a sexp.
+	Rewriter      - massages the sexp into a more consistent form.
+	TypeChecker   - type inferencer for the above sexps.
+	RubyToC       - converts a ruby (subset) sexp to C.
+
+and the following tools:
+
+	show.rb       - Displays the sexp for a given file.
+	translate.rb  - Translates a given file to C.
 
 FEATURES/PROBLEMS:
   
-+ DOC
++ This is a preview release! ALPHA ALPHA ALPHA! Do NOT use this!
++ Please contact me if you have any feedback!
++ Please contact me if you have any changes!
++ Please contact me if you want to work on this!
++ Please do _NOT_ contact me if you want to speed up your ruby code!
+  That is not the intent of this project. See RubyInline if that is
+  your goal.
 
 SYNOPSYS:
 
-  DOC
+  ./translate.rb blah.rb > blah.c; gcc -c -I /rubylib/1.8/platform blah.c
 
 REQUIREMENTS:
 
-+ DOC
++ RubyInline 3 - http://sourceforge.net/projects/rubyinline/
 
 INSTALL:
 
-+ DOC
++ Um. Please don't install this crap yet. We just want feedback at this stage.
 
 LICENSE:
 
