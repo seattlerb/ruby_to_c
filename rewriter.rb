@@ -1,4 +1,4 @@
-require 'sexp_processor'
+require 'typed_sexp_processor'
 require 'parse_tree'
 
 class Rewriter < SexpProcessor
@@ -195,13 +195,14 @@ class R2CRewriter < SexpProcessor
 
   REWRITES = {
     [Type.str, "+", Type.str] => proc { |l,n,r|
-      s(:call, nil, "strcat", r.unshift(r.shift, l), Type.str)
+      t(:call, nil, "strcat", r.unshift(r.shift, l), Type.str)
     }
   }
 
   def initialize
     super
     self.auto_shift_type = true
+    self.expected = TypedSexp
   end
 
   def process_call(exp)
@@ -216,7 +217,7 @@ class R2CRewriter < SexpProcessor
     result = if REWRITES.has_key? type_signature then
                REWRITES[type_signature].call(lhs, name, rhs)
              else
-               Sexp.new(:call, lhs, name, rhs, exp.sexp_type)
+               TypedSexp.new(:call, lhs, name, rhs, exp.sexp_type)
              end
 
     return result

@@ -46,7 +46,7 @@ class TestRubyToC < Test::Unit::TestCase
   end
 
   def test_and
-    input  = Sexp.new(:and, Sexp.new(:lit, 1), Sexp.new(:lit, 2))
+    input  = t(:and, t(:lit, 1), t(:lit, 2))
     output = "1 && 2"
 
     assert_equal output, @ruby_to_c.process(input)
@@ -59,105 +59,101 @@ class TestRubyToC < Test::Unit::TestCase
 
   def test_prototypes
     assert_equal [], @ruby_to_c.prototypes
-    @ruby_to_c.process Sexp.new(:defn,
-                                "empty",
-                                Sexp.new(:args),
-                                Sexp.new(:scope),
-                                Type.function([], Type.void))
+    @ruby_to_c.process t(:defn,
+                         "empty",
+                         t(:args),
+                         t(:scope),
+                         Type.function([], Type.void))
 
     assert_equal "void empty();\n", @ruby_to_c.prototypes.first
   end
 
-  def test_prototypes=
-    raise NotImplementedError, 'Need to write test_prototypes='
-  end
-
   def test_process_args_normal
-    input =  Sexp.new(:args,
-                      Sexp.new("foo", Type.long),
-                      Sexp.new("bar", Type.long))
+    input =  t(:args,
+               t("foo", Type.long),
+               t("bar", Type.long))
     output = "(long foo, long bar)"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_args_empty
-    input =  Sexp.new(:args)
+    input =  t(:args)
     output = "()"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_array_single
-    input  = Sexp.new(:array,
-                      Sexp.new(:lvar, "arg1", Type.long))
+    input  = t(:array,
+               t(:lvar, "arg1", Type.long))
     output = "arg1"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_array_multiple
-    input  = Sexp.new(:array,
-                      Sexp.new(:lvar, "arg1", Type.long),
-                      Sexp.new(:lvar, "arg2", Type.long))
+    input  = t(:array,
+               t(:lvar, "arg1", Type.long),
+               t(:lvar, "arg2", Type.long))
     output = "arg1, arg2"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_call
-    input  = Sexp.new(:call, nil, "name", nil)
+    input  = t(:call, nil, "name", nil)
     output = "name()"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_call_lhs
-    input  = Sexp.new(:call, Sexp.new(:lit, 1), "name", nil)
+    input  = t(:call, t(:lit, 1), "name", nil)
     output = "name(1)"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_call_lhs_rhs
-    input  = Sexp.new(:call,
-                      Sexp.new(:lit, 1),
-                      "name",
-                      Sexp.new(:array, Sexp.new(:str, "foo")))
+    input  = t(:call,
+               t(:lit, 1),
+               "name",
+               t(:array, t(:str, "foo")))
     output = "name(1, \"foo\")"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_call_rhs
-    input  = Sexp.new(:call,
-                      nil,
-                      "name",
-                      Sexp.new(:array,
-                               Sexp.new(:str, "foo")))
+    input  = t(:call,
+               nil,
+               "name",
+               t(:array,
+                 t(:str, "foo")))
     output = "name(\"foo\")"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_call_nil?
-    input  = Sexp.new(:call,
-                      Sexp.new(:lvar, "arg", Type.long),
-                      "nil?",
-                      nil)
+    input  = t(:call,
+               t(:lvar, "arg", Type.long),
+               "nil?",
+               nil)
     output = "NIL_P(arg)"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_call_operator
-    methods = Sexp.new("==", "<", ">", "-", "+", "*", "/", "%", "<=", ">=")
+    methods = t("==", "<", ">", "-", "+", "*", "/", "%", "<=", ">=")
 
     methods.each do |method|
-      input  = Sexp.new(:call,
-                        Sexp.new(:lit, 1),
-                        method,
-                        Sexp.new(:array, Sexp.new(:lit, 2)))
+      input  = t(:call,
+                 t(:lit, 1),
+                 method,
+                 t(:array, t(:lit, 2)))
       output = "1 #{method} 2"
 
       assert_equal output, @ruby_to_c.process(input)
@@ -165,23 +161,23 @@ class TestRubyToC < Test::Unit::TestCase
   end
 
   def test_process_block
-    input  = Sexp.new(:block, Sexp.new(:return, Sexp.new(:nil)))
+    input  = t(:block, t(:return, t(:nil)))
     output = "return Qnil;\n"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_block_multiple
-    input  = Sexp.new(:block,
-                      Sexp.new(:str, "foo"),
-                      Sexp.new(:return, Sexp.new(:nil)))
+    input  = t(:block,
+               t(:str, "foo"),
+               t(:return, t(:nil)))
     output = "\"foo\";\nreturn Qnil;\n"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_dasgn_curr
-    input  = Sexp.new(:dasgn_curr, "x", Type.long)
+    input  = t(:dasgn_curr, "x", Type.long)
     output = "x"
 
     assert_equal output, @ruby_to_c.process(input)
@@ -190,11 +186,11 @@ class TestRubyToC < Test::Unit::TestCase
   end
 
   def test_process_defn
-    input  = Sexp.new(:defn,
-                      "empty",
-                      Sexp.new(:args),
-                      Sexp.new(:scope),
-                      Type.function([], Type.void))
+    input  = t(:defn,
+               "empty",
+               t(:args),
+               t(:scope),
+               Type.function([], Type.void))
     output = "void\nempty() {\n}"
     assert_equal output, @ruby_to_c.process(input)
 
@@ -203,24 +199,24 @@ class TestRubyToC < Test::Unit::TestCase
   end
 
   def test_process_defn_with_args_and_body
-    input  = Sexp.new(:defn, "empty",
-                      Sexp.new(:args,
-                               Sexp.new("foo", Type.long),
-                               Sexp.new("bar", Type.long)),
-                      Sexp.new(:scope,
-                               Sexp.new(:block,
-                                        Sexp.new(:lit, 5))),
-                      Type.function([], Type.void))
+    input  = t(:defn, "empty",
+               t(:args,
+                 t("foo", Type.long),
+                 t("bar", Type.long)),
+               t(:scope,
+                 t(:block,
+                   t(:lit, 5))),
+               Type.function([], Type.void))
     output = "void\nempty(long foo, long bar) {\n5;\n}"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def disabled_test_dstr
-    input  = Sexp.new(:dstr,
-                      "var is ",
-                      Sexp.new(:lvar, "var"),
-                      Sexp.new(:str, ". So there."))
+    input  = t(:dstr,
+               "var is ",
+               t(:lvar, "var"),
+               t(:str, ". So there."))
     output = "sprintf stuff goes here"
 
     flunk "Way too hard right now"
@@ -228,65 +224,65 @@ class TestRubyToC < Test::Unit::TestCase
   end
 
   def test_process_dvar
-    input  = Sexp.new(:dvar, "dvar", Type.long)
+    input  = t(:dvar, "dvar", Type.long)
     output = "dvar"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_false
-    input =  Sexp.new(:false)
+    input =  t(:false)
     output = "Qfalse"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_gvar
-    input  = Sexp.new(:gvar, "$stderr", Type.long)
+    input  = t(:gvar, "$stderr", Type.long)
     output = "stderr"
 
     assert_equal output, @ruby_to_c.process(input)
     assert_raises RuntimeError do
-      @ruby_to_c.process Sexp.new(:gvar, "$some_gvar", Type.long)
+      @ruby_to_c.process t(:gvar, "$some_gvar", Type.long)
     end
   end
 
   def test_process_if
-    input  = Sexp.new(:if,
-                      Sexp.new(:call,
-                               Sexp.new(:lit, 1),
-                               "==",
-                               Sexp.new(:array, Sexp.new(:lit, 2))),
-                      Sexp.new(:str, "not equal"),
-                      nil)
+    input  = t(:if,
+               t(:call,
+                 t(:lit, 1),
+                 "==",
+                 t(:array, t(:lit, 2))),
+               t(:str, "not equal"),
+               nil)
     output = "if (1 == 2) {\n\"not equal\";\n}"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_if_else
-    input  = Sexp.new(:if,
-                      Sexp.new(:call,
-                               Sexp.new(:lit, 1),
-                               "==",
-                               Sexp.new(:array, Sexp.new(:lit, 2))),
-                      Sexp.new(:str, "not equal"),
-                      Sexp.new(:str, "equal"))
+    input  = t(:if,
+               t(:call,
+                 t(:lit, 1),
+                 "==",
+                 t(:array, t(:lit, 2))),
+               t(:str, "not equal"),
+               t(:str, "equal"))
     output = "if (1 == 2) {\n\"not equal\";\n} else {\n\"equal\";\n}"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_if_block
-    input  = Sexp.new(:if,
-                      Sexp.new(:call,
-                               Sexp.new(:lit, 1),
-                               "==",
-                               Sexp.new(:array, Sexp.new(:lit, 2))),
-                      Sexp.new(:block,
-                               Sexp.new(:lit, 5),
-                               Sexp.new(:str, "not equal")),
-                      nil)
+    input  = t(:if,
+               t(:call,
+                 t(:lit, 1),
+                 "==",
+                 t(:array, t(:lit, 2))),
+               t(:block,
+                 t(:lit, 5),
+                 t(:str, "not equal")),
+               nil)
     output = "if (1 == 2) {\n5;\n\"not equal\";\n}"
 
     assert_equal output, @ruby_to_c.process(input)
@@ -294,22 +290,22 @@ class TestRubyToC < Test::Unit::TestCase
 
   def test_process_iter
     var_type = Type.long_list
-    input  = Sexp.new(:iter,
-                      Sexp.new(:call,
-                               Sexp.new(:lvar, "array", var_type),
-                               "each",
-                               nil),
-                      Sexp.new(:dasgn_curr, "x", Type.long),
-                      Sexp.new(:call,
-                               nil,
-                               "puts",
-                               Sexp.new(:array,
-                                        Sexp.new(:call,
-                                                 Sexp.new(:dvar,
-                                                          "x",
-                                                          Type.long),
-                                                 "to_s",
-                                                 nil))))
+    input  = t(:iter,
+               t(:call,
+                 t(:lvar, "array", var_type),
+                 "each",
+                 nil),
+               t(:dasgn_curr, "x", Type.long),
+               t(:call,
+                 nil,
+                 "puts",
+                 t(:array,
+                   t(:call,
+                     t(:dvar,
+                       "x",
+                       Type.long),
+                     "to_s",
+                     nil))))
     output = "unsigned long index_x;
 for (index_x = 0; index_x < array.length; ++index_x) {
 long x = array.contents[index_x];
@@ -320,18 +316,18 @@ puts(to_s(x));
   end
 
   def test_process_lasgn
-    input  = Sexp.new(:lasgn, "var", Sexp.new(:str, "foo"), Type.str)
+    input  = t(:lasgn, "var", t(:str, "foo"), Type.str)
     output = "var = \"foo\""
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_lasgn_array
-    input  = Sexp.new(:lasgn,
+    input  = t(:lasgn,
                       "var",
-                      Sexp.new(:array,
-                               Sexp.new(:str, "foo"),
-                               Sexp.new(:str, "bar")),
+                      t(:array,
+                               t(:str, "foo"),
+                               t(:str, "bar")),
                       Type.str_list)
     output = "var.length = 2;
 var.contents = (long*) malloc(sizeof(long) * var.length);
@@ -342,112 +338,112 @@ var.contents[1] = \"bar\""
   end
 
   def test_process_lit
-    input  = Sexp.new(:lit, 1)
+    input  = t(:lit, 1)
     output = "1"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_lvar
-    input  = Sexp.new(:lvar, "arg", Type.long)
+    input  = t(:lvar, "arg", Type.long)
     output = "arg"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_nil
-    input  = Sexp.new(:nil)
+    input  = t(:nil)
     output = "Qnil"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_or
-    input  = Sexp.new(:or, Sexp.new(:lit, 1), Sexp.new(:lit, 2))
+    input  = t(:or, t(:lit, 1), t(:lit, 2))
     output = "1 || 2"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_return
-    input =  Sexp.new(:return, Sexp.new(:nil))
+    input =  t(:return, t(:nil))
     output = "return Qnil"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_str
-    input  = Sexp.new(:str, "foo")
+    input  = t(:str, "foo")
     output = "\"foo\""
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_scope
-    input =  Sexp.new(:scope,
-                      Sexp.new(:block,
-                               Sexp.new(:return, Sexp.new(:nil))))
+    input =  t(:scope,
+                      t(:block,
+                               t(:return, t(:nil))))
     output = "{\nreturn Qnil;\n}"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_scope_empty
-    input  = Sexp.new(:scope)
+    input  = t(:scope)
     output = "{\n}"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_scope_var_set
-    input  = Sexp.new(:scope, Sexp.new(:block,
-                                       Sexp.new(:lasgn, "arg",
-                                                Sexp.new(:str, "declare me"),
+    input  = t(:scope, t(:block,
+                                       t(:lasgn, "arg",
+                                                t(:str, "declare me"),
                                                 Type.str),
-                                       Sexp.new(:return, Sexp.new(:nil))))
+                                       t(:return, t(:nil))))
     output = "{\nchar * arg;\narg = \"declare me\";\nreturn Qnil;\n}"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_true
-    input =  Sexp.new(:true)
+    input =  t(:true)
     output = "Qtrue"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_unless
-    input  = Sexp.new(:if, Sexp.new(:call,
-                                    Sexp.new(:lit, 1),
+    input  = t(:if, t(:call,
+                                    t(:lit, 1),
                                     "==",
-                                    Sexp.new(:array, Sexp.new(:lit, 2))),
+                                    t(:array, t(:lit, 2))),
                       nil,
-                      Sexp.new(:str, "equal"))
+                      t(:str, "equal"))
     output = "if (1 == 2) {\n;\n} else {\n\"equal\";\n}"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_while
-    input    = s(:while,
-                 s(:call, s(:lvar, "n"), "<=", s(:array, s(:lit, 3))),
-                 s(:block,
-                   s(:call,
-                     nil,
-                     "puts",
-                     s(:array,
-                       s(:call,
-                         s(:lvar, "n"),
-                         "to_s",
-                         nil))),
-                   s(:lasgn, "n",
-                     s(:call,
-                       s(:lvar, "n"),
-                       "+",
-                       s(:array,
-                         s(:lit, 1))),
-                     Type.long))) # NOTE Type.long needed but not used
+    input = t(:while,
+              t(:call, t(:lvar, "n"), "<=", t(:array, t(:lit, 3))),
+              t(:block,
+                t(:call,
+                  nil,
+                  "puts",
+                  t(:array,
+                    t(:call,
+                      t(:lvar, "n"),
+                      "to_s",
+                      nil))),
+                t(:lasgn, "n",
+                  t(:call,
+                    t(:lvar, "n"),
+                    "+",
+                    t(:array,
+                      t(:lit, 1))),
+                  Type.long))) # NOTE Type.long needed but not used
 
     expected = "while (n <= 3) {\nputs(to_s(n));\nn = n + 1;\n}"
 
@@ -654,8 +650,8 @@ unknown_args(long arg1, char * arg2) {
 return arg1;
 }"
 
-  @@__all = Sexp.new()
-  @@__expect_raise = Sexp.new( "interpolated" )
+  @@__all = t()
+  @@__expect_raise = t( "interpolated" )
 
   Something.instance_methods(false).sort.each do |meth|
     if class_variables.include?("@@#{meth}") then

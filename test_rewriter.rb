@@ -556,17 +556,17 @@ class TestR2CRewriter < Test::Unit::TestCase
 
   def test_process_call_rewritten
 
-    input = s(:call,
-              s(:str, "this", Type.str),
+    input = t(:call,
+              t(:str, "this", Type.str),
               "+",
-              s(:array, s(:str, "that", Type.str)),
+              t(:array, t(:str, "that", Type.str)),
               Type.str)
-    expected = s(:call,
+    expected = t(:call,
                  nil,
                  "strcat",
-                 s(:array,
-                   s(:str, "this", Type.str),
-                   s(:str, "that", Type.str)),
+                 t(:array,
+                   t(:str, "this", Type.str),
+                   t(:str, "that", Type.str)),
                  Type.str)
 
     assert_equal expected, @rewrite.process(input)
@@ -574,10 +574,10 @@ class TestR2CRewriter < Test::Unit::TestCase
 
   def test_process_call_same
 
-    input = s(:call,
-              s(:lit, 1, Type.long),
+    input = t(:call,
+              t(:lit, 1, Type.long),
               "+",
-              s(:array, s(:lit, 2, Type.long)),
+              t(:array, t(:lit, 2, Type.long)),
               Type.long)
     expected = input.deep_clone
 

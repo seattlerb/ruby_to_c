@@ -1,6 +1,4 @@
 
-require 'support'
-
 $TESTING = false unless defined? $TESTING
 
 class Object
@@ -11,20 +9,23 @@ end
 
 class Sexp < Array # ZenTest FULL
 
+  @@array_types = [ :array, :args, ]
+
   attr_accessor :accessors
   attr_accessor :unpack
 
   alias_method :unpack?, :unpack
 
   def initialize(*args)
-    # TODO: should probably be Type.unknown
-    @sexp_type = Type === args.last ? args.pop : nil
     @unpack = false
     @accessors = []
     super(args)
   end
 
-  @@array_types = [ :array, :args, ]
+  def array_type?
+    type = self.first
+    @@array_types.include? type
+  end
 
   def each_of_type(t, &b)
     each do | elem |
@@ -57,71 +58,27 @@ class Sexp < Array # ZenTest FULL
     self[1..-1]
   end
 
-  def array_type?
-    type = self.first
-    @@array_types.include? type
-  end
-
-  def sexp_type
-    unless array_type? then
-      @sexp_type
-    else
-      types = self.sexp_types.flatten.uniq
-
-      if types.size > 1 then
-        Type.hetero
-      else
-        Type.homo
-      end
-    end
-  end
-
-  def _set_sexp_type(o)
-    @sexp_type = o
-  end
-
-  def sexp_type=(o)
-    raise "You shouldn't call this on an #{first}" if array_type?
-    raise "You shouldn't call this a second time, ever" unless
-      @sexp_type.nil? or @sexp_type == Type.unknown
-    _set_sexp_type(o)
-  end
-
-  def sexp_types
-    raise "You shouldn't call this if not an #{@@array_types.join(' or ')}, was #{first}" unless array_type?
-    self.grep(Sexp).map { |x| x.sexp_type }
-  end
-
-  def to_a
-    result = self.map { |o| Sexp === o ? o.to_a : o }
-    if defined?(@sexp_type) and not @sexp_type.nil? then
-      result += [ @sexp_type ]
-    end
-    result
-  end
-
   def ==(obj)
     case obj
     when Sexp
-      super && sexp_type == obj.sexp_type
+      super
     else
       false
     end
   end
 
+  def to_a
+    self.map { |o| Sexp === o ? o.to_a : o }
+  end
+
   def inspect
     sexp_str = self.map {|x|x.inspect}.join(', ')
-    sexp_type_str = ", #{array_type? ? sexp_types.inspect : sexp_type}" unless sexp_type.nil?
-    return "Sexp.new(#{sexp_str}#{sexp_type_str})"
+    return "Sexp.new(#{sexp_str})"
   end
 
   def pretty_print(q)
     q.group(1, 's(', ')') do
       q.seplist(self) {|v| q.pp v }
-      unless @sexp_type.nil? then
-        q.text ", "
-        q.pp @sexp_type
-      end
     end
   end
 
@@ -132,7 +89,7 @@ class Sexp < Array # ZenTest FULL
   def shift
     raise "I'm empty" if self.empty?
     super
-  end if $DEBUG or $TESTING
+  end if $DEBUG and $TESTING
 
 end
 
@@ -259,8 +216,8 @@ class SexpProcessor
   def process(exp)
     return nil if exp.nil?
 
-    exp_orig = exp.deep_clone
-    result = Sexp.new
+    exp_orig = exp.deep_clone if $DEBUG
+    result = self.expected.new
 
     type = exp.first
 
@@ -289,7 +246,11 @@ class SexpProcessor
       end
       result = self.send(meth, exp)
       raise TypeError, "Result must be a #{@expected}, was #{result.class}:#{result.inspect}" unless @expected === result
-      raise "exp not empty after #{self.class}.#{meth} on #{exp.inspect} from #{exp_orig.inspect}" if @require_empty and not exp.empty?
+      if $DEBUG then
+        raise "exp not empty after #{self.class}.#{meth} on #{exp.inspect} from #{exp_orig.inspect}" if @require_empty and not exp.empty?
+      else
+        raise "exp not empty after #{self.class}.#{meth} on #{exp.inspect}" if @require_empty and not exp.empty?
+      end
     else
       unless @strict then
         until exp.empty? do
@@ -309,8 +270,13 @@ class SexpProcessor
           end
         end
 
-        if Sexp === exp and not exp.sexp_type.nil? then
+        # NOTE: this is costly, but we are in the generic processor
+        # so we shouldn't hit it too much with RubyToC stuff at least.
+        #if Sexp === exp and not exp.sexp_type.nil? then
+        begin
           result.sexp_type = exp.sexp_type
+        rescue Exception
+          # nothing to do, on purpose
         end
       else
         raise SyntaxError, "Bug! Unknown type #{type.inspect} to #{self.class}"
