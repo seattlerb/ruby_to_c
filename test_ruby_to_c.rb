@@ -9,8 +9,9 @@ class TestRubyToC < Test::Unit::TestCase
   @@empty = "void\nempty() {\n}"
   @@simple = "void\nsimple(long arg1) {\nprint(arg1);\nputs(4 + 2);\n}"
   @@conditional = "long\nconditional(long arg1) {\nif (arg1 == 0) {\nreturn 2;\n} else {\nif (arg1 < 0) {\nreturn 3;\n} else {\nreturn 4;\n};\n};\n}"
-  @@iteration1 = "void\niteration1() {\nlong array[] = { 1, 2, 3 };\nunsigned long index;\nfor (index = 0; index < 3; ++index) {\nlong x = array[index];\nputs(x);\n};\n}"
-  @@iteration2 = "void\niteration2() {\nlong array[] = { 1, 2, 3 };\nunsigned long index;\nfor (index = 0; index < 3; ++index) {\nlong x = array[index];\nputs(x);\n};\n}"
+  @@iteration1 = "void\niteration1() {\nlong array[] = { 1, 2, 3 };\nunsigned long index_x;\nfor (index_x = 0; index_x < 3; ++index_x) {\nlong x = array[index_x];\nputs(x);\n};\n}"
+  @@iteration2 = "void\niteration2() {\nlong array[] = { 1, 2, 3 };\nunsigned long index_x;\nfor (index_x = 0; index_x < 3; ++index_x) {\nlong x = array[index_x];\nputs(x);\n};\n}"
+  @@iteration3 = "void\niteration3() {\nlong array1[] = { 1, 2, 3 };\nlong array2[] = { 4, 5, 6, 7 };\nunsigned long index_x;\nfor (index_x = 0; index_x < 3; ++index_x) {\nlong x = array1[index_x];\nunsigned long index_y;\nfor (index_y = 0; index_y < 4; ++index_y) {\nlong y = array2[index_y];\nputs(x);\nputs(y);\n};\n};\n}"
 
   def test_empty
     thing = RubyToC.new(Something, :empty)
@@ -47,8 +48,16 @@ class TestRubyToC < Test::Unit::TestCase
 		 "Must return an iteration")
   end
 
+  def test_iteration3
+    thing = RubyToC.new(Something, :iteration3)
+    assert_equal(@@iteration3,
+		 thing.translate,
+		 "Must return an iteration")
+  end
+
   def test_class
-    assert_equal([@@conditional, @@empty, @@iteration1, @@iteration2, @@simple].join("\n\n"),
+    assert_equal([@@conditional, @@empty, @@iteration1,
+		  @@iteration2, @@iteration3, @@simple].join("\n\n"),
 		 RubyToC.translate_all_of(Something),
 		 "Must return a lot of shit")
   end

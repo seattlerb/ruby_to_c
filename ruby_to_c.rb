@@ -101,23 +101,7 @@ class RubyToC
 	@size[lhs.intern] = @size[rhs.intern] # HACK HACK HACK
 	code << "long #{lhs}[] = #{rhs}"
       when :iter then
-	# [:iter, 
-	#    [:call, [:lvar, "array"], "each"],
-	#    [:dasgn_curr, "x"],
-	#    [:fcall, "puts", [:array, [:dvar, "x"]]]]
-	lhs = parse_thingy(chunk.shift[1]).first
-	var_name = chunk.shift[1]
-	body = []
-	chunk.each do |stmt|
-	  body << parse_thingy(stmt).first
-	end
-
-	hack_size = @size[lhs.intern]
-	code << "unsigned long index"
-	code << "for (index = 0; index < #{hack_size}; ++index) {\nlong #{var_name} = #{lhs}[index]"
-	code.push(*body)
-	code << "}"
-
+	code << parse_iter(chunk)
       else
 	raise "unknown type #{type}"
       end
@@ -125,6 +109,29 @@ class RubyToC
 
     return args, code
 
+  end
+
+  def parse_iter(tokens)
+    # [:iter, 
+    #    [:call, [:lvar, "array"], "each"],
+    #    [:dasgn_curr, "x"],
+    #    [:fcall, "puts", [:array, [:dvar, "x"]]]]
+
+    code = []
+    lhs = parse_thingy(tokens.shift[1]).first
+    var_name = tokens.shift[1]
+    body = []
+    tokens.each do |chunk|
+      body.push(*parse_thingy(chunk))
+    end
+
+    hack_size = @size[lhs.intern]
+    index = "index_#{var_name}"
+    code << "unsigned long #{index}"
+    code << "for (#{index} = 0; #{index} < #{hack_size}; ++#{index}) {\nlong #{var_name} = #{lhs}[#{index}]"
+    code.push(*body)
+    code << "}"
+    return code.join(";\n")
   end
 
   def parse_fcall(tokens)
@@ -197,6 +204,11 @@ class RubyToC
       ret = parse_thingy(ret)
 
       code << "return #{ret}"
+    when :block then
+      args, c = parse_block(tokens)
+      code.push(*c)
+    when :iter then
+      code << parse_iter(tokens)
     else
       raise "unknown type #{type}"
     end

@@ -9,21 +9,11 @@ class TestParseTree < Test::Unit::TestCase
   @@missing = [nil]
   @@empty = [:defn, "empty", [:scope, [:args]]]
   @@simple = [:defn, "simple", [:scope, [:block, [:args, "arg1"], [:fcall, "print", [:array, [:lvar, "arg1"]]], [:fcall, "puts", [:array, [:call, [:lit, 4], "+", [:array, [:lit, 2]]]]]]]]
-  @@conditional = [:defn,
- "conditional",
- [:scope,
-  [:block,
-   [:args, "arg1"],
-   [:if,
-    [:call, [:lvar, "arg1"], "==", [:array, [:lit, 0]]],
-    [:return, [:lit, 2]],
-    [:if,
-     [:call, [:lvar, "arg1"], "<", [:array, [:lit, 0]]],
-     [:return, [:lit, 3]],
-     [:return, [:lit, 4]]]]]]]
+  @@conditional = [:defn, "conditional", [:scope, [:block, [:args, "arg1"], [:if, [:call, [:lvar, "arg1"], "==", [:array, [:lit, 0]]], [:return, [:lit, 2]], [:if, [:call, [:lvar, "arg1"], "<", [:array, [:lit, 0]]], [:return, [:lit, 3]], [:return, [:lit, 4]]]]]]]
   @@iteration_body = [:scope, [:block, [:args], [:lasgn, "array", [:array, [:lit, 1], [:lit, 2], [:lit, 3]]], [:iter, [:call, [:lvar, "array"], "each"], [:dasgn_curr, "x"], [:fcall, "puts", [:array, [:dvar, "x"]]]]]]
   @@iteration1 = [:defn, "iteration1", @@iteration_body]
   @@iteration2 = [:defn, "iteration2", @@iteration_body]
+  @@iteration3 = [:defn, "iteration3", [:scope, [:block, [:args], [:lasgn, "array1", [:array, [:lit, 1], [:lit, 2], [:lit, 3]]], [:lasgn, "array2", [:array, [:lit, 4], [:lit, 5], [:lit, 6], [:lit, 7]]], [:iter, [:call, [:lvar, "array1"], "each"], [:dasgn_curr, "x"], [:iter, [:call, [:lvar, "array2"], "each"], [:dasgn_curr, "y"], [:block, [:fcall, "puts", [:array, [:dvar, "x"]]], [:fcall, "puts", [:array, [:dvar, "y"]]]]]]]]]
 
   def setup
     @thing = ParseTree.new
@@ -65,8 +55,15 @@ class TestParseTree < Test::Unit::TestCase
 		 "Must return an iteration")
   end
 
-  def ztest_class
-    assert_equal([@@conditional, @@empty, @@iteration1, @@iteration2, @@simple],
+  def test_iteration3
+    assert_equal(@@iteration3,
+		 @thing.parse_tree(Something, :iteration3),
+		 "Must return an iteration")
+  end
+
+  def test_class
+    assert_equal([@@conditional, @@empty, @@iteration1,
+		  @@iteration2, @@iteration3, @@simple],
 		 @thing.parse_tree(Something),
 		 "Must return a lot of shit")
   end

@@ -30,4 +30,15 @@ class Something
     array.each { |x| puts x }
   end
 
+  def iteration3
+    array1 = [1, 2, 3]
+    array2 = [4, 5, 6, 7]
+    array1.each do |x|
+      array2.each do |y|
+	puts x
+	puts y
+      end
+    end
+  end
+
 end
