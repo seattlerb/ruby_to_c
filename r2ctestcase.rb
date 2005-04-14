@@ -172,14 +172,24 @@ class R2CTestCase < Test::Unit::TestCase
                            Type.void),
                          Type.function(Type.unknown, [Type.value], Type.bool)),
       "R2CRewriter" => :same,
-      "RubyToC"     => "long
-bools(VALUE arg1) {
-if (NIL_P(arg1)) {
-return Qfalse;
-} else {
-return Qtrue;
-}
-}",
+      "RubyToC"     => "long\nbools(VALUE arg1) {\nif (NIL_P(arg1)) {\nreturn Qfalse;\n} else {\nreturn Qtrue;\n}\n}",
+    },
+
+# TODO: move all call tests here
+    "call_arglist"  => {
+      "ParseTree"   => [:fcall,      :puts,  [:array,    [:lit, 42]]],
+      "Rewriter"    => s(:call, nil, :puts, s(:arglist, s(:lit, 42))),
+      "TypeChecker" => :skip,
+      "R2CRewriter" => :skip,
+      "RubyToC"     => :skip,
+    },
+
+    "call_attrasgn" => {
+      "ParseTree"   => [:attrasgn, [:lit, 42], :method=, [:array, [:lvar, :y]]],
+      "Rewriter"    => s(:call,   s(:lit, 42), :method=, s(:arglist, s(:lvar, :y))),
+      "TypeChecker" => :skip,
+      "R2CRewriter" => :skip,
+      "RubyToC"     => :skip,
     },
 
     "case_stmt" => {
@@ -531,6 +541,23 @@ return result;
                          Type.function(Type.unknown, [], Type.void)),
       "R2CRewriter" => :same,
       "RubyToC"     => "void\nempty() {\nQnil;\n}",
+    },
+
+    "defn_fbody" => {
+      "ParseTree" => [:defn, :aliased,
+                       [:fbody,
+                       [:scope,
+                         [:block,
+                           [:args],
+                           [:fcall, :puts, [:array, [:lit, 42]]]]]]],
+      "Rewriter"    => s(:defn, :aliased,
+                         s(:args),
+                         s(:scope,
+                           s(:block,
+                             s(:call, nil, :puts, s(:arglist, s(:lit, 42)))))),
+      "TypeChecker" => :skip,
+      "R2CRewriter" => :skip,
+      "RubyToC"     => :skip,
     },
 
     "dmethod_added" => {

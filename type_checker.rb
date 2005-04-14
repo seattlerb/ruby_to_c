@@ -143,7 +143,8 @@ class TypeChecker < SexpProcessor
     @genv.add :$stderr, Type.file
 
     ObjectSpace.each_object(Class) do |klass|
-      @genv.add klass.name.intern, Type.fucked
+      next if klass.name =~ /::/ # only 2 classes is core, but many others
+# HACK      @genv.add klass.name.intern, Type.fucked
     end
 
     $bootstrap.each do |name,signatures|
@@ -340,6 +341,20 @@ class TypeChecker < SexpProcessor
     result << superclass
       
     @env.scope do
+      # HACK: not sure this is the right place, maybe genv instead?
+      klass = eval(name.to_s) # HACK do proper lookup - ugh
+      klass.constants.each do |c|
+        const_type = case klass.const_get(c)
+                     when Fixnum then
+                       Type.long
+                     when String then
+                       Type.str
+                     else
+                       Type.unknown
+                     end
+        @env.add c.intern, const_type
+      end
+
       until exp.empty? do
         result << process(exp.shift)
       end
@@ -376,7 +391,7 @@ class TypeChecker < SexpProcessor
     c = exp.shift
     if c.to_s =~ /^[A-Z]/ then
       # TODO: validate that it really is a const?
-      type = @genv.lookup c
+      type = @genv.lookup(c) rescue @env.lookup(c)
       return t(:const, c, type)
     else
       raise "I don't know what to do with const #{c.inspect}. It doesn't look like a class."

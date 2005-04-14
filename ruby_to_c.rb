@@ -96,7 +96,7 @@ class RubyToC < SexpProcessor
   # here. It really should be made to be much more clean and
   # extendable.
 
-  def self.preamble
+  def preamble
     "// BEGIN METARUBY PREAMBLE
 #include <ruby.h>
 #define RB_COMPARE(x, y) (x) == (y) ? 0 : (x) < (y) ? -1 : 1
@@ -105,7 +105,7 @@ typedef struct { unsigned long length; long * contents; } long_array;
 typedef struct { unsigned long length; str * contents; } str_array;
 #define case_equal_long(x, y) ((x) == (y))
 // END METARUBY PREAMBLE
-"
+" + self.prototypes.join('')
   end
 
   ##
@@ -131,7 +131,9 @@ typedef struct { unsigned long length; str * contents; } str_array;
     unless method.nil? then
       self.translator.process(ParseTree.new.parse_tree_for_method(klass, method))
     else
-      self.translator.process(ParseTree.new.parse_tree(klass))
+      ParseTree.new.parse_tree(klass).map do |k|
+        self.translator.process(ParseTree.new.parse_tree(klass))
+      end
     end
   end
 
@@ -143,6 +145,7 @@ typedef struct { unsigned long length; str * contents; } str_array;
   def self.translate_all_of(klass)
     result = []
 
+    # HACK: make CompositeSexpProcessor have a registered error handler
     klass.instance_methods(false).sort.each do |method|
       result << 
         begin
@@ -289,6 +292,33 @@ typedef struct { unsigned long length; str * contents; } str_array;
 
       return "#{name}(#{args})"
     end
+  end
+
+  ##
+  # DOC
+
+  def process_class(exp)
+    name = exp.shift
+    superklass = exp.shift
+
+    result = t(:class, name, superklass)
+    until exp.empty? do
+      # HACK: cheating!
+      klass = name
+      method = exp[1]
+      result << 
+        begin
+          process(exp.shift)
+        rescue UnsupportedNodeError => err
+          "// NOTE: #{err} in #{klass}##{method}"
+        rescue UnknownNodeError => err
+          "// ERROR: #{err} in #{klass}##{method}: #{ParseTree.new.parse_tree_for_method(klass, method).inspect}"
+        rescue Exception => err
+          "// ERROR: #{err} in #{klass}##{method}: #{ParseTree.new.parse_tree_for_method(klass, method).inspect} #{err.backtrace.join(', ')}"
+        end
+    end
+
+    return result
   end
 
   ##

@@ -1,5 +1,12 @@
 #!/usr/local/bin/ruby -ws
 
+begin
+  require 'rubygems'
+  require_gem 'ParseTree'
+rescue LoadError
+  require 'parse_tree'
+end
+
 require 'ruby_to_c'
 
 old_classes = []
@@ -17,11 +24,14 @@ ObjectSpace.each_object(Class) do |klass|
 end
 
 new_classes -= old_classes
-new_classes = [ eval($c)] if defined? $c
+new_classes = [ eval($c) ] if defined? $c
 
-puts RubyToC.preamble
+rubytoc = RubyToC.translator
 
-new_classes.each do |klass|
-  puts RubyToC.translate_all_of(klass)
-end rescue nil
+code = new_classes.map do |klass|
+  # RubyToC.translate_all_of(klass)
+  rubytoc.process(ParseTree.new.parse_tree(klass))
+end # rescue nil
 
+puts rubytoc.processors.last.preamble
+puts code.join("\n\n")

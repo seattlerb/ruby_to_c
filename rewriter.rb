@@ -9,7 +9,7 @@ end
 require 'typed_sexp_processor'
 
 class Sexp
-	# add arglist because we introduce the new array type in this file
+  # add arglist because we introduce the new array type in this file
   @@array_types << :arglist
 end
 
@@ -30,14 +30,32 @@ class Rewriter < SexpProcessor
   end
 
   ##
+  # Rewrites :attrasgn nodes to the unified :call format:
+  #
+  # [:attrasgn, lhs, :name=, args],
+  #
+  # becomes:
+  #
+  # [:call, lhs, :name=, args]
+
+  def process_attrasgn(exp)
+    lhs = process exp.shift
+    name = exp.shift
+    args = process exp.shift
+    args[0] = :arglist unless args.nil?
+
+    s(:call, lhs, name, args)
+  end
+
+  ##
   # Rewrites :call nodes to the unified :call format:
-  # [:call, name, lhs, args]
+  # [:call, lhs, :name, args]
 
   def process_call(exp)
     lhs = process exp.shift
     name = exp.shift
     args = process exp.shift
-		args[0] = :arglist unless args.nil?
+    args[0] = :arglist unless args.nil?
 
     s(:call, lhs, name, args)
   end
@@ -83,6 +101,7 @@ class Rewriter < SexpProcessor
   # Input:
   #
   #   [:defn, name, [:scope, [:block, [:args, ...]]]]
+  #   [:defn, name, [:fbody, [:scope, [:block, [:args, ...]]]]]
   #   [:defn, name, [:ivar, name]]
   #   [:defn, name, [:attrset, name]]
   #
@@ -96,7 +115,8 @@ class Rewriter < SexpProcessor
     body = process exp.shift
 
     case body.first
-    when :scope then
+    when :scope, :fbody then
+      body = body[1] if body.first == :fbody
       args = body.last[1]
       assert_type args, :args
       assert_type body, :scope
@@ -140,12 +160,12 @@ class Rewriter < SexpProcessor
 
   ##
   # Rewrites :fcall nodes to the unified :call format:
-  # [:call, name, lhs, args]
+  # [:call, lhs, :name, args]
 
   def process_fcall(exp)
     name = exp.shift
     args = process exp.shift
-		args[0] = :arglist
+    args[0] = :arglist
 
     return s(:call, nil, name, args)
   end
@@ -246,7 +266,7 @@ class Rewriter < SexpProcessor
 
   ##
   # Rewrites :vcall nodes to the unified :call format:
-  # [:call, name, lhs, args]
+  # [:call, lhs, :name, args]
 
   def process_vcall(exp)
     name = exp.shift

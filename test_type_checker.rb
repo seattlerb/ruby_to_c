@@ -13,6 +13,10 @@ class DumbClass # ZenTest SKIP
   end
 end
 
+class X # ZenTest SKIP
+  VALUE = 42
+end
+
 class TestTypeChecker < R2CTestCase
 
   def setup
@@ -322,20 +326,21 @@ class TestTypeChecker < R2CTestCase
     assert_equal output, @type_checker.process(input)
   end
 
+  # HACK: putting class X above w/ some consts
   def test_process_class
     input = s(:class, :X, :Object,
               s(:defn, :meth,
                 s(:args, :x),
                 s(:scope,
                   s(:block,
-                    s(:lasgn, :x, s(:lit, 2))))))
+                    s(:lasgn, :x, s(:const, :VALUE))))))
     output = t(:class, :X, :Object,
                t(:defn, :meth,
                  t(:args, t(:x, Type.long)),
                  t(:scope,
                    t(:block,
                      t(:lasgn, :x,
-                       t(:lit, 2, Type.long),
+                       t(:const, :VALUE, Type.long),
                        Type.long),
                      Type.unknown),
                    Type.void),
