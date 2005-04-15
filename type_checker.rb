@@ -516,6 +516,13 @@ class TypeChecker < SexpProcessor
   end
 
   ##
+  # DOC
+
+  def process_error(exp) # :nodoc:
+    t(:error, exp.shift)
+  end
+
+  ##
   # False returns a bool-typed sexp.
 
   def process_false(exp)

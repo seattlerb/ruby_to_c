@@ -84,7 +84,14 @@ class Rewriter < SexpProcessor
                               :===,
                               s(:arglist, process(v)))}
       if vars.size > 1 then
-        new_exp << s(:or, *vars)
+
+        # building from the bottom up, so everything is bizarro-sexp
+        # BIZARRO-SEXP NO LIKE OR!
+        or_sexp = vars.inject(s(:or, *vars.slice!(-2,2))) do |lhs, rhs|
+          s(:or, rhs, lhs)
+        end
+
+        new_exp << or_sexp
       else
         new_exp << vars.first
       end

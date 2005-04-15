@@ -117,7 +117,18 @@ typedef struct { unsigned long length; str * contents; } str_array;
       @@translator << Rewriter.new
       @@translator << TypeChecker.new
       @@translator << R2CRewriter.new
-      @@translator << self.new
+      @@translator << RubyToC.new
+      @@translator.on(:defn) do |processor, exp, err|
+        result = processor.expected.new
+        case result
+        when Array then
+          result << :error
+        end
+        msg = "// ERROR: #{err.class}: #{err}"
+        msg += " in #{exp.inspect}" unless exp.nil?
+        result << msg
+        result
+      end
     end
     @@translator
   end
@@ -303,7 +314,7 @@ typedef struct { unsigned long length; str * contents; } str_array;
 
     result = []
 
-    result << "/" * 78 + "\n" + "// class #{name}"
+    result << "// class #{name}"
 
     until exp.empty? do
       # HACK: cheating!
@@ -382,6 +393,13 @@ typedef struct { unsigned long length; str * contents; } str_array;
     var = exp.shift
     @env.add var.to_sym, exp.sexp_type
     return var.to_s
+  end
+
+  ##
+  # DOC
+
+  def process_error(exp)
+    return exp.shift
   end
 
   ##

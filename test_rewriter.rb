@@ -107,22 +107,23 @@ class TestRewriter < R2CTestCase
      [:when, [:array, [:lit, 4]], [:lasgn, :ret, [:str, "4"]]],
      [:lasgn, :ret, [:str, "else"]]]
 
-    expected = [:if,
-      [:call,
-        [:lvar, :var],
+    expected = s(:if,
+      s(:call,
+        s(:lvar, :var),
         :===,
-        [:arglist, [:lit, 1]]],
-      [:lasgn, :ret, [:str, "1"]],
-      [:if,
-        [:or,
-          [:call, [:lvar, :var], :===, [:arglist, [:lit, 2]]],
-          [:call, [:lvar, :var], :===, [:arglist, [:lit, 3]]],
-          [:call, [:lvar, :var], :===, [:arglist, [:lit, 5]]]],
-        [:lasgn, :ret, [:str, "2, 3"]],
-        [:if,
-          [:call, [:lvar, :var], :===, [:arglist, [:lit, 4]]],
-          [:lasgn, :ret, [:str, "4"]],
-          [:lasgn, :ret, [:str, "else"]]]]]
+        s(:arglist, s(:lit, 1))),
+      s(:lasgn, :ret, s(:str, "1")),
+      s(:if,
+        s(:or,
+          s(:call, s(:lvar, :var), :===, s(:arglist, s(:lit, 2))),
+          s(:or,
+            s(:call, s(:lvar, :var), :===, s(:arglist, s(:lit, 3))),
+            s(:call, s(:lvar, :var), :===, s(:arglist, s(:lit, 5))))),
+        s(:lasgn, :ret, s(:str, "2, 3")),
+        s(:if,
+          s(:call, s(:lvar, :var), :===, s(:arglist, s(:lit, 4))),
+          s(:lasgn, :ret, s(:str, "4")),
+          s(:lasgn, :ret, s(:str, "else")))))
     
     assert_equal expected, @rewrite.process(input)
   end

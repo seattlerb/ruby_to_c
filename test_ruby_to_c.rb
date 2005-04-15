@@ -55,19 +55,15 @@ class TestRubyToC < R2CTestCase
     @ruby_to_c = RubyToC.new
     @ruby_to_c.env.extend
     @processor = @ruby_to_c
-
-    # HACK - requires a full composite - see if we can hack into genv
-    # @ruby_to_c.processors[1].genv
-    # @ruby_to_c.processors[1].genv.add :SyntaxError, Type.fucked
-    # @ruby_to_c.processors[1].genv.add :Exception, Type.fucked
-
   end
 
-  def test_and
-    input  = t(:and, t(:lit, 1, Type.long), t(:lit, 2, Type.long))
-    output = "1 && 2"
-
-    assert_equal output, @ruby_to_c.process(input)
+  def test_translator
+    Object.class_eval "class Suck; end"
+    input = [:class, :Suck, :Object,
+      [:defn, :something, [:scope, [:block, [:args], [:fcall, :"whaaa\?"]]]],
+      [:defn, :foo, [:scope, [:block, [:args], [:vcall, :something]]]]]
+    expected = "// class Suck\n\n// ERROR: NoMethodError: undefined method `[]=' for nil:NilClass\n\nvoid\nfoo() {\nsomething();\n}"
+    assert_equal expected, RubyToC.translator.process(input)
   end
 
   def test_env
@@ -84,6 +80,13 @@ class TestRubyToC < R2CTestCase
                          Type.function([], Type.void))
 
     assert_equal "void empty();\n", @ruby_to_c.prototypes.first
+  end
+
+  def test_process_and
+    input  = t(:and, t(:lit, 1, Type.long), t(:lit, 2, Type.long))
+    output = "1 && 2"
+
+    assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_args_normal
