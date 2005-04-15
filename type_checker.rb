@@ -144,7 +144,7 @@ class TypeChecker < SexpProcessor
 
     ObjectSpace.each_object(Class) do |klass|
       next if klass.name =~ /::/ # only 2 classes is core, but many others
-# HACK      @genv.add klass.name.intern, Type.fucked
+      @genv.add klass.name.intern, Type.fucked
     end
 
     $bootstrap.each do |name,signatures|

@@ -301,7 +301,10 @@ typedef struct { unsigned long length; str * contents; } str_array;
     name = exp.shift
     superklass = exp.shift
 
-    result = t(:class, name, superklass)
+    result = []
+
+    result << "/" * 78 + "\n" + "// class #{name}"
+
     until exp.empty? do
       # HACK: cheating!
       klass = name
@@ -318,7 +321,7 @@ typedef struct { unsigned long length; str * contents; } str_array;
         end
     end
 
-    return result
+    return result.join("\n\n")
   end
 
   ##
