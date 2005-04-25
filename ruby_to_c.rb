@@ -67,7 +67,7 @@ end
 #
 # NOT SUPPORTED: (keep in sync w/ initialize)
 # 
-# :begin, :block_arg, :case, :const, :dstr, :rescue, :self, :super, :when
+# :begin, :block_arg, :case, :dstr, :rescue, :self, :super, :when
 
 class RubyToC < SexpProcessor
 
@@ -125,7 +125,8 @@ typedef struct { unsigned long length; str * contents; } str_array;
           result << :error
         end
         msg = "// ERROR: #{err.class}: #{err}"
-        msg += " in #{exp.inspect}" unless exp.nil?
+        msg += " in #{exp.inspect}" unless exp.nil? or $TESTING
+        msg += " from #{caller.join(', ')}" unless $TESTING
         result << msg
         result
       end
@@ -178,7 +179,7 @@ typedef struct { unsigned long length; str * contents; } str_array;
     super
     @env = Environment.new
     self.auto_shift_type = true
-    self.unsupported = [ :begin, :block_arg, :case, :const, :dstr, :rescue, :self, :super, :when, ]
+    self.unsupported = [ :begin, :block_arg, :case, :dstr, :rescue, :self, :super, :when, ]
     self.strict = true
     self.expected = String
 
@@ -320,19 +321,15 @@ typedef struct { unsigned long length; str * contents; } str_array;
       # HACK: cheating!
       klass = name
       method = exp[1]
-      result << 
-        begin
-          process(exp.shift)
-        rescue UnsupportedNodeError => err
-          "// NOTE: #{err} in #{klass}##{method}"
-        rescue UnknownNodeError => err
-          "// ERROR: #{err} in #{klass}##{method}: #{ParseTree.new.parse_tree_for_method(klass, method).inspect}"
-        rescue Exception => err
-          "// ERROR: #{err} in #{klass}##{method}: #{ParseTree.new.parse_tree_for_method(klass, method).inspect} #{err.backtrace.join(', ')}"
-        end
+      result << process(exp.shift)
     end
 
     return result.join("\n\n")
+  end
+
+  def process_const(exp)
+    name = exp.shift
+    return name.to_s
   end
 
   ##
@@ -340,6 +337,7 @@ typedef struct { unsigned long length; str * contents; } str_array;
   #
   # TODO: This will cause a lot of errors with the built in classes
   # until we add them to the bootstrap phase.
+  # HACK: what is going on here??? We have NO tests for this node
 
   def process_cvar(exp)
     # TODO: we should treat these as globals and have them in the top scope

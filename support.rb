@@ -25,6 +25,12 @@ class Environment
   end
 
   def lookup(id)
+
+    # HACK: if id is :self, cheat for now until we have full defn remapping
+    if id == :self then
+      return Type.fucked
+    end
+
     @env.each do |closure|
       return closure[id] if closure.has_key? id
     end

@@ -28,7 +28,7 @@ new_classes = [ eval($c) ] if defined? $c
 
 rubytoc = RubyToC.translator
 
-code = ParseTree.new.parse_tree(*new_classes).map do |klass|
+code = ParseTree.new(false).parse_tree(*new_classes).map do |klass|
   rubytoc.process(klass)
 end # rescue nil
 

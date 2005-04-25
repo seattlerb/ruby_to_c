@@ -444,7 +444,13 @@ class TypeChecker < SexpProcessor
 
     @env.scope do
       args = process unprocessed_args
-      body = process exp.shift
+
+      begin
+        body = process exp.shift
+      rescue TypeError => err
+        puts "Error in method #{name}, trying to unify, whole body blew out"
+        raise
+      end
 
       # Function might already have been defined by a :call node.
       # TODO: figure out the receiver type? Is that possible at this stage?
@@ -465,11 +471,21 @@ class TypeChecker < SexpProcessor
 
     return_count = 0
     body.each_of_type(:return) do |sub_exp|
-      return_type.unify sub_exp[1].sexp_type
-      return_count += 1
+      begin
+        return_type.unify sub_exp[1].sexp_type
+        return_count += 1
+      rescue TypeError => err
+        puts "Error in method #{name}, trying to unify #{sub_exp.inspect} against #{return_type.inspect}"
+        raise
+      end
     end
     if return_count == 0 then
-      return_type.unify Type.void
+      begin
+        return_type.unify Type.void
+      rescue TypeError => err
+        puts "Error in method #{name}, trying to unify #{function_type.inspect} against Type.void"
+        raise
+      end
     end
 
     # TODO: bad API, clean
@@ -587,7 +603,12 @@ class TypeChecker < SexpProcessor
     else_exp = process exp.shift rescue nil # might be empty
 
     cond_exp.sexp_type.unify Type.bool
-    then_exp.sexp_type.unify else_exp.sexp_type unless then_exp.nil? or else_exp.nil?
+    begin
+      then_exp.sexp_type.unify else_exp.sexp_type unless then_exp.nil? or else_exp.nil?
+    rescue TypeError => err
+      puts "Error unifying #{then_exp.inspect} with #{else_exp.inspect}"
+      raise
+    end
 
     # FIX: at least document this
     type = then_exp.sexp_type unless then_exp.nil?

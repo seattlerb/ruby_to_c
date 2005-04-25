@@ -261,6 +261,13 @@ class Rewriter < SexpProcessor
   end
 
   ##
+  # Rewrites self into lvars
+
+  def process_self(exp)
+    s(:lvar, :self)
+  end
+
+  ##
   # Rewrites until nodes into while nodes.
 
   def process_until(exp)

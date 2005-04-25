@@ -1,4 +1,4 @@
-#!/usr/local/bin/ruby -w
+#!/usr/local/bin/ruby -ws
 
 require 'pp'
 require 'type_checker'
@@ -18,8 +18,9 @@ ObjectSpace.each_object(Class) do |klass|
 end
 
 new_classes -= old_classes
+new_classes = [ eval($c) ] if defined? $c
 
-parser = ParseTree.new
+parser = ParseTree.new(false)
 rewriter = Rewriter.new
 type_checker = TypeChecker.new
 

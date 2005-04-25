@@ -47,7 +47,7 @@ class R2CTestCase < Test::Unit::TestCase
       "RubyToC"     => :skip,
     },
 
-    "bbegin" => {
+    "defn_bbegin" => {
      "ParseTree"   => [:defn, :bbegin,
        [:scope,
          [:block,
@@ -114,7 +114,7 @@ class R2CTestCase < Test::Unit::TestCase
       "RubyToC"     => :unsupported,
     },
 
-    "bmethod_added" => {
+    "defn_bmethod_added" => {
       "ParseTree"   => [:defn, :bmethod_added,
         [:bmethod,
           [:dasgn_curr, :x],
@@ -187,6 +187,14 @@ class R2CTestCase < Test::Unit::TestCase
     "call_attrasgn" => {
       "ParseTree"   => [:attrasgn, [:lit, 42], :method=, [:array, [:lvar, :y]]],
       "Rewriter"    => s(:call,   s(:lit, 42), :method=, s(:arglist, s(:lvar, :y))),
+      "TypeChecker" => :skip,
+      "R2CRewriter" => :skip,
+      "RubyToC"     => :skip,
+    },
+
+    "call_self" => {
+      "ParseTree" => [:call, [:self], :method],
+      "Rewriter"  => s(:call, s(:lvar, :self), :method, nil),
       "TypeChecker" => :skip,
       "R2CRewriter" => :skip,
       "RubyToC"     => :skip,
