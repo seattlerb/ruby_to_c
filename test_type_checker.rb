@@ -356,6 +356,20 @@ class TestTypeChecker < R2CTestCase
     end
   end
 
+  def test_process_cvar
+    input  = s(:cvar, :name)
+    output = t(:cvar, :name, Type.unknown)
+
+    assert_equal output, @type_checker.process(input)
+  end
+
+  def test_process_dvar
+    input  = s(:cvasgn, :name, s(:lit, 4))
+    output = t(:cvasgn, :name, t(:lit, 4, Type.long), Type.unknown)
+
+    assert_equal output, @type_checker.process(input)
+  end
+
   def test_process_block
     input  = t(:block, t(:return, t(:nil)))
     # FIX: should this really be void for return?
@@ -434,6 +448,13 @@ class TestTypeChecker < R2CTestCase
     output = t(:false, Type.bool)
 
     assert_equal output, @type_checker.process(input)
+  end
+
+  def test_gasgn
+    input = s(:gasgn, :$blah, s(:lit, 42))
+    expected = t(:gasgn, :$blah, t(:lit, 42, Type.long), Type.long)
+
+    assert_equal expected, @type_checker.process(input)
   end
 
   def test_process_gvar_defined

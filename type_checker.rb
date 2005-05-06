@@ -411,6 +411,17 @@ class TypeChecker < SexpProcessor
   end
 
   ##
+  # Class variable assignment
+  #--
+  # TODO support class variables
+
+  def process_cvasgn(exp)
+    name = exp.shift
+    val = process exp.shift
+    return t(:cvasgn, name, val, Type.unknown)
+  end
+
+  ##
   # Dynamic variable assignment adds the unknown type to the local
   # environment then returns an unknown-typed sexp.
 
@@ -543,6 +554,23 @@ class TypeChecker < SexpProcessor
 
   def process_false(exp)
     return t(:false, Type.bool)
+  end
+
+  ##
+  # Global variable assignment gets stored in the global assignment.
+
+  def process_gasgn(exp)
+    var = exp.shift
+    val = process exp.shift
+
+    var_type = @genv.lookup var rescue nil
+    if var_type.nil? then
+      @genv.add var, val.sexp_type
+    else
+      val.sexp_type.unify var_type
+    end
+
+    return t(:gasgn, var, val, val.sexp_type)
   end
 
   ##
