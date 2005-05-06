@@ -363,7 +363,7 @@ class TestTypeChecker < R2CTestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_process_dvar
+  def test_process_cvasgn
     input  = s(:cvasgn, :name, s(:lit, 4))
     output = t(:cvasgn, :name, t(:lit, 4, Type.long), Type.unknown)
 
