@@ -54,7 +54,7 @@ module TypeMap
     base_type
   end
 
-  module_function :c_type if $TESTING
+  module_function :c_type # if $TESTING
 
 end
 
@@ -141,7 +141,7 @@ typedef struct { unsigned long length; str * contents; } str_array;
   def self.translate(klass, method=nil)
     # REFACTOR: rename to self.process
     unless method.nil? then
-      self.translator.process(ParseTree.new.parse_tree_for_method(klass, method))
+      self.translator.process(ParseTree.new(false).parse_tree_for_method(klass, method))
     else
       ParseTree.new.parse_tree(klass).map do |k|
         self.translator.process(ParseTree.new.parse_tree(klass))
@@ -204,6 +204,15 @@ typedef struct { unsigned long length; str * contents; } str_array;
 
     until exp.empty? do
       arg = exp.shift
+
+#       p arg
+#       p arg.sexp_type
+#       p arg.first
+#       p self.class
+#       p arg.sexp_type.class
+#       p TypeMap.methods.sort
+#       p c_type(arg.sexp_type)
+
       args << "#{c_type(arg.sexp_type)} #{arg.first}"
     end
 

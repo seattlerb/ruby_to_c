@@ -78,14 +78,13 @@ class TypeChecker < SexpProcessor
 
   attr_reader :functions
 
-  @@parser = ParseTree.new
-  @@rewriter = Rewriter.new
-
   ##
   # Utility method that translates a class and optional method name to
   # a type checked sexp. Mostly used for testing.
 
   def translate(klass, method = nil)
+    @@parser = ParseTree.new(false) unless defined? @@parser
+    @@rewriter = Rewriter.new unless defined? @@rewriter
     sexp = @@parser.parse_tree_for_method klass, method
     sexp = @@rewriter.process sexp
     self.process sexp
