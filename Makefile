@@ -1,5 +1,5 @@
 RUBY?=ruby
-RUBY_FLAGS?=-w -I.:../../ParseTree/dev/lib:../../ParseTree/dev/test
+RUBY_FLAGS?=-w -I.:../../ParseTree/dev/lib:../../ParseTree/dev/test:../../RubyInline/dev
 
 all test:
 	GEM_SKIP=ParseTree $(RUBY) $(RUBY_FLAGS) test_all.rb
