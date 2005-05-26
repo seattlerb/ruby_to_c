@@ -675,6 +675,7 @@ typedef struct { unsigned long length; str * contents; } str_array;
   def process_while(exp)
     cond = process exp.shift
     body = process exp.shift
+    body += ";" unless body =~ /;/
     is_precondition = exp.shift
     code = "while (#{cond}) {\n#{body.strip}\n}"
     code = "{\n#{body.strip}\n} while (#{cond})" unless is_precondition

@@ -1004,13 +1004,22 @@ argl = argl - 1;
       "RubyToC"     => "void
 whiles() {
 while (Qfalse) {
-puts(\"false\")
+puts(\"false\");
 };
 {
-puts(\"true\")
+puts(\"true\");
 } while (Qfalse);
 }",
     },
+
+
+   "while_bad_1_liner" => {
+     "ParseTree" => [:block, [:lasgn, :n, [:lit, 0]], [:while, [:call, [:lvar, :n], :<, [:array, [:lit, 10]]], [:lasgn, :n, [:call, [:lvar, :n], :+, [:array, [:lit, 1]]]], true]],
+     "Rewriter"  => s(:block, s(:lasgn, :n, s(:lit, 0)), s(:while, s(:call, s(:lvar, :n), :<, s(:arglist, s(:lit, 10))), s(:lasgn, :n, s(:call, s(:lvar, :n), :+, s(:arglist, s(:lit, 1)))), true)),
+     "TypeChecker" => t(:block, t(:lasgn, :n, t(:lit, 0, Type.long), Type.long), t(:while, t(:call, t(:lvar, :n, Type.long), :<, t(:arglist, t(:lit, 10, Type.long)), Type.bool), t(:lasgn, :n, t(:call, t(:lvar, :n, Type.long), :+, t(:arglist, t(:lit, 1, Type.long)), Type.long), Type.long), true), Type.unknown),
+     "R2CRewriter" => :same,
+     "RubyToC" => "n = 0;\nwhile (n < 10) {\nn = n + 1;\n}\n",
+   },
 
     "zarray" => {
       "ParseTree"   => [:lasgn, :a, [:zarray]],
