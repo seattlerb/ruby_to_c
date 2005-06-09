@@ -1,3 +1,25 @@
+*** 1.0.0-beta3 / 2004-06-08
+
++ 16 minor enhancements
+	+ Added ivar and iasgn support. Needs more work.
+	+ Added limited support for self.
+	+ Added pipeline tests for bools, call_arglist, call_attrasgn, fbody.
+	+ Added process_not to RubyToC.
+	+ Added support for float and symbol literals.
+	+ Added support for gasgn, cvasgn, const (class consts, not classes).
+	+ Improved error handling/reporting, esp in RubyToC.
+	+ In TypeChecker.boostrap, pre-registered all base classes.
+	+ Modified process_class test to include a class const.
+	+ Processing :class now adds class constants to the local var scope.
+	+ Processing :const checks both genv and env now.
+	+ Rearchitected all tests into a pipeline test class.
+	+ Rewrite attrasgn into regular calls.
+	+ Rewrite fbody into a regular defn.
+	+ Rewrote :array inside call to :arglist.
+	+ Rewrote :or nodes in process_case to correctly be binary.
++ 1 bug fix:
+	+ Fixed a bug where single line while bodies were missing a semicolon.
+
 *** 1.0.0-beta2 / 2004-02-15
 
 + 1 minor enhancement
