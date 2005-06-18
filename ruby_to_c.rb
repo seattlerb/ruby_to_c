@@ -1,13 +1,8 @@
 
 $TESTING = false unless defined? $TESTING
 
-begin
-  require 'rubygems'
-  require_gem 'ParseTree'
-rescue LoadError
-  require 'parse_tree'
-end
-
+require 'rubygems' rescue nil
+require 'parse_tree'
 require 'sexp_processor'
 require 'composite_sexp_processor'
 require 'type_checker'
@@ -118,7 +113,7 @@ typedef struct { unsigned long length; str * contents; } str_array;
       @@translator << TypeChecker.new
       @@translator << R2CRewriter.new
       @@translator << RubyToC.new
-      @@translator.on(:defn) do |processor, exp, err|
+      @@translator.on_error_in(:defn) do |processor, exp, err|
         result = processor.expected.new
         case result
         when Array then
@@ -683,4 +678,3 @@ typedef struct { unsigned long length; str * contents; } str_array;
   end
 
 end
-

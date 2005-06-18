@@ -2,16 +2,11 @@
 
 $TESTING = true
 
+require 'rubygems' rescue nil
 require 'test/unit'
 require 'rewriter'
 require 'r2ctestcase'
-
-begin
-  require 'rubygems'
-  require_gem 'ParseTree'
-rescue LoadError
-  require 'parse_tree'
-end
+require 'parse_tree'
 
 class TestRewriter < R2CTestCase
 

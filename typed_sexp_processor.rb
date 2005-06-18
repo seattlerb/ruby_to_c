@@ -1,12 +1,6 @@
 
-begin
-  require 'rubygems'
-  require_gem 'ParseTree'
-  require 'sexp_processor'
-rescue LoadError
-  require 'sexp_processor'
-end
-
+require 'rubygems' rescue nil
+require 'sexp_processor'
 require 'support'
 
 $TESTING = false unless defined? $TESTING

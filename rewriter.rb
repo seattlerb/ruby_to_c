@@ -1,11 +1,6 @@
 
-begin
-  require 'rubygems'
-  require_gem 'ParseTree'
-rescue LoadError
-  require 'parse_tree'
-end
-
+require 'rubygems' rescue nil
+require 'parse_tree'
 require 'typed_sexp_processor'
 
 class Sexp

@@ -21,7 +21,7 @@ if [ -z "$1" ]; then
     good_count=0
     for f in $(cat rb.files.txt); do
 	curr_count=$(($curr_count + 1))
-	if GEM_SKIP=ParseTree ruby $DIRS ./translate.rb $f &> /tmp/r2c.$$ < /dev/null; then
+	if ruby $DIRS ./translate.rb $f &> /tmp/r2c.$$ < /dev/null; then
 	    echo $f >> rb.good.txt
 	    status=pass
 	    good_count=$(($good_count + 1))
@@ -36,7 +36,7 @@ if [ -z "$1" ]; then
     done
 else
     if [ "$1" == "-q" ]; then
-	GEM_SKIP=ParseTree ruby $DIRS ./translate.rb "$2" 2>&1 | egrep "(ERROR|no:)" | perl -pe '
+	ruby $DIRS ./translate.rb "$2" 2>&1 | egrep "(ERROR|no:)" | perl -pe '
 s/ in .*//;
 s/(translating \S+):/$1/;
 s/(is not an Array \w+):.*/$1/;
@@ -44,6 +44,6 @@ s/.* (is not a supported node type)/blah $1/;
 s/(Unable to unify).*/$1/;
 s/(Unknown literal) \S+/$1/;' | occur 
     else
-	GEM_SKIP=ParseTree ruby $DIRS ./translate.rb "$1"
+	ruby $DIRS ./translate.rb "$1"
     fi
 fi

@@ -1,15 +1,10 @@
 
-begin
-  require 'rubygems'
-  require_gem 'ParseTree'
-  require 'sexp_processor'
-rescue LoadError
-  require 'parse_tree'
-end
-
+require 'pp'
+require 'rubygems' rescue nil
+require 'parse_tree'
+require 'sexp_processor'
 require 'rewriter'
 require 'support'
-require 'pp'
 
 # TODO: calls to sexp_type should probably be replaced w/ better Sexp API
 

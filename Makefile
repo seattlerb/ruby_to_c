@@ -3,7 +3,7 @@ RUBY_FLAGS?=-w -I.:../../ParseTree/dev/lib:../../ParseTree/dev/test:../../RubyIn
 TEST?=
 
 all test:
-	GEM_SKIP=ParseTree $(RUBY) $(RUBY_FLAGS) test_all.rb $(TEST)
+	$(RUBY) $(RUBY_FLAGS) test_all.rb $(TEST)
 
 docs:
 	rdoc -d -I png --main RubyToC -x test_\* -x something.rb

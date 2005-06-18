@@ -1,12 +1,7 @@
 #!/usr/local/bin/ruby -ws
 
-begin
-  require 'rubygems'
-  require_gem 'ParseTree'
-rescue LoadError
-  require 'parse_tree'
-end
-
+require 'rubygems' rescue nil
+require 'parse_tree'
 require 'ruby_to_c'
 
 old_classes = []
