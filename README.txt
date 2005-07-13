@@ -3,14 +3,16 @@ ruby_to_c
     ryand-ruby@zenspider.com
     ruby2c@zenspider.com - mailing list
 
+DESCRIPTION:
+
+ruby_to_c translates a static ruby subset to C. Hopefully it works.
+
 NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE
 
                    THIS IS BETA SOFTWARE!
 
 NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE
 
-DESCRIPTION:
-  
 RubyToC has the following modules:
 
 	Rewriter      - massages the sexp into a more consistent form.

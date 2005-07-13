@@ -66,7 +66,7 @@ end
 
 class RubyToC < SexpProcessor
 
-  VERSION = '1.0.0-beta3'
+  VERSION = '1.0.0-beta-4'
 
   # TODO: remove me
   def no(exp) # :nodoc:
