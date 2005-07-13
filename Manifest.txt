@@ -82,7 +82,6 @@ propaganda/ruby2c architecture.graffle
 rewrite.rb
 rewriter.rb
 ruby_to_c.rb
-something.rb
 support.rb
 test_all.rb
 test_extras.rb
