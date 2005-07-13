@@ -1,6 +1,6 @@
 #!/usr/local/bin/ruby -ws
 
-require 'rubygems' rescue nil
+begin require 'rubygems' rescue LoadError end
 require 'parse_tree'
 require 'ruby_to_c'
 

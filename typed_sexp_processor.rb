@@ -1,5 +1,5 @@
 
-require 'rubygems' rescue nil
+begin require 'rubygems' rescue LoadError end
 require 'sexp_processor'
 require 'support'
 

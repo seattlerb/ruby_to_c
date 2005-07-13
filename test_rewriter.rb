@@ -2,7 +2,7 @@
 
 $TESTING = true
 
-require 'rubygems' rescue nil
+begin require 'rubygems' rescue LoadError end
 require 'test/unit'
 require 'rewriter'
 require 'r2ctestcase'

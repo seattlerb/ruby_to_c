@@ -1,7 +1,7 @@
 
 $TESTING = false unless defined? $TESTING
 
-require 'rubygems' rescue nil
+begin require 'rubygems' rescue LoadError end
 require 'parse_tree'
 require 'sexp_processor'
 require 'composite_sexp_processor'
