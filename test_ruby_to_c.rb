@@ -25,7 +25,7 @@ class TestTypeMap < Test::Unit::TestCase
   end
 
   def test_c_type_bool
-    assert_equal "long", TypeMap.c_type(Type.bool)
+    assert_equal "VALUE", TypeMap.c_type(Type.bool)
   end
 
   def test_c_type_void

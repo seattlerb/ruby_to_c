@@ -30,7 +30,7 @@ module TypeMap
       when :symbol then
         "symbol"
       when :bool then # TODO: subject to change
-        "long"
+        "VALUE"
       when :void then
         "void"
       when :homo then

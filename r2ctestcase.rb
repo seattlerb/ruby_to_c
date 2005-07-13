@@ -172,7 +172,7 @@ class R2CTestCase < Test::Unit::TestCase
                            Type.void),
                          Type.function(Type.unknown, [Type.value], Type.bool)),
       "R2CRewriter" => :same,
-      "RubyToC"     => "long\nbools(VALUE arg1) {\nif (NIL_P(arg1)) {\nreturn Qfalse;\n} else {\nreturn Qtrue;\n}\n}",
+      "RubyToC"     => "VALUE\nbools(VALUE arg1) {\nif (NIL_P(arg1)) {\nreturn Qfalse;\n} else {\nreturn Qtrue;\n}\n}",
     },
 
 # TODO: move all call tests here
