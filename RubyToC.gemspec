@@ -14,7 +14,7 @@ spec = Gem::Specification.new do |s|
   puts s.description
 
   s.add_dependency('ParseTree')
-  s.files = IO.readlines("Manifest.txt").map {|f| f.chomp }
+  s.files = IO.readlines("Manifest.txt").reject { |o| o =~ /propaganda/ }.map {|f| f.chomp }
 
   s.require_path = '.' 
   s.autorequire = 'ruby_to_c'
