@@ -1,9 +1,9 @@
 RUBY?=ruby
 RUBY_FLAGS?=-w -I.:../../ParseTree/dev/lib:../../ParseTree/dev/test:../../RubyInline/dev
-TEST?=
+FILTER?=
 
 all test:
-	$(RUBY) $(RUBY_FLAGS) test_all.rb $(TEST)
+	$(RUBY) $(RUBY_FLAGS) test_all.rb $(FILTER)
 
 docs:
 	rdoc -d -I png --main RubyToC -x test_\* -x something.rb

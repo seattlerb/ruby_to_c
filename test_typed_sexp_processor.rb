@@ -1,10 +1,8 @@
 #!/usr/local/bin/ruby -w
 
-require 'test_sexp_processor'
+require 'test_sexp'
 require 'typed_sexp_processor'
 require 'test/unit'
-
-# Fake test classes:
 
 class TestTypedSexp < TestSexp
 
@@ -18,6 +16,7 @@ class TestTypedSexp < TestSexp
     assert_equal('t(:lasgn, "var", t(:str, "foo", Type.str), Type.str)',
                  @sexp.inspect)
   end
+
   def test_sexp_type
     assert_equal(Type.str, @sexp.sexp_type)
   end
@@ -27,6 +26,13 @@ class TestTypedSexp < TestSexp
     # FIX: we can't set sexp_type a second time, please expand tests
     @sexp._set_sexp_type 24
     assert_equal(24, @sexp.sexp_type)
+  end
+
+  def test_equals2_tsexp
+    sexp2 = s(1, 2, 3)
+    sexp3 = t(1, 2, 3, Type.str)
+    assert_equal(@sexp, sexp3)
+    assert_not_equal(@sexp, sexp2)
   end
 
   def test_sexp_type_array_homo

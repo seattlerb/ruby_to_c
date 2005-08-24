@@ -1,6 +1,6 @@
 
 begin require 'rubygems' rescue LoadError end
-require 'sexp_processor'
+require 'sexp'
 require 'support'
 
 $TESTING = false unless defined? $TESTING
