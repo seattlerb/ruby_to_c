@@ -218,7 +218,7 @@ typedef struct { unsigned long length; str * contents; } str_array;
   # Arglist is used by call arg lists.
 
   def process_arglist(exp)
-		return process_array(exp)
+    return process_array(exp)
   end
 
   ##
@@ -232,7 +232,7 @@ typedef struct { unsigned long length; str * contents; } str_array;
     end
 
     s = code.join ', '
-    s = "[]" if s.empty?
+    s = "rb_ary_new()" if s.empty? # HACK
 
     return s
   end
@@ -364,9 +364,16 @@ typedef struct { unsigned long length; str * contents; } str_array;
   ##
   # Function definition
 
-  def process_defn(exp)
+  METHOD_MAP = { 
+    :| => "or",
+    :& => "and",
+    :^ => "xor",
+  }
 
+  def process_defn(exp)
     name = exp.shift
+    name = METHOD_MAP[name] if METHOD_MAP.has_key? name
+    name = name.to_s.sub(/(.*)\?$/, 'is_\1').intern
     args = process exp.shift
     body = process exp.shift
     function_type = exp.sexp_type

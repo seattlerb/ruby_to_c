@@ -107,7 +107,7 @@ class TestRubyToC < R2CTestCase
 
   def test_process_array_empty
     input  = t(:array)
-    output = "[]"
+    output = "rb_ary_new()"
 
     assert_equal output, @ruby_to_c.process(input)
   end
