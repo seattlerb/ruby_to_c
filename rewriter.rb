@@ -157,6 +157,24 @@ class Rewriter < SexpProcessor
       raise "Unknown :defn format: #{name.inspect} #{args.inspect} #{body.inspect}"
     end
 
+    if Array === args.last and args.last.first == :block then
+      cond = args.pop
+      cond.shift # take off :block
+      size = cond.size
+      args.slice!(-size, size)
+      args.push :"*args"
+      new_code = cond.map do |t, var, val|
+        s(:lasgn,
+          var,
+          s(:if,
+            s(:call, s(:lvar, :args), :empty?),
+            val,
+            s(:call, s(:lvar, :args), :shift)))
+      end
+      body[1].insert 1, *new_code
+    end
+
+
     return s(:defn, name, args, body)
   end
 
