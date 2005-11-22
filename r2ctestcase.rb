@@ -18,7 +18,8 @@ class R2CTestCase < Test::Unit::TestCase
     "Rewriter",
     "TypeChecker",
     "R2CRewriter",
-    "RubyToC"
+    "RubyToAnsiC",
+    "RubyToRubyC",
   ]
 
   @@testcases = {
@@ -30,7 +31,7 @@ class R2CTestCase < Test::Unit::TestCase
                            s(:block, s(:return, s(:ivar, :@accessor))))),
       "TypeChecker" => :skip,
       "R2CRewriter" => :skip,
-      "RubyToC"     => :skip,
+      "RubyToAnsiC"     => :skip,
     },
 
     "accessor_equals" => {
@@ -44,7 +45,7 @@ class R2CTestCase < Test::Unit::TestCase
                               s(:iasgn, :@accessor, s(:lvar, :arg)))))),
       "TypeChecker" => :skip,
       "R2CRewriter" => :skip,
-      "RubyToC"     => :skip,
+      "RubyToAnsiC"     => :skip,
     },
 
     "defn_bbegin" => {
@@ -111,7 +112,7 @@ class R2CTestCase < Test::Unit::TestCase
                  Type.void),
                Type.function(Type.unknown, [], Type.void)),
       "R2CRewriter" => :same,
-      "RubyToC"     => :unsupported,
+      "RubyToAnsiC"     => :unsupported,
     },
 
     "defn_bmethod_added" => {
@@ -127,7 +128,7 @@ class R2CTestCase < Test::Unit::TestCase
                           s(:call, s(:lvar, :x), :+, s(:arglist, s(:lit, 1)))))),
       "TypeChecker" => :skip,
       "R2CRewriter" => :skip,
-      "RubyToC"     => :skip,
+      "RubyToAnsiC"     => :skip,
     },
 
     "bools" => {
@@ -172,7 +173,7 @@ class R2CTestCase < Test::Unit::TestCase
                            Type.void),
                          Type.function(Type.unknown, [Type.value], Type.bool)),
       "R2CRewriter" => :same,
-      "RubyToC"     => "VALUE\nbools(VALUE arg1) {\nif (NIL_P(arg1)) {\nreturn Qfalse;\n} else {\nreturn Qtrue;\n}\n}",
+      "RubyToAnsiC"     => "VALUE\nbools(VALUE arg1) {\nif (NIL_P(arg1)) {\nreturn Qfalse;\n} else {\nreturn Qtrue;\n}\n}",
     },
 
 # TODO: move all call tests here
@@ -181,7 +182,7 @@ class R2CTestCase < Test::Unit::TestCase
       "Rewriter"    => s(:call, nil, :puts, s(:arglist, s(:lit, 42))),
       "TypeChecker" => :skip,
       "R2CRewriter" => :skip,
-      "RubyToC"     => :skip,
+      "RubyToAnsiC"     => :skip,
     },
 
     "call_attrasgn" => {
@@ -189,7 +190,7 @@ class R2CTestCase < Test::Unit::TestCase
       "Rewriter"    => s(:call,   s(:lit, 42), :method=, s(:arglist, s(:lvar, :y))),
       "TypeChecker" => :skip,
       "R2CRewriter" => :skip,
-      "RubyToC"     => :skip,
+      "RubyToAnsiC"     => :skip,
     },
 
     "call_self" => {
@@ -197,7 +198,7 @@ class R2CTestCase < Test::Unit::TestCase
       "Rewriter"  => s(:call, s(:lvar, :self), :method, nil),
       "TypeChecker" => :skip,
       "R2CRewriter" => :skip,
-      "RubyToC"     => :skip,
+      "RubyToAnsiC"     => :skip,
     },
 
     "case_stmt" => {
@@ -379,7 +380,7 @@ class R2CTestCase < Test::Unit::TestCase
                          Type.function(Type.unknown, [], Type.str)),
       "R2CRewriter" => :same,
 # HACK: I don't like the semis after the if blocks, but it is a compromise right now
-      "RubyToC"     => "str
+      "RubyToAnsiC"     => "str
 case_stmt() {
 str result;
 long var;
@@ -431,7 +432,7 @@ return result;
                          t(:return, t(:lit, 1, Type.long), Type.void),
                          nil,
                          Type.void),
-      "RubyToC"     => "if (42 == 0) {\nreturn 1;\n}",
+      "RubyToAnsiC"     => "if (42 == 0) {\nreturn 1;\n}",
     },
 
     "conditional2" => {
@@ -452,7 +453,7 @@ return result;
                          t(:return, t(:lit, 2, Type.long), Type.void),
                          Type.void),
       "R2CRewriter" => :same,
-      "RubyToC"     => "if (42 == 0) {\n;\n} else {\nreturn 2;\n}",
+      "RubyToAnsiC"     => "if (42 == 0) {\n;\n} else {\nreturn 2;\n}",
     },
 
     "conditional3" => {
@@ -482,7 +483,7 @@ return result;
                            Type.void),
                          Type.void),
       "R2CRewriter" => :same,
-      "RubyToC"     => "if (42 == 0) {\nreturn 3;\n} else {\nreturn 4;\n}",
+      "RubyToAnsiC"     => "if (42 == 0) {\nreturn 3;\n} else {\nreturn 4;\n}",
     },
 
     "conditional4" => {
@@ -532,7 +533,7 @@ return result;
                            Type.void),
                          Type.void),
       "R2CRewriter" => :same,
-      "RubyToC"     => "if (42 == 0) {\nreturn 2;\n} else {\nif (42 < 0) {\nreturn 3;\n} else {\nreturn 4;\n}\n}",
+      "RubyToAnsiC"     => "if (42 == 0) {\nreturn 2;\n} else {\nif (42 < 0) {\nreturn 3;\n} else {\nreturn 4;\n}\n}",
     },
 
     "defn_empty" => {
@@ -548,7 +549,7 @@ return result;
                            Type.void),
                          Type.function(Type.unknown, [], Type.void)),
       "R2CRewriter" => :same,
-      "RubyToC"     => "void\nempty() {\nQnil;\n}",
+      "RubyToAnsiC"     => "void\nempty() {\nQnil;\n}",
     },
 
     "defn_zarray" => {
@@ -564,7 +565,7 @@ return result;
                            Type.void),
                          Type.function(Type.unknown, [], Type.homo)),
       "R2CRewriter" => :same,
-      "RubyToC"     => "void *\nempty() {\nreturn rb_ary_new();\n}",
+      "RubyToAnsiC"     => "void *\nempty() {\nreturn rb_ary_new();\n}",
     },
 
     "defn_or" => {
@@ -580,7 +581,7 @@ return result;
                            Type.void),
                          Type.function(Type.unknown, [], Type.void)),
       "R2CRewriter" => :same,
-      "RubyToC"     => "void\nor() {\nQnil;\n}",
+      "RubyToAnsiC"     => "void\nor() {\nQnil;\n}",
     },
 
     "defn_is_something" => {
@@ -596,7 +597,7 @@ return result;
                            Type.void),
                          Type.function(Type.unknown, [], Type.void)),
       "R2CRewriter" => :same,
-      "RubyToC"     => "void\nis_something() {\nQnil;\n}",
+      "RubyToAnsiC"     => "void\nis_something() {\nQnil;\n}",
     },
 
     "defn_fbody" => {
@@ -613,7 +614,7 @@ return result;
                              s(:call, nil, :puts, s(:arglist, s(:lit, 42)))))),
       "TypeChecker" => :skip,
       "R2CRewriter" => :skip,
-      "RubyToC"     => :skip,
+      "RubyToAnsiC"     => :skip,
     },
 
     "defn_optargs" => {
@@ -651,7 +652,7 @@ return result;
                                  s(:lvar, :c)))))),
       "TypeChecker" => :skip,
       "R2CRewriter" => :skip,
-      "RubyToC"     => :skip,
+      "RubyToAnsiC"     => :skip,
     },
 
     "dmethod_added" => {
@@ -675,7 +676,7 @@ return result;
                             s(:arglist, s(:lit, 1)))))),
       "TypeChecker" => :skip,
       "R2CRewriter" => :skip,
-      "RubyToC"     => :skip,
+      "RubyToAnsiC"     => :skip,
     },
 
     "global" => {
@@ -684,7 +685,7 @@ return result;
       # TODO: test s(:gvar, :$stderr) != t(:gvar, $stderr, Type.file)
       "TypeChecker" => t(:gvar, :$stderr, Type.file),
       "R2CRewriter" => :same,
-      "RubyToC"     => "stderr",
+      "RubyToAnsiC"     => "stderr",
     },
 
     "interpolated" => {
@@ -698,7 +699,7 @@ return result;
                              t(:str, ". So there.", Type.str),
                              Type.str),
       "R2CRewriter" => :same,
-      "RubyToC"     => :unsupported,
+      "RubyToAnsiC"     => :unsupported,
     },
 
     "iteration1" => {
@@ -738,7 +739,7 @@ return result;
                            Type.void),
                          Type.void),
       "R2CRewriter" => :same,
-      "RubyToC"     => "unsigned long index_x;\nfor (index_x = 0; index_x < arrayl.length; ++index_x) {\nlong x = arrayl.contents[index_x];\nputs(to_s(x));\n}",
+      "RubyToAnsiC"     => "unsigned long index_x;\nfor (index_x = 0; index_x < arrayl.length; ++index_x) {\nlong x = arrayl.contents[index_x];\nputs(to_s(x));\n}",
     },
 
     "iteration2" => {
@@ -761,7 +762,7 @@ return result;
                            Type.void),
                          Type.void),
       "R2CRewriter" => :same,
-      "RubyToC"     => "unsigned long index_x;\nfor (index_x = 0; index_x < arrays.length; ++index_x) {\nstr x = arrays.contents[index_x];\nputs(x);\n}",
+      "RubyToAnsiC"     => "unsigned long index_x;\nfor (index_x = 0; index_x < arrays.length; ++index_x) {\nstr x = arrays.contents[index_x];\nputs(x);\n}",
     },
 
     "iteration3" => {
@@ -818,7 +819,7 @@ return result;
                            Type.void),
                          Type.void),
       "R2CRewriter" => :same,
-      "RubyToC"     => "unsigned long index_x;\nfor (index_x = 0; index_x < arrayl.length; ++index_x) {\nlong x = arrayl.contents[index_x];\nunsigned long index_y;\nfor (index_y = 0; index_y < arrayl2.length; ++index_y) {\nlong y = arrayl2.contents[index_y];\nputs(to_s(x));\nputs(to_s(y));\n}\n}",
+      "RubyToAnsiC"     => "unsigned long index_x;\nfor (index_x = 0; index_x < arrayl.length; ++index_x) {\nlong x = arrayl.contents[index_x];\nunsigned long index_y;\nfor (index_y = 0; index_y < arrayl2.length; ++index_y) {\nlong y = arrayl2.contents[index_y];\nputs(to_s(x));\nputs(to_s(y));\n}\n}",
     },
 
     "iteration4" => {
@@ -861,7 +862,7 @@ return result;
                                      1, Type.long)),
                                  Type.long), Type.long), Type.unknown), true)),
       "R2CRewriter" => :same,
-      "RubyToC"     => "n = 1;\nwhile (n <= 3) {\nputs(to_s(n));\nn = n + 1;\n}",
+      "RubyToAnsiC"     => "n = 1;\nwhile (n <= 3) {\nputs(to_s(n));\nn = n + 1;\n}",
     },
 
     "iteration5" => {
@@ -899,7 +900,7 @@ return result;
                                Type.long),
                            Type.unknown), true)),
       "R2CRewriter" => :same,
-      "RubyToC"     => "n = 3;\nwhile (n >= 1) {\nputs(to_s(n));\nn = n - 1;\n}",
+      "RubyToAnsiC"     => "n = 3;\nwhile (n >= 1) {\nputs(to_s(n));\nn = n - 1;\n}",
     },
 
     "iteration6" => {
@@ -935,7 +936,7 @@ return result;
                              Type.long),
                            Type.unknown), true),
       "R2CRewriter" => :same,
-      "RubyToC"     => "while (argl >= 1) {
+      "RubyToAnsiC"     => "while (argl >= 1) {
 puts(\"hello\");
 argl = argl - 1;
 }",
@@ -954,7 +955,7 @@ argl = argl - 1;
                            Type.long),
                          Type.long),
       "R2CRewriter" => :same,
-      "RubyToC"     => "c = 2 + 3",
+      "RubyToAnsiC"     => "c = 2 + 3",
     },
 
     "multi_args" => {
@@ -1030,7 +1031,7 @@ argl = argl - 1;
                    Type.function(Type.unknown,
                                  [Type.long, Type.long], Type.str)),
       "R2CRewriter" => :same,
-      "RubyToC"     => "str\nmulti_args(long arg1, long arg2) {\nlong arg3;\narg3 = arg1 * arg2 * 7;\nputs(to_s(arg3));\nreturn \"foo\";\n}",
+      "RubyToAnsiC"     => "str\nmulti_args(long arg1, long arg2) {\nlong arg3;\narg3 = arg1 * arg2 * 7;\nputs(to_s(arg3));\nreturn \"foo\";\n}",
     },
  
     "vcall" => {
@@ -1038,7 +1039,7 @@ argl = argl - 1;
       "Rewriter"    => s(:call, nil, :method, nil),
       "TypeChecker" => t(:call, nil, :method, nil, Type.unknown),
       "R2CRewriter" => :same,
-      "RubyToC"     => "method()",
+      "RubyToAnsiC"     => "method()",
     },
 
     "whiles" => {
@@ -1087,7 +1088,7 @@ argl = argl - 1;
                  Type.void),
                Type.function(Type.unknown, [], Type.void)),
       "R2CRewriter" => :same,
-      "RubyToC"     => "void
+      "RubyToRubyC" => "void
 whiles() {
 while (Qfalse) {
 puts(\"false\");
@@ -1096,15 +1097,23 @@ puts(\"false\");
 puts(\"true\");
 } while (Qfalse);
 }",
+      "RubyToAnsiC" => "void
+whiles() {
+while (0) {
+puts(\"false\");
+};
+{
+puts(\"true\");
+} while (0);
+}",
     },
-
 
    "while_bad_1_liner" => {
      "ParseTree" => [:block, [:lasgn, :n, [:lit, 0]], [:while, [:call, [:lvar, :n], :<, [:array, [:lit, 10]]], [:lasgn, :n, [:call, [:lvar, :n], :+, [:array, [:lit, 1]]]], true]],
      "Rewriter"  => s(:block, s(:lasgn, :n, s(:lit, 0)), s(:while, s(:call, s(:lvar, :n), :<, s(:arglist, s(:lit, 10))), s(:lasgn, :n, s(:call, s(:lvar, :n), :+, s(:arglist, s(:lit, 1)))), true)),
      "TypeChecker" => t(:block, t(:lasgn, :n, t(:lit, 0, Type.long), Type.long), t(:while, t(:call, t(:lvar, :n, Type.long), :<, t(:arglist, t(:lit, 10, Type.long)), Type.bool), t(:lasgn, :n, t(:call, t(:lvar, :n, Type.long), :+, t(:arglist, t(:lit, 1, Type.long)), Type.long), Type.long), true), Type.unknown),
      "R2CRewriter" => :same,
-     "RubyToC" => "n = 0;\nwhile (n < 10) {\nn = n + 1;\n}\n",
+     "RubyToAnsiC" => "n = 0;\nwhile (n < 10) {\nn = n + 1;\n}\n",
    },
 
     "zarray" => {
@@ -1114,25 +1123,41 @@ puts(\"true\");
       "R2CRewriter" => :same,
       # TODO: we need to do something w/ said array because this is dumb:
       # TODO: ewww
-      "RubyToC"     => "a.length = 0;\na.contents = (long*) malloc(sizeof(long) * a.length)",
+      "RubyToAnsiC"     => "a.length = 0;\na.contents = (long*) malloc(sizeof(long) * a.length)",
     },
 
   }
 
+  def self.previous(key)
+
+    # for now, RubyToC will mean RubyToAnsiC, since that is closest
+    #    "RubyToAnsiC",
+    #    "RubyToRubyC",
+
+    idx = @@testcase_order.index(key)-1
+    case key
+    when "RubyToC" then
+      raise "RubyToC is dead, use RubyToAnsiC."
+    when "RubyToRubyC" then
+      idx -= 1
+    end
+    @@testcase_order[idx]
+  end
+
   @@testcases.each do |node, data|
     data.each do |key, val|
       if val == :same then
-        prev_key = @@testcase_order[@@testcase_order.index(key)-1]
+        prev_key = self.previous(key)
         data[key] = data[prev_key].deep_clone
       end
     end
   end
 
-
   def self.inherited(c)
     output_name = c.name.to_s.sub(/^Test/, '')
     raise "Unknown class #{c}" unless @@testcase_order.include? output_name
-    input_name = @@testcase_order[@@testcase_order.index(output_name)-1]
+
+    input_name = self.previous(output_name)
 
     @@testcases.each do |node, data|
       next if data[input_name] == :skip

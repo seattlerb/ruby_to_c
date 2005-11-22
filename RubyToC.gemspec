@@ -1,7 +1,7 @@
 # -*- ruby -*-
 
 require 'rubygems'
-require 'ruby_to_c'
+require 'ruby_to_ansi_c'
 
 spec = Gem::Specification.new do |s|
 
@@ -17,7 +17,7 @@ spec = Gem::Specification.new do |s|
   s.files = IO.readlines("Manifest.txt").reject { |o| o =~ /propaganda/ }.map {|f| f.chomp }
 
   s.require_path = '.' 
-  s.autorequire = 'ruby_to_c'
+  s.autorequire = 'ruby_to_ansi_c'
 
   s.has_rdoc = true
   s.test_suite_file = "test_all.rb"

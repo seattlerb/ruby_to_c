@@ -2,7 +2,7 @@
 
 begin require 'rubygems' rescue LoadError end
 require 'parse_tree'
-require 'ruby_to_c'
+require 'ruby_to_ansi_c'
 
 old_classes = []
 ObjectSpace.each_object(Class) do |klass|
@@ -21,7 +21,7 @@ end
 new_classes -= old_classes
 new_classes = [ eval($c) ] if defined? $c
 
-rubytoc = RubyToC.translator
+rubytoc = RubyToAnsiC.translator
 
 code = ParseTree.new(false).parse_tree(*new_classes).map do |klass|
   rubytoc.process(klass)

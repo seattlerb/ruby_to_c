@@ -3,7 +3,7 @@
 $TESTING = true
 
 require 'test/unit'
-require 'ruby_to_c'
+require 'ruby_to_ansi_c'
 require 'r2ctestcase'
 
 class TestTypeMap < Test::Unit::TestCase
@@ -49,10 +49,10 @@ class TestTypeMap < Test::Unit::TestCase
   end
 end
 
-class TestRubyToC < R2CTestCase
+class TestRubyToAnsiC < R2CTestCase
 
   def setup
-    @ruby_to_c = RubyToC.new
+    @ruby_to_c = RubyToAnsiC.new
     @ruby_to_c.env.extend
     @processor = @ruby_to_c
   end
@@ -63,7 +63,7 @@ class TestRubyToC < R2CTestCase
       [:defn, :something, [:scope, [:block, [:args], [:fcall, :"whaaa\?"]]]],
       [:defn, :foo, [:scope, [:block, [:args], [:vcall, :something]]]]]
     expected = "// class Suck\n\n// ERROR: NoMethodError: undefined method `[]=' for nil:NilClass\n\nvoid\nfoo() {\nsomething();\n}"
-    assert_equal expected, RubyToC.translator.process(input)
+    assert_equal expected, RubyToAnsiC.translator.process(input)
   end
 
   def test_env

@@ -81,12 +81,14 @@ propaganda/processors.graffle
 propaganda/ruby2c architecture.graffle
 rewrite.rb
 rewriter.rb
-ruby_to_c.rb
+ruby_to_ansi_c.rb
+ruby_to_ruby_c.rb
 support.rb
 test_all.rb
 test_extras.rb
 test_rewriter.rb
-test_ruby_to_c.rb
+test_ruby_to_ansi_c.rb
+test_ruby_to_ruby_c.rb
 test_support.rb
 test_type_checker.rb
 test_typed_sexp_processor.rb

@@ -64,7 +64,7 @@ end
 # 
 # :begin, :block_arg, :case, :dstr, :rescue, :self, :super, :when
 
-class RubyToC < SexpProcessor
+class RubyToAnsiC < SexpProcessor
 
   VERSION = '1.0.0-beta-4'
 
@@ -112,7 +112,7 @@ typedef struct { unsigned long length; str * contents; } str_array;
       @@translator << Rewriter.new
       @@translator << TypeChecker.new
       @@translator << R2CRewriter.new
-      @@translator << RubyToC.new
+      @@translator << RubyToAnsiC.new
       @@translator.on_error_in(:defn) do |processor, exp, err|
         result = processor.expected.new
         case result
