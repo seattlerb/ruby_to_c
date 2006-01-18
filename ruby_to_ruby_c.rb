@@ -36,4 +36,12 @@ class RubyToRubyC < RubyToAnsiC
   def initialize # :nodoc:
     super
   end
+
+  def process_call(exp)
+    receiver = exp.shift
+    name = exp.shift
+    args = [ process(exp.shift) ].flatten
+
+    "rb_funcall(#{receiver}, rb_intern(#{name.inspect}), #{args.size}, #{args.join(", ")})"
+  end
 end
