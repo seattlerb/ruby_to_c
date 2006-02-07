@@ -11,13 +11,13 @@ class RubyToRubyC < RubyToAnsiC
 
   def self.translator
     # TODO: FIX, but write a test first
-    unless defined? @@translator then
-      @@translator = CompositeSexpProcessor.new
-      @@translator << Rewriter.new
-      @@translator << TypeChecker.new
-      @@translator << R2CRewriter.new
-      @@translator << RubyToRubyC.new
-      @@translator.on_error_in(:defn) do |processor, exp, err|
+    unless defined? @translator then
+      @translator = CompositeSexpProcessor.new
+      @translator << Rewriter.new
+      @translator << TypeChecker.new
+      @translator << R2CRewriter.new
+      @translator << RubyToRubyC.new
+      @translator.on_error_in(:defn) do |processor, exp, err|
         result = processor.expected.new
         case result
         when Array then
@@ -30,7 +30,7 @@ class RubyToRubyC < RubyToAnsiC
         result
       end
     end
-    @@translator
+    @translator
   end
 
   ##

@@ -94,13 +94,13 @@ typedef char * str;
   # Lazy initializer for the composite RubytoC translator chain.
 
   def self.translator
-    unless defined? @@translator then
-      @@translator = CompositeSexpProcessor.new
-      @@translator << Rewriter.new
-      @@translator << TypeChecker.new
-      @@translator << R2CRewriter.new
-      @@translator << RubyToAnsiC.new
-      @@translator.on_error_in(:defn) do |processor, exp, err|
+    unless defined? @translator then
+      @translator = CompositeSexpProcessor.new
+      @translator << Rewriter.new
+      @translator << TypeChecker.new
+      @translator << R2CRewriter.new
+      @translator << RubyToAnsiC.new
+      @translator.on_error_in(:defn) do |processor, exp, err|
         result = processor.expected.new
         case result
         when Array then
@@ -113,7 +113,7 @@ typedef char * str;
         result
       end
     end
-    @@translator
+    @translator
   end
 
   ##
