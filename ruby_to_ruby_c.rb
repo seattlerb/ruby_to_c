@@ -152,6 +152,8 @@ class RubyToRubyC < RubyToAnsiC
     name = exp.shift.to_s
     args = [process(exp.shift)].flatten.compact
 
+    name = '===' if name =~ /^case_equal_/ # undo the evils of TypeChecker
+
     if args.empty?
       args = "0"
     else

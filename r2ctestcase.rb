@@ -391,6 +391,39 @@ class R2CTestCase < Test::Unit::TestCase
                          Type.function(Type.unknown, [], Type.str)),
       "R2CRewriter" => :same,
 # HACK: I don't like the semis after the if blocks, but it is a compromise right now
+      "RubyToRubyC" => "VALUE
+case_stmt() {
+VALUE result;
+VALUE var;
+var = LONG2NUM(2);
+result = rb_str_new2(\"\");
+if (rb_funcall(var, rb_intern(\"===\"), 1, LONG2NUM(1))) {
+rb_funcall(self, rb_intern(\"puts\"), 1, rb_str_new2(\"something\"));
+result = rb_str_new2(\"red\");
+} else {
+if (rb_funcall(var, rb_intern(\"===\"), 1, LONG2NUM(2)) || rb_funcall(var, rb_intern(\"===\"), 1, LONG2NUM(3))) {
+result = rb_str_new2(\"yellow\");
+} else {
+if (rb_funcall(var, rb_intern(\"===\"), 1, LONG2NUM(4))) {
+;
+} else {
+result = rb_str_new2(\"green\");
+}
+}
+};
+if (rb_funcall(result, rb_intern(\"===\"), 1, rb_str_new2(\"red\"))) {
+var = LONG2NUM(1);
+} else {
+if (rb_funcall(result, rb_intern(\"===\"), 1, rb_str_new2(\"yellow\"))) {
+var = LONG2NUM(2);
+} else {
+if (rb_funcall(result, rb_intern(\"===\"), 1, rb_str_new2(\"green\"))) {
+var = LONG2NUM(3);
+}
+}
+};
+return result;
+}",
       "RubyToAnsiC" => "str
 case_stmt() {
 str result;
