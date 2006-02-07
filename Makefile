@@ -42,6 +42,11 @@ demos: FORCE
 interp: FORCE
 	for rf in demo/*.rb; do f=$$(basename $$rf .rb); echo $$f; ./interp.rb demo/$$f; done
 
+sort:
+	for f in *.rb; do grep "def " $f > x; sort x > y; echo $f; echo; diff x y; done
+	for f in test_*.rb; do grep "def.test_" $f > x; sort x > y; echo $f; echo; diff x y; done
+	rm x y
+
 clean:
 	rm -f *~ trouble.* diff.txt demo/*~
 	rm -rf ~/.ruby_inline

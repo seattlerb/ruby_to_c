@@ -6,55 +6,52 @@ require 'test/unit'
 require 'ruby_to_ansi_c'
 require 'r2ctestcase'
 
-class TestTypeMap < Test::Unit::TestCase
-
-  def test_c_type_long
-    assert_equal "long", TypeMap.c_type(Type.long)
-  end
-
-  def test_c_type_long_list
-    assert_equal "long_array", TypeMap.c_type(Type.long_list)
-  end
-
-  def test_c_type_str
-    assert_equal "str", TypeMap.c_type(Type.str)
-  end
-
-  def test_c_type_str_list
-    assert_equal "str_array", TypeMap.c_type(Type.str_list)
-  end
-
-  def test_c_type_bool
-    assert_equal "VALUE", TypeMap.c_type(Type.bool)
-  end
-
-  def test_c_type_void
-    assert_equal "void", TypeMap.c_type(Type.void)
-  end
-
-  def test_c_type_float
-    assert_equal "double", TypeMap.c_type(Type.float)
-  end
-
-  def test_c_type_symbol
-    assert_equal "symbol", TypeMap.c_type(Type.symbol)
-  end
-
-  def test_c_type_value
-    assert_equal "VALUE", TypeMap.c_type(Type.value)
-  end
-
-  def test_c_type_unknown
-    assert_equal "VALUE", TypeMap.c_type(Type.unknown)
-  end
-end
-
 class TestRubyToAnsiC < R2CTestCase
 
   def setup
     @ruby_to_c = RubyToAnsiC.new
     @ruby_to_c.env.extend
     @processor = @ruby_to_c
+  end
+
+  def test_c_type_long
+    assert_equal "long", @ruby_to_c.class.c_type(Type.long)
+  end
+
+  def test_c_type_long_list
+    assert_equal "long *", @ruby_to_c.class.c_type(Type.long_list)
+  end
+
+  def test_c_type_str
+    assert_equal "str", @ruby_to_c.class.c_type(Type.str)
+  end
+
+  def test_c_type_str_list
+    assert_equal "str *", @ruby_to_c.class.c_type(Type.str_list)
+  end
+
+  def test_c_type_bool
+    assert_equal "bool", @ruby_to_c.class.c_type(Type.bool)
+  end
+
+  def test_c_type_void
+    assert_equal "void", @ruby_to_c.class.c_type(Type.void)
+  end
+
+  def test_c_type_float
+    assert_equal "double", @ruby_to_c.class.c_type(Type.float)
+  end
+
+  def test_c_type_symbol
+    assert_equal "symbol", @ruby_to_c.class.c_type(Type.symbol)
+  end
+
+  def test_c_type_value
+    assert_equal "void *", @ruby_to_c.class.c_type(Type.value)
+  end
+
+  def test_c_type_unknown
+    assert_equal "void *", @ruby_to_c.class.c_type(Type.unknown)
   end
 
   def test_translator
@@ -169,7 +166,7 @@ class TestRubyToAnsiC < R2CTestCase
                t(:lvar, :arg, Type.long),
                :nil?,
                nil)
-    output = "NIL_P(arg)"
+    output = "arg"
 
     assert_equal output, @ruby_to_c.process(input)
   end
@@ -190,7 +187,7 @@ class TestRubyToAnsiC < R2CTestCase
 
   def test_process_block
     input  = t(:block, t(:return, t(:nil)))
-    output = "return Qnil;\n"
+    output = "return NULL;\n"
 
     assert_equal output, @ruby_to_c.process(input)
   end
@@ -199,7 +196,7 @@ class TestRubyToAnsiC < R2CTestCase
     input  = t(:block,
                t(:str, "foo"),
                t(:return, t(:nil)))
-    output = "\"foo\";\nreturn Qnil;\n"
+    output = "\"foo\";\nreturn NULL;\n"
 
     assert_equal output, @ruby_to_c.process(input)
   end
@@ -261,7 +258,7 @@ class TestRubyToAnsiC < R2CTestCase
 
   def test_process_false
     input =  t(:false)
-    output = "Qfalse"
+    output = "0"
 
     assert_equal output, @ruby_to_c.process(input)
   end
@@ -324,33 +321,6 @@ class TestRubyToAnsiC < R2CTestCase
     assert_equal output, @ruby_to_c.process(input)
   end
 
-  def test_process_iter
-    var_type = Type.long_list
-    input  = t(:iter,
-               t(:call,
-                 t(:lvar, :array, var_type),
-                 :each,
-                 nil),
-               t(:dasgn_curr, :x, Type.long),
-               t(:call,
-                 nil,
-                 :puts,
-                 t(:array,
-                   t(:call,
-                     t(:dvar,
-                       :x,
-                       Type.long),
-                     :to_s,
-                     nil))))
-    output = "unsigned long index_x;
-for (index_x = 0; index_x < array.length; ++index_x) {
-long x = array.contents[index_x];
-puts(to_s(x));
-}"
-
-    assert_equal output, @ruby_to_c.process(input)
-  end
-
   def test_process_ivar
     @ruby_to_c.env.add :@blah, Type.long 
     input = t(:ivar, :@blah, Type.long)
@@ -362,21 +332,6 @@ puts(to_s(x));
   def test_process_lasgn
     input  = t(:lasgn, :var, t(:str, "foo"), Type.str)
     output = "var = \"foo\""
-
-    assert_equal output, @ruby_to_c.process(input)
-  end
-
-  def test_process_lasgn_array
-    input  = t(:lasgn,
-               :var,
-               t(:array,
-                 t(:str, "foo", Type.str),
-                 t(:str, "bar", Type.str)),
-               Type.str_list)
-    output = "var.length = 2;
-var.contents = (str*) malloc(sizeof(str) * var.length);
-var.contents[0] = \"foo\";
-var.contents[1] = \"bar\""
 
     assert_equal output, @ruby_to_c.process(input)
   end
@@ -397,7 +352,7 @@ var.contents[1] = \"bar\""
 
   def test_process_lit_sym
     input  = t(:lit, :sym, Type.symbol)
-    output = ":sym"
+    output = "\"sym\""
 
     assert_equal output, @ruby_to_c.process(input)
   end
@@ -411,14 +366,14 @@ var.contents[1] = \"bar\""
 
   def test_process_nil
     input  = t(:nil)
-    output = "Qnil"
+    output = "NULL"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_not
     input  = t(:not, t(:true, Type.bool), Type.bool)
-    output = "!(Qtrue)"
+    output = "!(1)"
 
     assert_equal output, @ruby_to_c.process(input)
   end
@@ -432,7 +387,7 @@ var.contents[1] = \"bar\""
 
   def test_process_return
     input =  t(:return, t(:nil))
-    output = "return Qnil"
+    output = "return NULL"
 
     assert_equal output, @ruby_to_c.process(input)
   end
@@ -463,7 +418,7 @@ bar", Type.str)
     input =  t(:scope,
                t(:block,
                  t(:return, t(:nil))))
-    output = "{\nreturn Qnil;\n}"
+    output = "{\nreturn NULL;\n}"
 
     assert_equal output, @ruby_to_c.process(input)
   end
@@ -481,14 +436,14 @@ bar", Type.str)
                            t(:str, "declare me"),
                            Type.str),
                          t(:return, t(:nil))))
-    output = "{\nstr arg;\narg = \"declare me\";\nreturn Qnil;\n}"
+    output = "{\nstr arg;\narg = \"declare me\";\nreturn NULL;\n}"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
   def test_process_true
     input =  t(:true)
-    output = "Qtrue"
+    output = "1"
 
     assert_equal output, @ruby_to_c.process(input)
   end

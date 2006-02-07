@@ -10,50 +10,6 @@ require 'rewriter'
 require 'pp'
 
 ##
-# Maps a sexp type to a C counterpart.
-
-module TypeMap
-
-  ##
-  # Returns a textual version of a C type that corresponds to a sexp
-  # type.
-
-  def c_type(typ)
-    base_type = 
-      case typ.type.contents # HACK this is breaking demeter
-      when :float then
-     	"double"
-      when :long then
-        "long"
-      when :str then
-        "str"
-      when :symbol then
-        "symbol"
-      when :bool then # TODO: subject to change
-        "VALUE"
-      when :void then
-        "void"
-      when :homo then
-        "void *" # HACK
-      when :value, :unknown then
-        "VALUE"
-# HACK: uncomment this and fix the above when you want to have good tests
-#      when :unknown then
-#        raise "You should not have unknown types by now!"
-      else
-        raise "Bug! Unknown type #{typ.inspect} in c_type"
-      end
-
-    base_type += "_array" if typ.list?
-
-    base_type
-  end
-
-  module_function :c_type # if $TESTING
-
-end
-
-##
 # The whole point of this project! RubyToC is an actually very simple
 # SexpProcessor that does the final conversion from Sexp to C code.
 # This class has more unsupported nodes than any other (on
@@ -73,7 +29,40 @@ class RubyToAnsiC < SexpProcessor
     raise "no: #{caller[0].split[1]} #{exp.inspect}"
   end
 
-  include TypeMap
+  ##
+  # Returns a textual version of a C type that corresponds to a sexp
+  # type.
+
+  def self.c_type(typ)
+    base_type = 
+      case typ.type.contents # HACK this is breaking demeter
+      when :float then
+     	"double"
+      when :long then
+        "long"
+      when :str then
+        "str"
+      when :symbol then
+        "symbol"
+      when :bool then # TODO: subject to change
+        "bool"
+      when :void then
+        "void"
+      when :homo then
+        "void *" # HACK
+      when :value, :unknown then
+        "void *" # HACK
+# HACK: uncomment this and fix the above when you want to have good tests
+#      when :unknown then
+#        raise "You should not have unknown types by now!"
+      else
+        raise "Bug! Unknown type #{typ.inspect} in c_type"
+      end
+
+    base_type += " *" if typ.list? unless typ.unknown?
+
+    base_type
+  end
 
   ##
   # Provides access to the variable scope.
@@ -96,8 +85,6 @@ class RubyToAnsiC < SexpProcessor
 #include <ruby.h>
 #define RB_COMPARE(x, y) (x) == (y) ? 0 : (x) < (y) ? -1 : 1
 typedef char * str;
-typedef struct { unsigned long length; long * contents; } long_array;
-typedef struct { unsigned long length; str * contents; } str_array;
 #define case_equal_long(x, y) ((x) == (y))
 // END METARUBY PREAMBLE
 " + self.prototypes.join('')
@@ -208,7 +195,7 @@ typedef struct { unsigned long length; str * contents; } str_array;
 #       p TypeMap.methods.sort
 #       p c_type(arg.sexp_type)
 
-      args << "#{c_type(arg.sexp_type)} #{arg.first}"
+      args << "#{self.class.c_type(arg.sexp_type)} #{arg.first}"
     end
 
     return "(#{args.join ', '})"
@@ -284,17 +271,13 @@ typedef struct { unsigned long length; str * contents; } str_array;
       args = process exp.shift
       return "#{receiver} == #{args}" # equal? == address equality
     when :[]
-      if receiver_type.list? then
-        args = process exp.shift
-        return "#{receiver}.contents[#{args}]"
-      else
-        # FIX: not sure about this one... hope for the best.
-        args = process exp.shift
-        return "#{receiver}[#{args}]"
-      end
+      args = process exp.shift
+      return "#{receiver}[#{args}]"
+    when :nil?
+      exp.clear
+      return receiver.to_s
     else
       args = process exp.shift
-      name = "NIL_P" if name == :nil?
 
       if receiver.nil? and args.nil? then
         args = ""
@@ -378,7 +361,7 @@ typedef struct { unsigned long length; str * contents; } str_array;
     body = process exp.shift
     function_type = exp.sexp_type
 
-    ret_type = c_type function_type.list_type.return_type
+    ret_type = self.class.c_type function_type.list_type.return_type
 
     @prototypes << "#{ret_type} #{name}#{args};\n"
     "#{ret_type}\n#{name}#{args} #{body}"
@@ -412,10 +395,10 @@ typedef struct { unsigned long length; str * contents; } str_array;
   end
 
   ##
-  # False. Pretty straightforward. Currently we output ruby Qfalse
+  # False. Pretty straightforward.
 
   def process_false(exp)
-         return "Qfalse"
+         return "0"
   end
 
   ##
@@ -507,8 +490,8 @@ typedef struct { unsigned long length; str * contents; } str_array;
       body.gsub!(/\n\n+/, "\n")
 
       out << "unsigned long #{index};"
-      out << "for (#{index} = 0; #{index} < #{enum}.length; ++#{index}) {"
-      out << "#{c_type @env.lookup(var)} #{var} = #{enum}.contents[#{index}];"
+      out << "for (#{index} = 0; #{enum}[#{index}] != NULL; ++#{index}) {"
+      out << "#{self.class.c_type @env.lookup(var)} #{var} = #{enum}[#{index}];"
       out << body
       out << "}"
     end
@@ -541,7 +524,7 @@ typedef struct { unsigned long length; str * contents; } str_array;
 
     exp_type = exp.sexp_type
     @env.add var.to_sym, exp_type
-    var_type = c_type exp_type
+    var_type = self.class.c_type exp_type
 
     if exp_type.list? then
       assert_type args, :array
@@ -550,13 +533,12 @@ typedef struct { unsigned long length; str * contents; } str_array;
 
       # HACK: until we figure out properly what to do w/ zarray
       # before we know what its type is, we will default to long.
-      array_type = args.sexp_types.empty? ? 'long' : c_type(args.sexp_types.first)
+      array_type = args.sexp_types.empty? ? 'void *' : self.class.c_type(args.sexp_types.first)
 
-      args.shift
-      out << "#{var}.length = #{arg_count};\n"
-      out << "#{var}.contents = (#{array_type}*) malloc(sizeof(#{array_type}) * #{var}.length);\n"
+      args.shift # :arglist
+      out << "#{var} = (#{array_type}) malloc(sizeof(#{array_type}) * #{args.length});\n"
       args.each_with_index do |o,i|
-        out << "#{var}.contents[#{i}] = #{process o};\n"
+        out << "#{var}[#{i}] = #{process o};\n"
       end
     else
       out << "#{var} = #{process args}"
@@ -581,7 +563,7 @@ typedef struct { unsigned long length; str * contents; } str_array;
     when Type.long, Type.float then
       return value.to_s
     when Type.symbol then
-      return ":" + value.to_s
+      return value.to_s.inspect
     else
       raise "Bug! no: Unknown literal #{value}:#{value.class}"
     end
@@ -601,7 +583,7 @@ typedef struct { unsigned long length; str * contents; } str_array;
   # Nil, currently ruby nil, not C NULL (0).
 
   def process_nil(exp)
-    return "Qnil"
+    return "NULL"
   end
 
   ##
@@ -649,7 +631,7 @@ typedef struct { unsigned long length; str * contents; } str_array;
     @env.scope do
       body = process exp.shift unless exp.empty?
       @env.current.sort_by { |v,t| v.to_s }.each do |var, var_type|
-        var_type = c_type var_type
+        var_type = self.class.c_type var_type
         declarations << "#{var_type} #{var};\n"
       end
     end
@@ -665,10 +647,10 @@ typedef struct { unsigned long length; str * contents; } str_array;
   end
 
   ##
-  # Truth... what is truth? In this case, Qtrue.
+  # Truth... what is truth?
 
   def process_true(exp)
-    return "Qtrue"
+    return "1"
   end
 
   ##

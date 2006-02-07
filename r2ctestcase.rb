@@ -180,8 +180,8 @@ class R2CTestCase < Test::Unit::TestCase
                            Type.void),
                          Type.function(Type.unknown, [Type.value], Type.bool)),
       "R2CRewriter" => :same,
-      "RubyToRubyC"     => "VALUE\nbools(VALUE arg1) {\nif (NIL_P(arg1)) {\nreturn Qfalse;\n} else {\nreturn Qtrue;\n}\n}",
-      "RubyToAnsiC"     => "bool\nbools(VALUE arg1) {\nif (arg1) {\nreturn 0;\n} else {\nreturn Qtrue;\n}\n}",
+      "RubyToRubyC"     => "VALUE\nbools(VALUE arg1) {\nif (rb_funcall(arg1, rb_intern(\"nil?\"), 0)) {\nreturn Qfalse;\n} else {\nreturn Qtrue;\n}\n}",
+      "RubyToAnsiC"     => "bool\nbools(void * arg1) {\nif (arg1) {\nreturn 0;\n} else {\nreturn 1;\n}\n}",
     },
 
 # TODO: move all call tests here
@@ -443,7 +443,7 @@ return result;
                          t(:return, t(:lit, 1, Type.long), Type.void),
                          nil,
                          Type.void),
-      "RubyToRubyC" => "if (42 == 0) {\nreturn 1;\n}",
+      "RubyToRubyC" => "if (rb_funcall(LONG2NUM(42), rb_intern(\"==\"), 1, LONG2NUM(0))) {\nreturn LONG2NUM(1);\n}",
       "RubyToAnsiC" => "if (42 == 0) {\nreturn 1;\n}",
     },
 
@@ -465,7 +465,7 @@ return result;
                          t(:return, t(:lit, 2, Type.long), Type.void),
                          Type.void),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "if (42 == 0) {\n;\n} else {\nreturn 2;\n}",
+      "RubyToRubyC" => "if (rb_funcall(LONG2NUM(42), rb_intern(\"==\"), 1, LONG2NUM(0))) {\n;\n} else {\nreturn LONG2NUM(2);\n}",
       "RubyToAnsiC" => "if (42 == 0) {\n;\n} else {\nreturn 2;\n}",
     },
 
@@ -496,7 +496,7 @@ return result;
                            Type.void),
                          Type.void),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "if (42 == 0) {\nreturn 3;\n} else {\nreturn 4;\n}",
+      "RubyToRubyC" => "if (rb_funcall(LONG2NUM(42), rb_intern(\"==\"), 1, LONG2NUM(0))) {\nreturn LONG2NUM(3);\n} else {\nreturn LONG2NUM(4);\n}",
       "RubyToAnsiC" => "if (42 == 0) {\nreturn 3;\n} else {\nreturn 4;\n}",
     },
 
@@ -547,7 +547,7 @@ return result;
                            Type.void),
                          Type.void),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "if (42 == 0) {\nreturn 2;\n} else {\nif (42 < 0) {\nreturn 3;\n} else {\nreturn 4;\n}\n}",
+      "RubyToRubyC" => "if (rb_funcall(LONG2NUM(42), rb_intern(\"==\"), 1, LONG2NUM(0))) {\nreturn LONG2NUM(2);\n} else {\nif (rb_funcall(LONG2NUM(42), rb_intern(\"<\"), 1, LONG2NUM(0))) {\nreturn LONG2NUM(3);\n} else {\nreturn LONG2NUM(4);\n}\n}",
       "RubyToAnsiC" => "if (42 == 0) {\nreturn 2;\n} else {\nif (42 < 0) {\nreturn 3;\n} else {\nreturn 4;\n}\n}",
     },
 
@@ -564,25 +564,30 @@ return result;
                            Type.void),
                          Type.function(Type.unknown, [], Type.void)),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "void\nempty() {\nQnil;\n}",
+      "RubyToRubyC" => "VALUE\nempty() {\nQnil;\n}",
       "RubyToAnsiC" => "void\nempty() {\nNULL;\n}",
     },
 
     "defn_zarray" => {
-      "ParseTree"   => [:defn, :empty, [:scope, [:block, [:args], [:return, [:zarray]]]]],
-      "Rewriter"    => s(:defn, :empty,
-                         s(:args), s(:scope, s(:block, s(:return, s(:array))))),
-      "TypeChecker" => t(:defn, :empty,
+      "ParseTree"   => [:defn, :empty, [:scope, [:block, [:args], [:lasgn, :a, [:zarray]], [:return, [:lvar, :a]]]]],
+      "Rewriter"    => s(:defn,
+                         :empty,
+                         s(:args),
+                         s(:scope, s(:block, s(:lasgn, :a, s(:array)), s(:return, s(:lvar, :a))))),
+      "TypeChecker" => t(:defn,
+                         :empty,
                          t(:args),
                          t(:scope,
                            t(:block,
-                             t(:return, t(:array), Type.void),
-                             Type.unknown),
-                           Type.void),
-                         Type.function(Type.unknown, [], Type.homo)),
+                             t(:lasgn, :a, t(:array), Type.unknown_list),
+                             t(:return,
+                               t(:lvar,
+                                 :a, Type.unknown_list), Type.void),
+                             Type.unknown), Type.void),
+                         Type.function(Type.unknown, [], Type.unknown_list)),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "VALUE\nempty() {\nreturn rb_ary_new();\n}",
-      "RubyToAnsiC" => "void *\nempty() {\nreturn (void*)malloc(0);\n}",
+      "RubyToRubyC" => "VALUE\nempty() {\nVALUE a;\na = rb_ary_new2(0);\nreturn a;\n}",
+      "RubyToAnsiC" => "void *\nempty() {\nvoid * a;\na = (void *) malloc(sizeof(void *) * 0);\nreturn a;\n}",
     },
 
     "defn_or" => {
@@ -598,7 +603,7 @@ return result;
                            Type.void),
                          Type.function(Type.unknown, [], Type.void)),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "void\nor() {\nQnil;\n}",
+      "RubyToRubyC" => "VALUE\nor() {\nQnil;\n}",
       "RubyToAnsiC" => "void\nor() {\nNULL;\n}",
     },
 
@@ -615,7 +620,7 @@ return result;
                            Type.void),
                          Type.function(Type.unknown, [], Type.void)),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "void\nis_something() {\nQnil;\n}",
+      "RubyToRubyC" => "VALUE\nis_something() {\nQnil;\n}",
       "RubyToAnsiC" => "void\nis_something() {\nNULL;\n}",
     },
 
@@ -707,7 +712,7 @@ return result;
       # TODO: test s(:gvar, :$stderr) != t(:gvar, $stderr, Type.file)
       "TypeChecker" => t(:gvar, :$stderr, Type.file),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "get_gvar(\"stderr\")", # FIX
+      "RubyToRubyC" => "rb_gv_get(\"$stderr\")",
       "RubyToAnsiC" => "stderr",
     },
 
@@ -800,14 +805,14 @@ puts(x);
                                      1, Type.long)),
                                  Type.long), Type.long), Type.unknown), true)),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "unsigned long n = 1;
-while (n <= 3) {
-rb_funcall(self, rb_intern(\"puts\"), 1, LONG2FIX(n));
-n = n + 1;
+      "RubyToRubyC" => "n = LONG2NUM(1);
+while (rb_funcall(n, rb_intern(\"<=\"), 1, LONG2NUM(3))) {
+rb_funcall(self, rb_intern(\"puts\"), 1, rb_funcall(n, rb_intern(\"to_s\"), 0));
+n = rb_funcall(n, rb_intern(\"+\"), 1, LONG2NUM(1));
 }",
-      "RubyToAnsiC" => "unsigned long n = 1;
+      "RubyToAnsiC" => "n = 1;
 while (n <= 3) {
-puts(l_to_s(n));
+puts(to_s(n));
 n = n + 1;
 }",
     },
@@ -847,14 +852,14 @@ n = n + 1;
                                Type.long),
                            Type.unknown), true)),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "n = 3;
-while (n >= 1) {
-rb_funcall(self, rb_intern(\"puts\"), 1, LONG2FIX(n));
-n = n - 1;
+      "RubyToRubyC" => "n = LONG2NUM(3);
+while (rb_funcall(n, rb_intern(\">=\"), 1, LONG2NUM(1))) {
+rb_funcall(self, rb_intern(\"puts\"), 1, rb_funcall(n, rb_intern(\"to_s\"), 0));
+n = rb_funcall(n, rb_intern(\"-\"), 1, LONG2NUM(1));
 }",
       "RubyToAnsiC" => "n = 3;
 while (n >= 1) {
-puts(l_to_s(n));
+puts(to_s(n));
 n = n - 1;
 }",
     },
@@ -892,9 +897,9 @@ n = n - 1;
                              Type.long),
                            Type.unknown), true),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "while (argl >= 1) {
+      "RubyToRubyC" => "while (rb_funcall(argl, rb_intern(\">=\"), 1, LONG2NUM(1))) {
 rb_funcall(self, rb_intern(\"puts\"), 1, rb_str_new2(\"hello\"));
-argl = argl - 1;
+argl = rb_funcall(argl, rb_intern(\"-\"), 1, LONG2NUM(1));
 }",
       "RubyToAnsiC" => "while (argl >= 1) {
 puts(\"hello\");
@@ -915,8 +920,80 @@ argl = argl - 1;
                            Type.long),
                          Type.long),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "c = 2 + 3",
+      "RubyToRubyC" => "c = rb_funcall(LONG2NUM(2), rb_intern(\"+\"), 1, LONG2NUM(3))", # FIX: probably not "c ="
       "RubyToAnsiC" => "c = 2 + 3",
+    },
+
+"lasgn_array" => {
+      "ParseTree"   => [:lasgn, :var, [:array,
+                                         [:str, "foo"],
+                                         [:str, "bar"]]],
+      "Rewriter"    => s(:lasgn, :var, s(:array,
+                                         s(:str, "foo"),
+                                         s(:str, "bar"))),
+      "TypeChecker" => t(:lasgn,
+                         :var,
+                         t(:array,
+                           t(:str, "foo", Type.str),
+                           t(:str, "bar", Type.str)),
+                         Type.str_list),
+      "R2CRewriter" => :same,
+      "RubyToRubyC" => "var = rb_ary_new2(2);\nrb_ary_store(var, 0, rb_str_new2(\"foo\"));\nrb_ary_store(var, 1, rb_str_new2(\"bar\"))",
+      "RubyToAnsiC" => "var = (str) malloc(sizeof(str) * 2);\nvar[0] = \"foo\";\nvar[1] = \"bar\""
+},
+
+    "lit_bool_false" => {
+      "ParseTree"   => [:false],
+      "Rewriter"    => s(:false),
+      "TypeChecker" => t(:false, Type.bool),
+      "R2CRewriter" => :same,
+      "RubyToRubyC" => "Qfalse",
+      "RubyToAnsiC" => "0",
+    },
+
+    "lit_bool_true" => {
+      "ParseTree"   => [:true],
+      "Rewriter"    => s(:true),
+      "TypeChecker" => t(:true, Type.bool),
+      "R2CRewriter" => :same,
+      "RubyToRubyC" => "Qtrue",
+      "RubyToAnsiC" => "1",
+    },
+
+    "lit_float" => {
+      "ParseTree"   => [:lit, 1.1],
+      "Rewriter"    => s(:lit, 1.1),
+      "TypeChecker" => t(:lit, 1.1, Type.float),
+      "R2CRewriter" => :same,
+      "RubyToRubyC" => "DBL2NUM(1.1)",
+      "RubyToAnsiC" => "1.1",
+    },
+
+    "lit_long" => {
+      "ParseTree"   => [:lit, 1],
+      "Rewriter"    => s(:lit, 1),
+      "TypeChecker" => t(:lit, 1, Type.long),
+      "R2CRewriter" => :same,
+      "RubyToRubyC" => "LONG2NUM(1)",
+      "RubyToAnsiC" => "1",
+    },
+
+    "lit_sym" => {
+      "ParseTree"   => [:lit, :x],
+      "Rewriter"    => s(:lit, :x),
+      "TypeChecker" => t(:lit, :x, Type.symbol),
+      "R2CRewriter" => :same,
+      "RubyToRubyC" => "rb_intern(\"x\")",
+      "RubyToAnsiC" => "\"x\"",
+    },
+
+    "lit_str" => {
+      "ParseTree"   => [:str, "x"],
+      "Rewriter"    => s(:str, "x"),
+      "TypeChecker" => t(:str, "x", Type.str),
+      "R2CRewriter" => :same,
+      "RubyToRubyC" => "rb_str_new2(\"x\")",
+      "RubyToAnsiC" => "\"x\"",
     },
 
     "multi_args" => {
@@ -992,19 +1069,19 @@ argl = argl - 1;
                    Type.function(Type.unknown,
                                  [Type.long, Type.long], Type.str)),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "str
-multi_args(long arg1, long arg2) {
-long arg3;
-arg3 = arg1 * arg2 * 7;
-rb_funcall(self, rb_intern(\"puts\"), 1, rb_funcall(LONG2FIX(arg3), rb_intern(\"to_s\"), 0));
+      "RubyToRubyC" => "VALUE
+multi_args(VALUE arg1, VALUE arg2) {
+VALUE arg3;
+arg3 = rb_funcall(rb_funcall(arg1, rb_intern(\"*\"), 1, arg2), rb_intern(\"*\"), 1, LONG2NUM(7));
+rb_funcall(self, rb_intern(\"puts\"), 1, rb_funcall(arg3, rb_intern(\"to_s\"), 0));
 return rb_str_new2(\"foo\");
 }",
       "RubyToAnsiC" => "str
 multi_args(long arg1, long arg2) {
 long arg3;
 arg3 = arg1 * arg2 * 7;
-puts(l_to_s(arg3));
-return asprintf(\"foo\");
+puts(to_s(arg3));
+return \"foo\";
 }",
     },
  
@@ -1013,7 +1090,7 @@ return asprintf(\"foo\");
       "Rewriter"    => s(:call, nil, :method, nil),
       "TypeChecker" => t(:call, nil, :method, nil, Type.unknown),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "rb_funcall(self, rb_intern(\"puts\"), 0)",
+      "RubyToRubyC" => "rb_funcall(self, rb_intern(\"method\"), 0)",
       "RubyToAnsiC" => "method()",
     },
 
@@ -1063,13 +1140,13 @@ return asprintf(\"foo\");
                  Type.void),
                Type.function(Type.unknown, [], Type.void)),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "void
+      "RubyToRubyC" => "VALUE
 whiles() {
 while (Qfalse) {
-puts(\"false\");
+rb_funcall(self, rb_intern(\"puts\"), 1, rb_str_new2(\"false\"));
 };
 {
-puts(\"true\");
+rb_funcall(self, rb_intern(\"puts\"), 1, rb_str_new2(\"true\"));
 } while (Qfalse);
 }",
       "RubyToAnsiC" => "void
@@ -1089,10 +1166,9 @@ puts(\"true\");
       "TypeChecker" => t(:lasgn, :a, t(:array), Type.unknown_list),
       "R2CRewriter" => :same,
      # TODO: need to verify that our variable decl will be correct
-      "RubyToRubyC" => "a = rb_ary_new();",
-      "RubyToAnsiC" => "a = (void*)malloc(0);",
+      "RubyToRubyC" => "a = rb_ary_new2(0)",
+      "RubyToAnsiC" => "a = (void *) malloc(sizeof(void *) * 0)",
     },
-
   }
 
   def self.previous(key)
