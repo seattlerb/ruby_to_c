@@ -185,7 +185,7 @@ class Rewriter < SexpProcessor
   def process_fcall(exp)
     name = exp.shift
     args = process exp.shift
-    args[0] = :arglist
+    args[0] = :arglist unless args.nil? # for :fcall with block (:iter)
 
     return s(:call, nil, name, args)
   end
@@ -209,10 +209,6 @@ class Rewriter < SexpProcessor
     call = process exp.shift
     var  = process exp.shift
     body = process exp.shift
-
-    if var.nil? then
-      var = s(:lvar, :temp_var1) # HACK Use Unique
-    end
 
     assert_type call, :call
 
@@ -266,9 +262,14 @@ class Rewriter < SexpProcessor
         body.find_and_replace_all(:dvar, :lvar)
         result = s(:block, var, body)
       else
-        raise "unknown iter method #{method_name}"
+        # HACK we butchered call up top
+        result = s(:iter, s(:call, lhs, method_name, call.shift), var, body)
       end
     else
+      if var.nil? then
+        var = s(:lvar, :temp_var1) # HACK Use Unique
+      end
+
       s(:iter, call, var, body)
     end
   end
@@ -371,4 +372,5 @@ class R2CRewriter < SexpProcessor
     return result
   end
 end
+
 

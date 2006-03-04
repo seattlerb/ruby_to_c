@@ -20,7 +20,7 @@ class TestRubyToRubyC < R2CTestCase
     input = [:class, :Suck, :Object,
       [:defn, :something, [:scope, [:block, [:args], [:fcall, :"whaaa\?"]]]],
       [:defn, :foo, [:scope, [:block, [:args], [:vcall, :something]]]]]
-    expected = "// class Suck\n\n// ERROR: NoMethodError: undefined method `[]=' for nil:NilClass\n\nVALUE\nfoo() {\nrb_funcall(self, rb_intern(\"something\"), 0);\n}"
+    expected = "// class Suck\n\nVALUE\nsomething() {\nrb_funcall(self, rb_intern(\"whaaa?\"), 0);\n}\n\nVALUE\nfoo() {\nrb_funcall(self, rb_intern(\"something\"), 0);\n}"
     assert_equal expected, RubyToRubyC.translator.process(input)
   end
 

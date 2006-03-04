@@ -649,10 +649,15 @@ class TypeChecker < SexpProcessor
     body_exp = process exp.shift
 
     lhs = call_exp[1] # FIX
-    Type.unknown_list.unify lhs.sexp_type # force a list type, lhs must be Enum
-    Type.new(lhs.sexp_type.list_type).unify dargs_exp.sexp_type # pull out type
+    if lhs.nil? then
+      # We're an fcall getting passed a block.
+      return t(:iter, call_exp, dargs_exp, body_exp, call_exp.sexp_type)
+    else
+      Type.unknown_list.unify lhs.sexp_type # force a list type, lhs must be Enum
+      Type.new(lhs.sexp_type.list_type).unify dargs_exp.sexp_type # pull out type
 
-    return t(:iter, call_exp, dargs_exp, body_exp, Type.void)
+      return t(:iter, call_exp, dargs_exp, body_exp, Type.void)
+    end
   end
 
   ##

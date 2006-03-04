@@ -764,6 +764,24 @@ return result;
       "RubyToAnsiC" => :unsupported,
     },
 
+    "iter" => {
+      "ParseTree"   => [:iter,
+        [:fcall, :loop],
+        nil],
+      "Rewriter"    => s(:iter,
+                         s(:call, nil, :loop, nil),
+                         nil,
+                         nil),
+      "TypeChecker" => t(:iter,
+                         t(:call, nil, :loop, nil, Type.unknown),
+                         nil,
+                         nil,
+                         Type.unknown),
+      "R2CRewriter" => :same,
+      "RubyToRubyC" => :unsupported,
+      "RubyToAnsiC" => :unsupported,
+    },
+
     "iteration2" => {
       "ParseTree"   => [:iter,
         [:call, [:lvar, :arrays], :each],

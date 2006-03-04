@@ -94,8 +94,10 @@ class RubyToRubyC < RubyToAnsiC
 
   def process_iter(exp)
     out = []
+    # Only support enums in C-land
+    raise UnsupportedNodeError if exp[0][1].nil? # HACK ugly
     @env.scope do
-      enum = exp[0][1][1] # HACK ugly
+      enum = exp[0][1][1] # HACK ugly t(:iter, t(:call, lhs <-- get lhs
       call = process exp.shift
       var  = process(exp.shift).intern # semi-HACK-y
       body = process exp.shift
