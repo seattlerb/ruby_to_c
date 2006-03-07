@@ -163,13 +163,12 @@ class Rewriter < SexpProcessor
       size = cond.size
       args.slice!(-size, size)
       args.push :"*args"
+      # TODO: rewrite this back to lasgn, if and let a tail end rewriter flip
       new_code = cond.map do |t, var, val|
-        s(:lasgn,
-          var,
-          s(:if,
-            s(:call, s(:lvar, :args), :empty?),
-            val,
-            s(:call, s(:lvar, :args), :shift)))
+        s(:if,
+          s(:call, s(:lvar, :args), :empty?),
+          s(:lasgn, var, val),
+          s(:lasgn, var, s(:call, s(:lvar, :args), :shift)))
       end
       body[1].insert 1, *new_code
     end

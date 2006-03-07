@@ -12,8 +12,9 @@ class Environment
   end
 
   def add(id, val)
-    raise "Adding illegal identifier #{id.inspect}" unless String === id or Symbol === id
-    current[id] = val
+    raise "Adding illegal identifier #{id.inspect}" unless Symbol === id
+    current[id.to_s.sub(/^\*/, '').intern] = val
+    # current[id] = val
   end
 
   def extend
@@ -25,6 +26,8 @@ class Environment
   end
 
   def lookup(id)
+
+    warn "#{id} is a string from #{caller[0]}" if String === id
 
     # HACK: if id is :self, cheat for now until we have full defn remapping
     if id == :self then

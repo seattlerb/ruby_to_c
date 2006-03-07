@@ -335,8 +335,8 @@ class TestEnvironment < Test::Unit::TestCase
   end
 
   def test_add
-    assert_equal 42, @env.add('var', 42)
-    assert_equal 42, @env.lookup('var')
+    assert_equal 42, @env.add(:var, 42)
+    assert_equal 42, @env.lookup(:var)
   end
 
   def test_add_raises_on_illegal
@@ -345,25 +345,25 @@ class TestEnvironment < Test::Unit::TestCase
     end
 
     assert_raises RuntimeError do
-      @env.add 1, 'foo'
+      @env.add 1, :foo
     end
   end
 
   def test_add_segmented
     @env.scope do
-      @env.add 'var', 42
-      assert_equal 42, @env.lookup('var')
+      @env.add :var, 42
+      assert_equal 42, @env.lookup(:var)
     end
 
     assert_raises NameError do
-      @env.lookup('var')
+      @env.lookup(:var)
     end
   end
 
   def test_current
-    @env.add 'var', 42
+    @env.add :var, 42
     
-    expected = { 'var' => 42 }
+    expected = { :var => 42 }
     assert_equal expected, @env.current
   end
 
@@ -394,48 +394,48 @@ class TestEnvironment < Test::Unit::TestCase
   end
 
   def test_lookup
-    @env.add 'var', 1
-    assert_equal 1, @env.lookup('var')
+    @env.add :var, 1
+    assert_equal 1, @env.lookup(:var)
   end
 
   def test_lookup_raises
     assert_raises NameError do
-      @env.lookup('var')
+      @env.lookup(:var)
     end
   end
 
   def test_lookup_extended
-    @env.add 'var', 1
-    assert_equal 1, @env.lookup('var')
+    @env.add :var, 1
+    assert_equal 1, @env.lookup(:var)
 
     @env.scope do
-      assert_equal 1, @env.lookup('var')
+      assert_equal 1, @env.lookup(:var)
     end
   end
 
   def test_scope
-    @env.add 'var', 1
-    assert_equal 1, @env.lookup('var')
+    @env.add :var, 1
+    assert_equal 1, @env.lookup(:var)
 
     @env.scope do
-      @env.add 'var', 2
-      assert_equal 2, @env.lookup('var')
+      @env.add :var, 2
+      assert_equal 2, @env.lookup(:var)
     end
 
-    assert_equal 1, @env.lookup('var')
+    assert_equal 1, @env.lookup(:var)
   end
 
   def test_unextend
     @env.extend
 
-    @env.add 'var', 1
+    @env.add :var, 1
 
-    assert_equal 1, @env.lookup('var')
+    assert_equal 1, @env.lookup(:var)
 
     @env.unextend
 
     assert_raises NameError do
-      @env.lookup 'var'
+      @env.lookup :var
     end
   end
 
@@ -448,63 +448,63 @@ class TestFunctionTable < Test::Unit::TestCase
   end
 
   def test_add_function
-    type = @function_table.add_function 'func', Type.long
+    type = @function_table.add_function :func, Type.long
 
     assert_equal Type.long, type
-    assert_equal Type.long, @function_table['func']
+    assert_equal Type.long, @function_table[:func]
   end
 
   def test_cheat
-    @function_table.add_function 'func', Type.long
-    @function_table.add_function 'func', Type.str
+    @function_table.add_function :func, Type.long
+    @function_table.add_function :func, Type.str
 
-    assert_equal [Type.long, Type.str], @function_table.cheat('func')
+    assert_equal [Type.long, Type.str], @function_table.cheat(:func)
   end
 
   def test_has_key?
-    @function_table.add_function 'func', Type.long
+    @function_table.add_function :func, Type.long
 
-    assert_equal true, @function_table.has_key?('func')
+    assert_equal true, @function_table.has_key?(:func)
     assert_equal false, @function_table.has_key?('no such func')
   end
 
   def test_index
-    @function_table.add_function 'func', Type.long
+    @function_table.add_function :func, Type.long
 
-    assert_equal Type.long, @function_table['func']
+    assert_equal Type.long, @function_table[:func]
 
-    @function_table.add_function 'func', Type.str
+    @function_table.add_function :func, Type.str
 
-    assert_equal Type.long, @function_table['func']
+    assert_equal Type.long, @function_table[:func]
   end
 
   def test_unify_one_type
-    @function_table.add_function 'func', Type.unknown
+    @function_table.add_function :func, Type.unknown
 
-    @function_table.unify 'func', Type.long do
+    @function_table.unify :func, Type.long do
       flunk "Block should not have been called"
     end
 
-    assert_equal Type.long, @function_table['func']
+    assert_equal Type.long, @function_table[:func]
   end
 
   def test_unify_two_type
-    @function_table.add_function 'func', Type.unknown
-    @function_table.add_function 'func', Type.str
+    @function_table.add_function :func, Type.unknown
+    @function_table.add_function :func, Type.str
 
-    @function_table.unify 'func', Type.long do
+    @function_table.unify :func, Type.long do
       flunk "Block should not have been called"
     end
 
-    assert_equal Type.long, @function_table['func']
+    assert_equal Type.long, @function_table[:func]
   end
 
   def test_unify_block_called_no_type
-    @function_table.add_function 'func', Type.str
+    @function_table.add_function :func, Type.str
 
     test_var = false
 
-    @function_table.unify 'func', Type.long do
+    @function_table.unify :func, Type.long do
       test_var = true
     end
 
@@ -514,7 +514,7 @@ class TestFunctionTable < Test::Unit::TestCase
   def test_unify_block_called_no_unify
     test_var = false
 
-    @function_table.unify 'func', Type.long do
+    @function_table.unify :func, Type.long do
       test_var = true
     end
 
