@@ -160,15 +160,8 @@ class Rewriter < SexpProcessor
     if Array === args.last and args.last.first == :block then
       cond = args.pop
       cond.shift # take off :block
-      size = cond.size
-      args.slice!(-size, size)
-      args.push :"*args"
-      # TODO: rewrite this back to lasgn, if and let a tail end rewriter flip
-      new_code = cond.map do |t, var, val|
-        s(:if,
-          s(:call, s(:lvar, :args), :empty?),
-          s(:lasgn, var, val),
-          s(:lasgn, var, s(:call, s(:lvar, :args), :shift)))
+      new_code =  cond.map do |t, var, val|
+        s(:if, s(:call, s(:lvar, var), :nil?), s(:lasgn, var, val), nil)
       end
       body[1].insert 1, *new_code
     end
