@@ -202,6 +202,8 @@ class Rewriter < SexpProcessor
     var  = process exp.shift
     body = process exp.shift
 
+    var = s(:var, Unique.next) if var.nil?
+
     assert_type call, :call
 
     if call[2] != :each then # TODO: fix call[n] (api)
@@ -259,7 +261,7 @@ class Rewriter < SexpProcessor
       end
     else
       if var.nil? then
-        var = s(:lvar, :temp_var1) # HACK Use Unique
+        var = s(:lvar, Unique.next)
       end
 
       s(:iter, call, var, body)

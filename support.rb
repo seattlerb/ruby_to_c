@@ -299,21 +299,11 @@ end
 
 class Unique
 
-  ##
-  # Variable names will be prefixed by +prefix+
+  @@curr = 0
 
-  def initialize(prefix)
-    @prefix = prefix
-    @curr = 'a'
-  end
-
-  ##
-  # Generate a new unique variable name
-
-  def next
-    var = "#{@prefix}_#{@curr}"
-    @curr.succ!
-    return var
+  def self.next
+    @@curr += 1
+    "temp_#{@@curr}".intern
   end
 
 end
