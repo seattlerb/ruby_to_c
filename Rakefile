@@ -1,9 +1,10 @@
 # -*- ruby -*-
 
 require 'rake'
-require 'rubygems'
-require 'rake/testtask'
+require 'rake/gempackagetask'
 require 'rake/rdoctask'
+require 'rake/testtask'
+require 'rubygems'
 
 task :default => :test
 
@@ -13,11 +14,10 @@ Rake::TestTask.new(:test) do |t|
   t.verbose = true
 end
 
-require './lib/ruby_to_ansi_c.rb'
-
+VERSION = $1 if File.read('./lib/ruby_to_ansi_c.rb') =~ /VERSION = '([^']+)'/
 spec = Gem::Specification.new do |s|
   s.name = 'RubyToC'
-  s.version = RubyToC::VERSION.sub(/-beta-/, '.')
+  s.version = VERSION.sub(/-beta-/, '.')
   s.summary = "Ruby (subset) to C translator."
 
   paragraphs = File.read("README.txt").split(/\n\n+/)
