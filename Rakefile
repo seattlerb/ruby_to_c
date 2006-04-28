@@ -1,10 +1,21 @@
 # -*- ruby -*-
 
+require 'rake'
 require 'rubygems'
-require 'ruby_to_ansi_c'
+require 'rake/testtask'
+require 'rake/rdoctask'
+
+task :default => :test
+
+Rake::TestTask.new(:test) do |t|
+  t.libs.push(*%w( test ../../ParseTree/dev/lib ../../ParseTree/dev/test ../../RubyInline/dev ))
+  t.pattern = 'test/test_*.rb'
+  t.verbose = true
+end
+
+require './lib/ruby_to_ansi_c.rb'
 
 spec = Gem::Specification.new do |s|
-
   s.name = 'RubyToC'
   s.version = RubyToC::VERSION.sub(/-beta-/, '.')
   s.summary = "Ruby (subset) to C translator."
@@ -28,7 +39,7 @@ spec = Gem::Specification.new do |s|
   s.rubyforge_project = "ruby2c"
 end
 
-if $0 == __FILE__
-  Gem.manage_gems
-  Gem::Builder.new(spec).build
+Rake::GemPackageTask.new spec do |pkg|
+  pkg.need_tar = true
 end
+
