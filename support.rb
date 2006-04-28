@@ -298,13 +298,15 @@ end
 # Unique creates unique variable names.
 
 class Unique
-
-  @@curr = 0
+  def self.reset # mostly for testing
+    @@curr = 0
+  end
 
   def self.next
     @@curr += 1
     "temp_#{@@curr}".intern
   end
 
+  reset
 end
 
