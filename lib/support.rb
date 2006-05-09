@@ -45,10 +45,17 @@ class Environment
     @env.first
   end
 
+  def all
+    @env.reverse.inject { |env, scope| env.merge scope }
+  end
+
   def scope
     self.extend
-    yield
-    self.unextend
+    begin
+      yield
+    ensure
+      self.unextend
+    end
   end
 
 end

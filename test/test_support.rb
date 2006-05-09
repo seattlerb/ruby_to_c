@@ -367,6 +367,19 @@ class TestEnvironment < Test::Unit::TestCase
     assert_equal expected, @env.current
   end
 
+  def test_all
+    @env.scope do
+      @env.add :x, 42
+      @env.scope do
+        @env.add :y, 24
+        @env.add :x, 15
+        expected = { :x => 15, :y => 24 }
+
+        assert_equal expected, @env.all
+      end
+    end
+  end
+  
   def test_depth
     assert_equal 1, @env.depth
 
@@ -423,6 +436,23 @@ class TestEnvironment < Test::Unit::TestCase
     end
 
     assert_equal 1, @env.lookup(:var)
+  end
+
+  def test_scope_raise
+    @env.add :a, 2
+
+    begin
+      @env.scope do
+        @env.add :a, 1
+        @env.add :b, 2
+        raise "woo"
+      end
+    rescue
+      # should replicate baddies
+    end
+
+    expected = { :a => 2 }
+    assert_equal expected, @env.all
   end
 
   def test_unextend
