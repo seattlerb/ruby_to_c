@@ -15,6 +15,7 @@ Rake::TestTask.new(:test) do |t|
 end
 
 VERSION = $1 if File.read('./lib/ruby_to_ansi_c.rb') =~ /VERSION = '([^']+)'/
+
 spec = Gem::Specification.new do |s|
   s.name = 'RubyToC'
   s.version = VERSION.sub(/-beta-/, '.')
@@ -27,11 +28,10 @@ spec = Gem::Specification.new do |s|
   s.add_dependency('ParseTree')
   s.files = IO.readlines("Manifest.txt").reject { |o| o =~ /propaganda/ }.map {|f| f.chomp }
 
-  s.require_path = '.' 
-  s.autorequire = 'ruby_to_ansi_c'
+  s.require_path = 'lib'
 
   s.has_rdoc = true
-  s.test_suite_file = "test_all.rb"
+  s.test_suite_file = "test/test_all.rb"
 
   s.author = "Ryan Davis"
   s.email = "ryand-ruby@zenspider.com"

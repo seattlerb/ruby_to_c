@@ -202,7 +202,7 @@ class Rewriter < SexpProcessor
     var  = process exp.shift
     body = process exp.shift
 
-    var = s(:var, Unique.next) if var.nil?
+    var = s(:dasgn_curr, Unique.next) if var.nil?
 
     assert_type call, :call
 

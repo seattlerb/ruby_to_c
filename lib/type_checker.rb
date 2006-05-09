@@ -122,6 +122,8 @@ class TypeChecker < SexpProcessor
     self.strict = true
     self.expected = TypedSexp
 
+    self.unsupported = [:alias, :alloca, :argscat, :argspush, :attrset, :back_ref, :bmethod, :break, :case, :cdecl, :cfunc, :cref, :cvdecl, :dasgn, :defs, :dmethod, :dot2, :dot3, :dregx, :dregx_once, :dsym, :dxstr, :evstr, :fbody, :fcall, :flip2, :flip3, :for, :ifunc, :last, :masgn, :match, :match2, :match3, :memo, :method, :module, :newline, :next, :nth_ref, :op_asgn1, :op_asgn2, :op_asgn_and, :opt_n, :postexe, :redo, :retry, :sclass, :svalue, :to_ary, :undef, :until, :valias, :vcall, :when, :xstr, :zarray, :zsuper]
+
     bootstrap
   end
 
