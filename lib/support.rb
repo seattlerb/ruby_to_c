@@ -11,10 +11,9 @@ class Environment
     @env.length
   end
 
-  def add(id, val)
+  def add(id, val, depth = 0)
     raise "Adding illegal identifier #{id.inspect}" unless Symbol === id
-    current[id.to_s.sub(/^\*/, '').intern] = val
-    # current[id] = val
+    @env[depth][id.to_s.sub(/^\*/, '').intern] = val
   end
 
   def extend

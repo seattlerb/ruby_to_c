@@ -339,6 +339,13 @@ class TestEnvironment < Test::Unit::TestCase
     assert_equal 42, @env.lookup(:var)
   end
 
+  def test_add_depth
+    @env.scope do
+      assert_equal 42, @env.add(:var, 42, 1)
+    end
+    assert_equal 42, @env.lookup(:var)
+  end
+
   def test_add_raises_on_illegal
     assert_raises RuntimeError do
       @env.add nil, 1
