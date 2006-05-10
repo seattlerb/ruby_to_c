@@ -22,40 +22,6 @@ class TestRewriter < R2CTestCase
     assert_equal expect, @rewrite.process(input)
   end
 
-  def test_process_defn_block
-    input =  [:defn, :meth, [:scope, [:block, [:args], [:return, [:nil]]]]]
-    output = [:defn, :meth, [:args], [:scope, [:block, [:return, [:nil]]]]]
-
-    assert_equal output, @rewrite.process(input)
-  end
-
-  def test_process_defn_ivar
-    input =  [:defn, :name, [:ivar, :@name]]
-    output = [:defn, :name, [:args], [:scope, [:block, [:return, [:ivar, :@name]]]]]
-
-    assert_equal output, @rewrite.process(input)
-  end
-
-  def test_process_defn_attrset
-    input =  [:defn, :meth, [:attrset, :@name]]
-    output = [:defn, :meth, [:args, :arg], [:scope, [:block, [:return, [:iasgn, :@name, [:lvar, :arg]]]]]]
-
-    assert_equal output, @rewrite.process(input)
-  end
-
-  def test_process_fcall
-    input  = [:fcall, :puts, [:array, [:lit, 1]]]
-    expect = [:call, nil, :puts, [:arglist, [:lit, 1]]]
-    assert_equal expect, @rewrite.process(input)
-  end
-
-  def test_process_vcall_2
-    input =  [:vcall, :method]
-    output = [:call, nil, :method, nil]
-
-    assert_equal output, @rewrite.process(input)
-  end
-
   def test_process_case
     input = [:case,
       [:lvar, :var],
@@ -123,6 +89,33 @@ class TestRewriter < R2CTestCase
     assert_equal expected, @rewrite.process(input)
   end
 
+  def test_process_defn_attrset
+    input =  [:defn, :meth, [:attrset, :@name]]
+    output = [:defn, :meth, [:args, :arg], [:scope, [:block, [:return, [:iasgn, :@name, [:lvar, :arg]]]]]]
+
+    assert_equal output, @rewrite.process(input)
+  end
+
+  def test_process_defn_block
+    input =  [:defn, :meth, [:scope, [:block, [:args], [:return, [:nil]]]]]
+    output = [:defn, :meth, [:args], [:scope, [:block, [:return, [:nil]]]]]
+
+    assert_equal output, @rewrite.process(input)
+  end
+
+  def test_process_defn_ivar
+    input =  [:defn, :name, [:ivar, :@name]]
+    output = [:defn, :name, [:args], [:scope, [:block, [:return, [:ivar, :@name]]]]]
+
+    assert_equal output, @rewrite.process(input)
+  end
+
+  def test_process_fcall
+    input  = [:fcall, :puts, [:array, [:lit, 1]]]
+    expect = [:call, nil, :puts, [:arglist, [:lit, 1]]]
+    assert_equal expect, @rewrite.process(input)
+  end
+
   def test_process_iter
     input = [:iter,
         [:call, [:lit, 3], :downto, [:array, [:lit, 1]]],
@@ -152,7 +145,7 @@ class TestRewriter < R2CTestCase
     assert_equal expected, @rewrite.process(input)
   end
 
-  def test_iter_downto_nested
+  def test_process_iter_downto_nested
     input    = [:block,
                  [:iter,
                    [:call, [:lvar, :n], :downto, [:array, [:lit, 0]]],
@@ -186,7 +179,7 @@ class TestRewriter < R2CTestCase
     assert_equal expected, @rewrite.process(input)
   end
 
-  def test_iter_upto_nested
+  def test_process_iter_upto_nested
     input    = [:block,
                  [:iter,
                    [:call, [:lvar, :n], :upto, [:array, [:lit, 0]]],
@@ -244,6 +237,13 @@ class TestRewriter < R2CTestCase
     assert_equal output, @rewrite.process(input)
   end
 
+  def test_process_vcall_2
+    input =  [:vcall, :method]
+    output = [:call, nil, :method, nil]
+
+    assert_equal output, @rewrite.process(input)
+  end
+
   def test_process_when
     input = [:when, [:array, [:lit, 1]], [:str, "1"]]
 
@@ -260,7 +260,7 @@ class TestR2CRewriter < R2CTestCase
     @rewrite = R2CRewriter.new
   end
 
-  def test_process_call_rewritten
+  def xtest_process_call_rewritten
 
     input = t(:call,
               t(:str, "this", Type.str),
@@ -278,7 +278,7 @@ class TestR2CRewriter < R2CTestCase
     assert_equal expected, @rewrite.process(input)
   end
 
-  def test_process_call_same
+  def xtest_process_call_same
 
     input = t(:call,
               t(:lit, 1, Type.long),

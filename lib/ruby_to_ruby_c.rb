@@ -33,6 +33,69 @@ class RubyToRubyC < RubyToAnsiC
     @translator
   end
 
+  def self.c_type(x)
+    "VALUE"
+  end
+
+  def initialize # :nodoc:
+    super
+  end
+
+  def process_call(exp)
+    receiver = process(exp.shift) || "self"
+    name = exp.shift.to_s
+    args = [process(exp.shift)].flatten.compact
+
+    name = '===' if name =~ /^case_equal_/ # undo the evils of TypeChecker
+
+    if args.empty?
+      args = "0"
+    else
+      args = "#{args.size}, #{args.join(", ")}"
+    end
+
+    "rb_funcall(#{receiver}, rb_intern(#{name.inspect}), #{args})"
+  end
+
+  def process_false(exp)
+    "Qfalse"
+  end
+
+  def process_gvar(exp)
+    var = exp.shift
+    "rb_gv_get(#{var.to_s.inspect})"
+  end
+
+  ##
+  # Iterators for loops. After rewriter nearly all iter nodes
+  # should be able to be interpreted as a for loop. If not, then you
+  # are doing something not supported by C in the first place.
+
+  def process_iter(exp)
+    out = []
+    # Only support enums in C-land
+    raise UnsupportedNodeError if exp[0][1].nil? # HACK ugly
+    @env.scope do
+      enum = exp[0][1][1] # HACK ugly t(:iter, t(:call, lhs <-- get lhs
+      call = process exp.shift
+      var  = process(exp.shift).intern # semi-HACK-y
+      body = process exp.shift
+      index = "index_#{var}"
+
+      body += ";" unless body =~ /[;}]\Z/
+      body.gsub!(/\n\n+/, "\n")
+
+      out << "unsigned long #{index};"
+      out << "unsigned long arrays_max = FIX2LONG(rb_funcall(arrays, rb_intern(\"size\"), 0));"
+      out << "for (#{index} = 0; #{index} < arrays_max; ++#{index}) {"
+      out << "VALUE x = rb_funcall(arrays, rb_intern(\"at\"), 1, LONG2FIX(index_x));"
+      out << body
+      out << "}"
+    end
+
+    return out.join("\n")
+  end
+
   ##
   # Assignment to a local variable.
   #
@@ -71,64 +134,6 @@ class RubyToRubyC < RubyToAnsiC
     return out
   end
 
-  def self.c_type(x)
-    "VALUE"
-  end
-
-  def initialize # :nodoc:
-    super
-  end
-
-  def process_true(exp)
-    "Qtrue"
-  end
-
-  def process_false(exp)
-    "Qfalse"
-  end
-
-  ##
-  # Iterators for loops. After rewriter nearly all iter nodes
-  # should be able to be interpreted as a for loop. If not, then you
-  # are doing something not supported by C in the first place.
-
-  def process_iter(exp)
-    out = []
-    # Only support enums in C-land
-    raise UnsupportedNodeError if exp[0][1].nil? # HACK ugly
-    @env.scope do
-      enum = exp[0][1][1] # HACK ugly t(:iter, t(:call, lhs <-- get lhs
-      call = process exp.shift
-      var  = process(exp.shift).intern # semi-HACK-y
-      body = process exp.shift
-      index = "index_#{var}"
-
-      body += ";" unless body =~ /[;}]\Z/
-      body.gsub!(/\n\n+/, "\n")
-
-      out << "unsigned long #{index};"
-      out << "unsigned long arrays_max = FIX2LONG(rb_funcall(arrays, rb_intern(\"size\"), 0));"
-      out << "for (#{index} = 0; #{index} < arrays_max; ++#{index}) {"
-      out << "VALUE x = rb_funcall(arrays, rb_intern(\"at\"), 1, LONG2FIX(index_x));"
-      out << body
-      out << "}"
-    end
-
-    return out.join("\n")
-  end
-
-  ##
-  # Nil, currently ruby nil, not C NULL (0).
-
-  def process_nil(exp)
-    return "Qnil"
-  end
-
-  def process_gvar(exp)
-    var = exp.shift
-    "rb_gv_get(#{var.to_s.inspect})"
-  end
-
   def process_lit(exp)
     value = exp.shift
 
@@ -144,24 +149,19 @@ class RubyToRubyC < RubyToAnsiC
     end
   end
 
+  ##
+  # Nil, currently ruby nil, not C NULL (0).
+
+  def process_nil(exp)
+    return "Qnil"
+  end
+
   def process_str(exp)
     value = exp.shift
     "rb_str_new2(#{value.inspect})"
   end
 
-  def process_call(exp)
-    receiver = process(exp.shift) || "self"
-    name = exp.shift.to_s
-    args = [process(exp.shift)].flatten.compact
-
-    name = '===' if name =~ /^case_equal_/ # undo the evils of TypeChecker
-
-    if args.empty?
-      args = "0"
-    else
-      args = "#{args.size}, #{args.join(", ")}"
-    end
-
-    "rb_funcall(#{receiver}, rb_intern(#{name.inspect}), #{args})"
+  def process_true(exp)
+    "Qtrue"
   end
 end

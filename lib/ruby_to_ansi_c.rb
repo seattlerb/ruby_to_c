@@ -180,6 +180,13 @@ typedef char * str;
   end
 
   ##
+  # Arglist is used by call arg lists.
+
+  def process_arglist(exp)
+    return process_array(exp)
+  end
+
+  ##
   # Argument List including variable types.
 
   def process_args(exp)
@@ -200,13 +207,6 @@ typedef char * str;
     end
 
     return "(#{args.join ', '})"
-  end
-
-  ##
-  # Arglist is used by call arg lists.
-
-  def process_arglist(exp)
-    return process_array(exp)
   end
 
   ##

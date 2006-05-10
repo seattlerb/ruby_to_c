@@ -50,6 +50,33 @@ class TestTypeChecker < R2CTestCase
                  @type_checker.functions[:>])
   end
 
+  def test_defn_call_unify
+    # pre-registered function, presumibly through another :call elsewhere
+    add_fake_function :specific, Type.unknown, Type.unknown, Type.unknown
+
+    # now in specific, unify with a long
+# puts "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+# pp @type_checker.functions
+    s = @type_checker.process(s(:defn, :specific,
+                                s(:args, :x),
+                                s(:scope,
+                                  s(:block,
+                                    s(:lasgn, :x, s(:lit, 2))))))
+# pp @type_checker.functions
+    s_type = @type_checker.functions[:specific]
+
+# p s_type
+
+    assert_equal(Type.long,
+                 s_type.list_type.formal_types[0])
+# HACK    flunk "eric hasn't finished writing me yet. guilt. guilt. guilt."
+  end
+
+  def test_env
+    @type_checker.env.add :blah, Type.long
+    assert_equal Type.long, @type_checker.env.lookup(:blah) 
+  end
+
   def test_functions
     # bootstrap populates functions
     assert @type_checker.functions.has_key?(:puts)
@@ -57,25 +84,8 @@ class TestTypeChecker < R2CTestCase
                  @type_checker.functions[:>])
   end
 
-  def test_env
-    @type_checker.env.add :blah, Type.long
-    assert_equal Type.long, @type_checker.env.lookup(:blah) 
- end
-
   def test_genv
     assert_equal Type.file, @type_checker.genv.lookup(:$stderr)
-  end
-
-  def test_translate
-    result = @type_checker.translate DumbClass, :empty
-    expect = t(:defn,
-               :empty,
-               t(:args),
-               t(:scope,
-                 t(:block,
-                   t(:nil, Type.value), Type.unknown), Type.void),
-               Type.function(Type.unknown, [], Type.void))
-    assert_equal(expect, result)
   end
 
   def test_process_args
@@ -97,6 +107,18 @@ class TestTypeChecker < R2CTestCase
     assert_equal output, @type_checker.process(input)
   end
 
+  def test_process_array_multiple
+    add_fake_var :arg1, Type.long
+    add_fake_var :arg2, Type.str
+
+    input =  t(:array, t(:lvar, :arg1), t(:lvar, :arg2))
+    output = t(:array,
+               t(:lvar, :arg1, Type.long),
+               t(:lvar, :arg2, Type.str))
+
+    assert_equal output, @type_checker.process(input)
+  end
+
   def test_process_array_single
     add_fake_var :arg1, Type.long
 
@@ -110,14 +132,62 @@ class TestTypeChecker < R2CTestCase
     assert_equal output, result
   end
 
-  def test_process_array_multiple
-    add_fake_var :arg1, Type.long
-    add_fake_var :arg2, Type.str
+  def test_process_block
+    input  = t(:block, t(:return, t(:nil)))
+    # FIX: should this really be void for return?
+    output = t(:block,
+               t(:return,
+                 t(:nil, Type.value),
+                 Type.void),
+               Type.unknown)
 
-    input =  t(:array, t(:lvar, :arg1), t(:lvar, :arg2))
-    output = t(:array,
-               t(:lvar, :arg1, Type.long),
-               t(:lvar, :arg2, Type.str))
+    assert_equal output, @type_checker.process(input)
+  end
+
+  def test_process_block_multiple
+    input  = t(:block,
+               t(:str, :foo),
+               t(:return, t(:nil)))
+    output = t(:block,
+               t(:str, :foo, Type.str),
+               t(:return,
+                 t(:nil, Type.value),
+                 Type.void),
+               Type.unknown)
+
+    assert_equal output, @type_checker.process(input)
+  end
+
+  def test_process_call_case_equal_long
+    add_fake_var :number, Type.unknown
+
+    input  = t(:call,
+               t(:lit, 1),
+               :===,
+               t(:arglist, t(:lvar, :number)))
+    output = t(:call,
+               t(:lit, 1, Type.long),
+               :case_equal_long,
+               t(:arglist,
+                 t(:lvar, :number, Type.long)),
+               Type.bool)
+
+    assert_equal output, @type_checker.process(input)
+  end
+
+  def test_process_call_case_equal_string
+    add_fake_var :string, Type.unknown
+
+    input  = t(:call,
+               t(:str, 'foo'),
+               :===,
+               t(:arglist, t(:lvar, :string)))
+    output = t(:call,
+               t(:str, 'foo', Type.str),
+               :case_equal_str,
+               t(:arglist,
+                 t(:lvar, :string, Type.str)),
+               Type.bool)
 
     assert_equal output, @type_checker.process(input)
   end
@@ -269,63 +339,6 @@ class TestTypeChecker < R2CTestCase
                  @type_checker.functions[:unify_3_outer].list_type.formal_types[0])
   end
 
-  def test_defn_call_unify
-
-    # pre-registered function, presumibly through another :call elsewhere
-    add_fake_function :specific, Type.unknown, Type.unknown, Type.unknown
-
-    # now in specific, unify with a long
-# puts "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-# pp @type_checker.functions
-    s = @type_checker.process(s(:defn, :specific,
-                                s(:args, :x),
-                                s(:scope,
-                                  s(:block,
-                                    s(:lasgn, :x, s(:lit, 2))))))
-# pp @type_checker.functions
-    s_type = @type_checker.functions[:specific]
-
-# p s_type
-
-    assert_equal(Type.long,
-                 s_type.list_type.formal_types[0])
-# HACK    flunk "eric hasn't finished writing me yet. guilt. guilt. guilt."
-  end
-
-  def test_process_call_case_equal_long
-    add_fake_var :number, Type.unknown
-
-    input  = t(:call,
-               t(:lit, 1),
-               :===,
-               t(:arglist, t(:lvar, :number)))
-    output = t(:call,
-               t(:lit, 1, Type.long),
-               :case_equal_long,
-               t(:arglist,
-                 t(:lvar, :number, Type.long)),
-               Type.bool)
-
-    assert_equal output, @type_checker.process(input)
-  end
-
-  def test_process_call_case_equal_string
-    add_fake_var :string, Type.unknown
-
-    input  = t(:call,
-               t(:str, 'foo'),
-               :===,
-               t(:arglist, t(:lvar, :string)))
-    output = t(:call,
-               t(:str, 'foo', Type.str),
-               :case_equal_str,
-               t(:arglist,
-                 t(:lvar, :string, Type.str)),
-               Type.bool)
-
-    assert_equal output, @type_checker.process(input)
-  end
-
   # HACK: putting class X above w/ some consts
   def test_process_class
     input = s(:class, :X, :Object,
@@ -366,32 +379,6 @@ class TestTypeChecker < R2CTestCase
   def test_process_cvasgn
     input  = s(:cvasgn, :name, s(:lit, 4))
     output = t(:cvasgn, :name, t(:lit, 4, Type.long), Type.unknown)
-
-    assert_equal output, @type_checker.process(input)
-  end
-
-  def test_process_block
-    input  = t(:block, t(:return, t(:nil)))
-    # FIX: should this really be void for return?
-    output = t(:block,
-               t(:return,
-                 t(:nil, Type.value),
-                 Type.void),
-               Type.unknown)
-
-    assert_equal output, @type_checker.process(input)
-  end
-
-  def test_process_block_multiple
-    input  = t(:block,
-               t(:str, :foo),
-               t(:return, t(:nil)))
-    output = t(:block,
-               t(:str, :foo, Type.str),
-               t(:return,
-                 t(:nil, Type.value),
-                 Type.void),
-               Type.unknown)
 
     assert_equal output, @type_checker.process(input)
   end
@@ -450,7 +437,7 @@ class TestTypeChecker < R2CTestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_gasgn
+  def test_process_gasgn
     input = s(:gasgn, :$blah, s(:lit, 42))
     expected = t(:gasgn, :$blah, t(:lit, 42, Type.long), Type.long)
 
@@ -606,6 +593,13 @@ class TestTypeChecker < R2CTestCase
     assert_equal output, @type_checker.process(input)
   end
 
+  def test_process_lit_float
+    input  = t(:lit, 1.0)
+    output = t(:lit, 1.0, Type.float)
+
+    assert_equal output, @type_checker.process(input)
+  end
+
   def test_process_lit_long
     input  = t(:lit, 1)
     output = t(:lit, 1, Type.long)
@@ -616,13 +610,6 @@ class TestTypeChecker < R2CTestCase
   def test_process_lit_sym
     input  = t(:lit, :sym)
     output = t(:lit, :sym, Type.symbol)
-
-    assert_equal output, @type_checker.process(input)
-  end
-
-  def test_process_lit_float
-    input  = t(:lit, 1.0)
-    output = t(:lit, 1.0, Type.float)
 
     assert_equal output, @type_checker.process(input)
   end
@@ -669,21 +656,6 @@ class TestTypeChecker < R2CTestCase
     assert_equal output, @type_checker.process(input)
   end
 
-# HACK is this test valid? I don't think so
-#  def test_process_return_empty
-#    input  = t(:return)
-#    output = t(:return, t(:nil, Type.value), Type.void)
-#
-#    assert_equal output, @type_checker.process(input)
-#  end
-
-  def test_process_str
-    input  = t(:str, "foo")
-    output = t(:str, "foo", Type.str)
-
-    assert_equal output, @type_checker.process(input)
-  end
-
   def test_process_scope
     input  = t(:scope,
                t(:block,
@@ -702,6 +674,13 @@ class TestTypeChecker < R2CTestCase
   def test_process_scope_empty
     input =   t(:scope)
     output = t(:scope, Type.void)
+
+    assert_equal output, @type_checker.process(input)
+  end
+
+  def test_process_str
+    input  = t(:str, "foo")
+    output = t(:str, "foo", Type.str)
 
     assert_equal output, @type_checker.process(input)
   end
@@ -743,6 +722,18 @@ class TestTypeChecker < R2CTestCase
                    Type.str), true)
 
     assert_equal expected, @type_checker.process(input)
+  end
+
+  def test_translate
+    result = @type_checker.translate DumbClass, :empty
+    expect = t(:defn,
+               :empty,
+               t(:args),
+               t(:scope,
+                 t(:block,
+                   t(:nil, Type.value), Type.unknown), Type.void),
+               Type.function(Type.unknown, [], Type.void))
+    assert_equal(expect, result)
   end
 
   def add_fake_function(name, reciever_type, return_type, *arg_types)

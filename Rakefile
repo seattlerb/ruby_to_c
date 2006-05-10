@@ -43,3 +43,10 @@ Rake::GemPackageTask.new spec do |pkg|
   pkg.need_tar = true
 end
 
+task :sort do
+  sh 'for f in lib/*.rb; do grep "^ *def " $f | grep -v "def self" > x; sort x > y; echo; echo $f; echo; diff x y; done; true'
+  sh 'for f in test/test_*.rb; do grep "def.test_" $f > x; sort x > y; echo; echo $f; echo; diff x y; done; true'
+  sh 'rm x y'
+end
+
+

@@ -14,6 +14,14 @@ class TestRubyToAnsiC < R2CTestCase
     @processor = @ruby_to_c
   end
 
+  def test_c_type_bool
+    assert_equal "bool", @ruby_to_c.class.c_type(Type.bool)
+  end
+
+  def test_c_type_float
+    assert_equal "double", @ruby_to_c.class.c_type(Type.float)
+  end
+
   def test_c_type_long
     assert_equal "long", @ruby_to_c.class.c_type(Type.long)
   end
@@ -30,37 +38,20 @@ class TestRubyToAnsiC < R2CTestCase
     assert_equal "str *", @ruby_to_c.class.c_type(Type.str_list)
   end
 
-  def test_c_type_bool
-    assert_equal "bool", @ruby_to_c.class.c_type(Type.bool)
-  end
-
-  def test_c_type_void
-    assert_equal "void", @ruby_to_c.class.c_type(Type.void)
-  end
-
-  def test_c_type_float
-    assert_equal "double", @ruby_to_c.class.c_type(Type.float)
-  end
-
   def test_c_type_symbol
     assert_equal "symbol", @ruby_to_c.class.c_type(Type.symbol)
-  end
-
-  def test_c_type_value
-    assert_equal "void *", @ruby_to_c.class.c_type(Type.value)
   end
 
   def test_c_type_unknown
     assert_equal "void *", @ruby_to_c.class.c_type(Type.unknown)
   end
 
-  def test_translator
-    Object.class_eval "class Suck; end"
-    input = [:class, :Suck, :Object,
-      [:defn, :something, [:scope, [:block, [:args], [:fcall, :"whaaa\?"]]]],
-      [:defn, :foo, [:scope, [:block, [:args], [:vcall, :something]]]]]
-    expected = "// class Suck\n\nvoid\nsomething() {\nwhaaa?();\n}\n\nvoid\nfoo() {\nsomething();\n}"
-    assert_equal expected, RubyToAnsiC.translator.process(input)
+  def test_c_type_value
+    assert_equal "void *", @ruby_to_c.class.c_type(Type.value)
+  end
+
+  def test_c_type_void
+    assert_equal "void", @ruby_to_c.class.c_type(Type.void)
   end
 
   def test_env
@@ -68,20 +59,16 @@ class TestRubyToAnsiC < R2CTestCase
     assert_kind_of Environment, @ruby_to_c.env
   end
 
-  def test_prototypes
-    assert_equal [], @ruby_to_c.prototypes
-    @ruby_to_c.process t(:defn,
-                         :empty,
-                         t(:args),
-                         t(:scope),
-                         Type.function([], Type.void))
-
-    assert_equal "void empty();\n", @ruby_to_c.prototypes.first
-  end
-
   def test_process_and
     input  = t(:and, t(:lit, 1, Type.long), t(:lit, 2, Type.long))
     output = "1 && 2"
+
+    assert_equal output, @ruby_to_c.process(input)
+  end
+
+  def test_process_args_empty
+    input =  t(:args)
+    output = "()"
 
     assert_equal output, @ruby_to_c.process(input)
   end
@@ -95,16 +82,18 @@ class TestRubyToAnsiC < R2CTestCase
     assert_equal output, @ruby_to_c.process(input)
   end
 
-  def test_process_args_empty
-    input =  t(:args)
-    output = "()"
+  def test_process_array_empty
+    input  = t(:array)
+    output = "rb_ary_new()"
 
     assert_equal output, @ruby_to_c.process(input)
   end
 
-  def test_process_array_empty
-    input  = t(:array)
-    output = "rb_ary_new()"
+  def test_process_array_multiple
+    input  = t(:array,
+               t(:lvar, :arg1, Type.long),
+               t(:lvar, :arg2, Type.long))
+    output = "arg1, arg2"
 
     assert_equal output, @ruby_to_c.process(input)
   end
@@ -117,11 +106,18 @@ class TestRubyToAnsiC < R2CTestCase
     assert_equal output, @ruby_to_c.process(input)
   end
 
-  def test_process_array_multiple
-    input  = t(:array,
-               t(:lvar, :arg1, Type.long),
-               t(:lvar, :arg2, Type.long))
-    output = "arg1, arg2"
+  def test_process_block
+    input  = t(:block, t(:return, t(:nil)))
+    output = "return NULL;\n"
+
+    assert_equal output, @ruby_to_c.process(input)
+  end
+
+  def test_process_block_multiple
+    input  = t(:block,
+               t(:str, "foo"),
+               t(:return, t(:nil)))
+    output = "\"foo\";\nreturn NULL;\n"
 
     assert_equal output, @ruby_to_c.process(input)
   end
@@ -150,17 +146,6 @@ class TestRubyToAnsiC < R2CTestCase
     assert_equal output, @ruby_to_c.process(input)
   end
 
-  def test_process_call_rhs
-    input  = t(:call,
-               nil,
-               :name,
-               t(:array,
-                 t(:str, "foo")))
-    output = "name(\"foo\")"
-
-    assert_equal output, @ruby_to_c.process(input)
-  end
-
   def test_process_call_nil?
     input  = t(:call,
                t(:lvar, :arg, Type.long),
@@ -185,18 +170,13 @@ class TestRubyToAnsiC < R2CTestCase
     end
   end
 
-  def test_process_block
-    input  = t(:block, t(:return, t(:nil)))
-    output = "return NULL;\n"
-
-    assert_equal output, @ruby_to_c.process(input)
-  end
-
-  def test_process_block_multiple
-    input  = t(:block,
-               t(:str, "foo"),
-               t(:return, t(:nil)))
-    output = "\"foo\";\nreturn NULL;\n"
+  def test_process_call_rhs
+    input  = t(:call,
+               nil,
+               :name,
+               t(:array,
+                 t(:str, "foo")))
+    output = "name(\"foo\")"
 
     assert_equal output, @ruby_to_c.process(input)
   end
@@ -235,17 +215,6 @@ class TestRubyToAnsiC < R2CTestCase
                Type.function([], Type.void))
     output = "void\nempty(long foo, long bar) {\n5;\n}"
 
-    assert_equal output, @ruby_to_c.process(input)
-  end
-
-  def disabled_test_dstr
-    input  = t(:dstr,
-               "var is ",
-               t(:lvar, :var),
-               t(:str, ". So there."))
-    output = "sprintf stuff goes here"
-
-    flunk "Way too hard right now"
     assert_equal output, @ruby_to_c.process(input)
   end
 
@@ -293,19 +262,6 @@ class TestRubyToAnsiC < R2CTestCase
     assert_equal output, @ruby_to_c.process(input)
   end
 
-  def test_process_if_else
-    input  = t(:if,
-               t(:call,
-                 t(:lit, 1, Type.long),
-                 :==,
-                 t(:array, t(:lit, 2, Type.long))),
-               t(:str, "not equal"),
-               t(:str, "equal"))
-    output = "if (1 == 2) {\n\"not equal\";\n} else {\n\"equal\";\n}"
-
-    assert_equal output, @ruby_to_c.process(input)
-  end
-
   def test_process_if_block
     input  = t(:if,
                t(:call,
@@ -317,6 +273,19 @@ class TestRubyToAnsiC < R2CTestCase
                  t(:str, "not equal")),
                nil)
     output = "if (1 == 2) {\n5;\n\"not equal\";\n}"
+
+    assert_equal output, @ruby_to_c.process(input)
+  end
+
+  def test_process_if_else
+    input  = t(:if,
+               t(:call,
+                 t(:lit, 1, Type.long),
+                 :==,
+                 t(:array, t(:lit, 2, Type.long))),
+               t(:str, "not equal"),
+               t(:str, "equal"))
+    output = "if (1 == 2) {\n\"not equal\";\n} else {\n\"equal\";\n}"
 
     assert_equal output, @ruby_to_c.process(input)
   end
@@ -392,28 +361,6 @@ class TestRubyToAnsiC < R2CTestCase
     assert_equal output, @ruby_to_c.process(input)
   end
 
-  def test_process_str
-    input  = t(:str, "foo", Type.str)
-    output = "\"foo\""
-
-    assert_equal output, @ruby_to_c.process(input)
-  end
-
-  def test_process_str_multi
-    input  = t(:str, "foo
-bar", Type.str)
-    output = "\"foo\\nbar\""
-
-    assert_equal output, @ruby_to_c.process(input)
-  end
-
-  def test_process_str_backslashed
-    input  = t(:str, "foo\nbar", Type.str)
-    output = "\"foo\\nbar\""
-
-    assert_equal output, @ruby_to_c.process(input)
-  end
-
   def test_process_scope
     input =  t(:scope,
                t(:block,
@@ -437,6 +384,28 @@ bar", Type.str)
                            Type.str),
                          t(:return, t(:nil))))
     output = "{\nstr arg;\narg = \"declare me\";\nreturn NULL;\n}"
+
+    assert_equal output, @ruby_to_c.process(input)
+  end
+
+  def test_process_str
+    input  = t(:str, "foo", Type.str)
+    output = "\"foo\""
+
+    assert_equal output, @ruby_to_c.process(input)
+  end
+
+  def test_process_str_backslashed
+    input  = t(:str, "foo\nbar", Type.str)
+    output = "\"foo\\nbar\""
+
+    assert_equal output, @ruby_to_c.process(input)
+  end
+
+  def test_process_str_multi
+    input  = t(:str, "foo
+bar", Type.str)
+    output = "\"foo\\nbar\""
 
     assert_equal output, @ruby_to_c.process(input)
   end
@@ -484,5 +453,36 @@ bar", Type.str)
     expected = "while (n <= 3) {\nputs(to_s(n));\nn = n + 1;\n}"
 
     assert_equal expected, @ruby_to_c.process(input)
+  end
+
+  def test_prototypes
+    assert_equal [], @ruby_to_c.prototypes
+    @ruby_to_c.process t(:defn,
+                         :empty,
+                         t(:args),
+                         t(:scope),
+                         Type.function([], Type.void))
+
+    assert_equal "void empty();\n", @ruby_to_c.prototypes.first
+  end
+
+  def test_translator
+    Object.class_eval "class Suck; end"
+    input = [:class, :Suck, :Object,
+      [:defn, :something, [:scope, [:block, [:args], [:fcall, :"whaaa\?"]]]],
+      [:defn, :foo, [:scope, [:block, [:args], [:vcall, :something]]]]]
+    expected = "// class Suck\n\nvoid\nsomething() {\nwhaaa?();\n}\n\nvoid\nfoo() {\nsomething();\n}"
+    assert_equal expected, RubyToAnsiC.translator.process(input)
+  end
+
+  def disabled_test_dstr
+    input  = t(:dstr,
+               "var is ",
+               t(:lvar, :var),
+               t(:str, ". So there."))
+    output = "sprintf stuff goes here"
+
+    flunk "Way too hard right now"
+    assert_equal output, @ruby_to_c.process(input)
   end
 end
