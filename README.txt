@@ -17,7 +17,8 @@ RubyToC has the following modules:
 
 	Rewriter      - massages the sexp into a more consistent form.
 	TypeChecker   - type inferencer for the above sexps.
-	RubyToC       - converts a ruby (subset) sexp to C.
+	RubyToRubyC   - converts a ruby (subset) sexp to ruby interals C.
+	RubyToAnsiC   - converts a ruby (subset) sexp to ANSI C.
 
 and the following tools:
 

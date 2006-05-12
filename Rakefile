@@ -14,11 +14,11 @@ Rake::TestTask.new(:test) do |t|
   t.verbose = true
 end
 
-VERSION = $1 if File.read('./lib/ruby_to_ansi_c.rb') =~ /VERSION = '([^']+)'/
+R2C_VERSION = $1 if File.read('./lib/ruby_to_ansi_c.rb') =~ /VERSION = '([^']+)'/
 
 spec = Gem::Specification.new do |s|
   s.name = 'RubyToC'
-  s.version = VERSION.sub(/-beta-/, '.')
+  s.version = R2C_VERSION.sub(/-beta-/, '.')
   s.summary = "Ruby (subset) to C translator."
 
   paragraphs = File.read("README.txt").split(/\n\n+/)

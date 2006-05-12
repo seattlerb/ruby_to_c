@@ -22,7 +22,7 @@ require 'pp'
 
 class RubyToAnsiC < SexpProcessor
 
-  VERSION = '1.0.0-beta-4'
+  VERSION = '1.0.0-beta-5'
 
   # TODO: remove me
   def no(exp) # :nodoc:
@@ -668,5 +668,4 @@ typedef char * str;
     code = "{\n#{body.strip}\n} while (#{cond})" unless is_precondition
     return code
   end
-
 end

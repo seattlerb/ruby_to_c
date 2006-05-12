@@ -1,3 +1,18 @@
+*** 1.0.0-beta-5 / 2006-05-12
+
++ 6 minor enhancements:
+	+ Split RubyToC to RubyToRubyC and RubyToAnsiC.
+	+ Extended Environment to be more flexible for various situations.
+	+ Removed propaganda (bloat) from release.
+	+ Gemified and reorganized things. Support still needs splitting up.
+	+ Flipped a lot of internal naming to use Unique.
+	+ Added ruby_to_c_show (like parse_tree_show).
++ 4(ish) bug fixes:
+	+ Use ivars instead of cvars so inheritance won't bugger the translator.
+	+ Corrected unsupported node lists in pipeline.
+	+ Fixed bugs for splat args, iters, optional args, method name map.
+	+ Fixed many other bugs.
+
 *** 1.0.0-beta-4 / 2005-07-13
 
 + 1 minor enhancements
