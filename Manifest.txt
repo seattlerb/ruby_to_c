@@ -1,10 +1,10 @@
 History.txt
-Makefile
 Manifest.txt
 README.txt
 Rakefile
 bin/ruby_to_c_show
 bin/ruby_to_c_validate
+bin/ruby_to_c_translate
 demo/char.rb
 demo/factorial.rb
 demo/hello.rb
