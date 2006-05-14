@@ -1,8 +1,7 @@
 require 'test/unit/testcase'
 
-require 'sexp_processor'
-require 'typed_sexp_processor'
-require 'support'
+require 'sexp_processor' # for deep_clone FIX
+require 'typed_sexp'
 
 # TODO: str -> char * in ansi c
 # TODO: add tests that mix types up to fuck up RubyC type checker

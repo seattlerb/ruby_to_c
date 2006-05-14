@@ -1,8 +1,8 @@
 #!/usr/local/bin/ruby -w
 
-require 'test_sexp'
-require 'typed_sexp_processor'
 require 'test/unit'
+require 'test_sexp'
+require 'typed_sexp'
 
 class TestTypedSexp < TestSexp
 

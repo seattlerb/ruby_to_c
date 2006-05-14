@@ -1,7 +1,10 @@
 
 begin require 'rubygems' rescue LoadError end
 require 'parse_tree'
-require 'typed_sexp_processor'
+require 'type'
+require 'sexp'
+require 'sexp_processor'
+require 'unique'
 
 class Sexp
   # add arglist because we introduce the new array type in this file

@@ -4,7 +4,9 @@ begin require 'rubygems' rescue LoadError end
 require 'parse_tree'
 require 'sexp_processor'
 require 'rewriter'
-require 'support'
+require 'function_table'
+require 'environment'
+require 'typed_sexp'
 
 # TODO: calls to sexp_type should probably be replaced w/ better Sexp API
 

@@ -1,13 +1,15 @@
 
 $TESTING = false unless defined? $TESTING
 
+require 'pp'
 begin require 'rubygems' rescue LoadError end
 require 'parse_tree'
 require 'sexp_processor'
 require 'composite_sexp_processor'
+
 require 'type_checker'
 require 'rewriter'
-require 'pp'
+require 'environment'
 
 ##
 # The whole point of this project! RubyToC is an actually very simple
