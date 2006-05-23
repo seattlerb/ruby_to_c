@@ -614,17 +614,24 @@ typedef char * str;
   # body and use this as our opportunity to open a variable
   # scope. Crafty, no?
 
-  def process_scope(exp) # TODO: audit against obfuscator
-    declarations = []
-    body = nil
-    @env.scope do
-      body = process exp.shift unless exp.empty?
-      @env.current.sort_by { |v,t| v.to_s }.each do |var, var_type|
-        var_type = self.class.c_type var_type
-        declarations << "#{var_type} #{var};\n"
-      end
+  ##
+  # Scope has no real equivalent in C-land, except that like
+  # process_block above. We put variable declarations here before the
+  # body and use this as our opportunity to open a variable
+  # scope. Crafty, no?
+
+  def process_scope(exp)
+    declarations, body = with_scope do
+      process exp.shift unless exp.empty?
     end
-    return "{\n#{declarations}#{body}}"
+
+    result = []
+    result << "{"
+    result << declarations.join("\n") unless declarations.empty?
+    result << body.chomp if body
+    result << "}"
+    
+    return result.join("\n")
   end
 
   ##
@@ -658,5 +665,22 @@ typedef char * str;
     end
   end
 
-  # TODO: pull with_scope from obfuscator
+  def with_scope
+    declarations = []
+    result = nil
+    outer_scope = @env.all.keys
+
+    @env.scope do
+      result = yield
+      @env.current.sort_by { |v,_| v.to_s }.each do |var, (type,val)|
+        next if outer_scope.include? var
+        decl = "#{self.class.c_type type} #{var}"
+        decl << " = #{val}" if val
+        decl << ';'
+        declarations << decl
+      end
+    end
+
+    return declarations, result
+  end
 end
