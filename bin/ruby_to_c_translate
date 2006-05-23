@@ -19,8 +19,15 @@ ObjectSpace.each_object(Class) do |klass|
   new_classes << klass
 end
 
-new_classes -= old_classes
-new_classes = [ eval($c) ] if defined? $c
+unless defined? $c then
+  short_name = File.basename(ARGV.first, ".rb")
+  new_classes -= old_classes
+else
+  short_name = $c
+  new_classes = new_classes.find_all { |k| k.name =~ /^#{short_name}$/i }
+end
+
+p short_name, new_classes
 
 if defined? $a then
   rubytoc = RubyToAnsiC.translator

@@ -1,6 +1,6 @@
 
 require 'handle'
-require 'function_type' # FIX? cycle
+require 'function_type'
 
 class Type
 
@@ -31,7 +31,7 @@ class Type
   TYPES = {}
 
   def self.method_missing(type, *args)
-    raise "Unknown type Type.#{type}" unless KNOWN_TYPES.has_key?(type)
+    raise "Unknown type Type.#{type} (#{type.inspect})" unless Type::KNOWN_TYPES.has_key?(type)
     case type 
     when :unknown then
       return self.new(type)

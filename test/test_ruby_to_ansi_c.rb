@@ -471,7 +471,7 @@ bar", Type.str)
     input = [:class, :Suck, :Object,
       [:defn, :something, [:scope, [:block, [:args], [:fcall, :"whaaa\?"]]]],
       [:defn, :foo, [:scope, [:block, [:args], [:vcall, :something]]]]]
-    expected = "// class Suck\n\nvoid\nsomething() {\nwhaaa?();\n}\n\nvoid\nfoo() {\nsomething();\n}"
+    expected = "// class Suck < Object\n\nvoid\nsomething() {\nwhaaa?();\n}\n\nvoid\nfoo() {\nsomething();\n}"
     assert_equal expected, RubyToAnsiC.translator.process(input)
   end
 

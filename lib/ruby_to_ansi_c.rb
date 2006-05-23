@@ -163,7 +163,7 @@ typedef char * str;
     super
     @env = Environment.new
     self.auto_shift_type = true
-    self.unsupported = [:alias, :alloca, :argscat, :argspush, :attrasgn, :attrset, :back_ref, :begin, :block_arg, :block_pass, :bmethod, :break, :case, :cdecl, :cfunc, :colon2, :colon3, :cref, :cvasgn, :cvdecl, :dasgn, :defined, :defs, :dmethod, :dot2, :dot3, :dregx, :dregx_once, :dstr, :dsym, :dxstr, :ensure, :evstr, :fbody, :fcall, :flip2, :flip3, :for, :gasgn, :ifunc, :last, :masgn, :match, :match2, :match3, :memo, :method, :module, :newline, :next, :nth_ref, :op_asgn1, :op_asgn2, :op_asgn_and, :opt_n, :postexe, :redo, :resbody, :rescue, :retry, :sclass, :self, :splat, :super, :svalue, :to_ary, :undef, :until, :valias, :vcall, :when, :xstr, :yield, :zarray, :zsuper]
+    self.unsupported = [:alias, :alloca, :argscat, :argspush, :attrasgn, :attrset, :back_ref, :begin, :block_arg, :block_pass, :bmethod, :break, :case, :cdecl, :cfunc, :colon2, :colon3, :cref, :cvasgn, :cvdecl, :dasgn, :defined, :defs, :dmethod, :dot2, :dot3, :dregx, :dregx_once, :dstr, :dsym, :dxstr, :ensure, :evstr, :fbody, :fcall, :flip2, :flip3, :for, :gasgn, :hash, :ifunc, :last, :masgn, :match, :match2, :match3, :memo, :method, :module, :newline, :next, :nth_ref, :op_asgn_or, :op_asgn1, :op_asgn2, :op_asgn_and, :opt_n, :postexe, :redo, :resbody, :rescue, :retry, :sclass, :self, :splat, :super, :svalue, :to_ary, :undef, :until, :valias, :vcall, :when, :xstr, :yield, :zarray, :zsuper]
 
     self.strict = true
     self.expected = String
@@ -191,19 +191,11 @@ typedef char * str;
   ##
   # Argument List including variable types.
 
-  def process_args(exp)
+  def process_args(exp) # TODO: audit against obfuscator
     args = []
 
     until exp.empty? do
       arg = exp.shift
-
-#       p arg
-#       p arg.sexp_type
-#       p arg.first
-#       p self.class
-#       p arg.sexp_type.class
-#       p TypeMap.methods.sort
-#       p c_type(arg.sexp_type)
 
       args << "#{self.class.c_type(arg.sexp_type)} #{arg.first}"
     end
@@ -215,14 +207,14 @@ typedef char * str;
   # Array is used as call arg lists and as initializers for variables.
 
   def process_array(exp)
-    code = []
+    return "rb_ary_new()" if exp.empty? # HACK FIX! not ansi c!
 
+    code = []
     until exp.empty? do
       code << process(exp.shift) 
     end
 
     s = code.join ', '
-    s = "rb_ary_new()" if s.empty? # HACK
 
     return s
   end
@@ -305,17 +297,18 @@ typedef char * str;
 
     result = []
 
-    result << "// class #{name}"
+    result << "// class #{name} < #{superklass}"
 
     until exp.empty? do
       # HACK: cheating!
-      klass = name
-      method = exp[1]
       result << process(exp.shift)
     end
 
     return result.join("\n\n")
   end
+
+  ##
+  # Constants, must be pre-defined in the global env for ansi c.
 
   def process_const(exp)
     name = exp.shift
@@ -341,7 +334,7 @@ typedef char * str;
   # TODO: check to see if this is the least bit relevant anymore. We
   # might have rewritten them all.
 
-  def process_dasgn_curr(exp)
+  def process_dasgn_curr(exp) # TODO: audit against obfuscator
     var = exp.shift
     @env.add var.to_sym, exp.sexp_type
     return var.to_s
@@ -350,13 +343,13 @@ typedef char * str;
   ##
   # Function definition
 
-  METHOD_MAP = { 
+  METHOD_MAP = { # TODO: steal map from ZenTest
     :| => "or",
     :& => "and",
     :^ => "xor",
   }
 
-  def process_defn(exp)
+  def process_defn(exp) # TODO: audit against obfuscator
     name = exp.shift
     name = METHOD_MAP[name] if METHOD_MAP.has_key? name
     name = name.to_s.sub(/(.*)\?$/, 'is_\1').intern
@@ -391,7 +384,7 @@ typedef char * str;
   end
 
   ##
-  # DOC
+  # DOC - TODO: what is this?!?
 
   def process_error(exp)
     return exp.shift
@@ -401,8 +394,10 @@ typedef char * str;
   # False. Pretty straightforward.
 
   def process_false(exp)
-         return "0"
+    return "0"
   end
+
+  # TODO: process_gasgn
 
   ##
   # Global variables, evil but necessary.
@@ -418,13 +413,6 @@ typedef char * str;
     else
       raise "Bug! Unhandled gvar #{name.inspect} (type = #{type})"
     end
-  end
-
-  ##
-  # Hash values, currently unsupported, but plans are in the works.
-
-  def process_hash(exp)
-    no(exp)
   end
 
   ##
@@ -480,7 +468,7 @@ typedef char * str;
   # should be able to be interpreted as a for loop. If not, then you
   # are doing something not supported by C in the first place.
 
-  def process_iter(exp)
+  def process_iter(exp) # TODO: audit against obfuscator
     out = []
     # Only support enums in C-land
     raise UnsupportedNodeError if exp[0][1].nil? # HACK ugly
@@ -517,7 +505,7 @@ typedef char * str;
   #
   # TODO: figure out array issues and clean up.
 
-  def process_lasgn(exp)
+  def process_lasgn(exp) # TODO: audit against obfuscator
     out = ""
 
     var = exp.shift
@@ -568,7 +556,7 @@ typedef char * str;
     when Type.long, Type.float then
       return value.to_s
     when Type.symbol then
-      return value.to_s.inspect
+      return value.to_s.inspect # HACK wrong! write test!
     else
       raise "Bug! no: Unknown literal #{value}:#{value.class}"
     end
@@ -584,6 +572,10 @@ typedef char * str;
     return name.to_s
   end
 
+  # TODO: pull masgn from obfuscator
+  # TODO: pull module from obfuscator
+  # TODO: pull next from obfuscator
+
   ##
   # Nil, currently ruby nil, not C NULL (0).
 
@@ -597,14 +589,6 @@ typedef char * str;
   def process_not(exp)
     term = process exp.shift
     return "!(#{term})"
-  end
-
-  ##
-  # Or assignment (||=), currently unsupported, but only because of
-  # laziness.
-
-  def process_op_asgn_or(exp)
-    no(exp)
   end
 
   ##
@@ -630,7 +614,7 @@ typedef char * str;
   # body and use this as our opportunity to open a variable
   # scope. Crafty, no?
 
-  def process_scope(exp)
+  def process_scope(exp) # TODO: audit against obfuscator
     declarations = []
     body = nil
     @env.scope do
@@ -647,9 +631,10 @@ typedef char * str;
   # Strings. woot.
 
   def process_str(exp)
-    s = exp.shift.gsub(/\n/, '\\n')
-    return "\"#{s}\""
+    return exp.shift.inspect
   end
+
+  # TODO: pull scope from obfuscator
 
   ##
   # Truth... what is truth?
@@ -666,8 +651,12 @@ typedef char * str;
     body = process exp.shift
     body += ";" unless body =~ /;/
     is_precondition = exp.shift
-    code = "while (#{cond}) {\n#{body.strip}\n}"
-    code = "{\n#{body.strip}\n} while (#{cond})" unless is_precondition
-    return code
+    if is_precondition then
+      return "while (#{cond}) {\n#{body.strip}\n}"
+    else
+      return "{\n#{body.strip}\n} while (#{cond})"
+    end
   end
+
+  # TODO: pull with_scope from obfuscator
 end

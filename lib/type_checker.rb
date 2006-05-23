@@ -6,6 +6,7 @@ require 'sexp_processor'
 require 'rewriter'
 require 'function_table'
 require 'environment'
+require 'type'
 require 'typed_sexp'
 
 # TODO: calls to sexp_type should probably be replaced w/ better Sexp API

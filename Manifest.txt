@@ -14,7 +14,6 @@ demo/strcat.rb
 lib/rewriter.rb
 lib/ruby_to_ansi_c.rb
 lib/ruby_to_ruby_c.rb
-lib/support.rb
 lib/type_checker.rb
 lib/typed_sexp_processor.rb
 test/r2ctestcase.rb
@@ -23,6 +22,5 @@ test/test_extras.rb
 test/test_rewriter.rb
 test/test_ruby_to_ansi_c.rb
 test/test_ruby_to_ruby_c.rb
-test/test_support.rb
 test/test_type_checker.rb
 test/test_typed_sexp_processor.rb

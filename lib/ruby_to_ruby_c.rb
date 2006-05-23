@@ -37,41 +37,59 @@ class RubyToRubyC < RubyToAnsiC
     "VALUE"
   end
 
-  def initialize # :nodoc:
-    super
-  end
-
   def process_call(exp)
     receiver = process(exp.shift) || "self"
     name = exp.shift.to_s
+    arg_count = exp.first.size - 1 rescue 0
     args = [process(exp.shift)].flatten.compact
+
+    # TODO: eric is a big boner
+    return "NIL_P(#{receiver})" if name == "nil?"
 
     name = '===' if name =~ /^case_equal_/ # undo the evils of TypeChecker
 
     if args.empty?
       args = "0"
     else
-      args = "#{args.size}, #{args.join(", ")}"
+      args = "#{arg_count}, #{args.join(", ")}"
     end
 
     "rb_funcall(#{receiver}, rb_intern(#{name.inspect}), #{args})"
   end
 
+  # TODO: pull process_const from obfuscator
+  # TODO: pull process_colon2 from obfuscator
+  # TODO: pull process_cvar from obfuscator
+  # TODO: pull process_dasgn_curr from obfuscator
+  # TODO: pull process_dstr from obfuscator
+
+  ##
+  # False. Pretty straightforward.
+
   def process_false(exp)
     "Qfalse"
   end
+
+  # TODO: pull up process_gasgn from obfuscator
+
+  ##
+  # Global variables, evil but necessary.
 
   def process_gvar(exp)
     var = exp.shift
     "rb_gv_get(#{var.to_s.inspect})"
   end
 
+  # TODO: pull hash from obfuscator
+  # TODO: pull iasgn from obfuscator
+  # TODO: pull ivar from obfuscator
+
   ##
   # Iterators for loops. After rewriter nearly all iter nodes
   # should be able to be interpreted as a for loop. If not, then you
   # are doing something not supported by C in the first place.
 
-  def process_iter(exp)
+  def process_iter(exp) # TODO/REFACTOR: audit against obfuscator
     out = []
     # Only support enums in C-land
     raise UnsupportedNodeError if exp[0][1].nil? # HACK ugly
@@ -101,7 +119,7 @@ class RubyToRubyC < RubyToAnsiC
   #
   # TODO: figure out array issues and clean up.
 
-  def process_lasgn(exp)
+  def process_lasgn(exp) # TODO: audit against obfuscator
     out = ""
 
     var = exp.shift
@@ -121,6 +139,7 @@ class RubyToRubyC < RubyToAnsiC
       raise "array must be of one type" unless args.sexp_type == Type.homo
 
       args.shift # :arglist
+      # REFACTOR: this (here down) is the only diff w/ super
       out << "#{var} = rb_ary_new2(#{args.length});\n"
       args.each_with_index do |o,i|
         out << "rb_ary_store(#{var}, #{i}, #{process o});\n"
@@ -134,20 +153,41 @@ class RubyToRubyC < RubyToAnsiC
     return out
   end
 
-  def process_lit(exp)
-    value = exp.shift
+  ##
+  # Literals, numbers for the most part. Will probably cause
+  # compilation errors if you try to translate bignums and other
+  # values that don't have analogs in the C world. Sensing a pattern?
 
+  def process_lit(exp)
+    # TODO: audit against obfuscator
+    value = exp.shift
     case value
-    when Fixnum then
-      "LONG2NUM(#{value})"
+    when Integer then
+      return "LONG2NUM(#{value})"
     when Float then
-      "DBL2NUM(#{value})"
-    when Symbol then
-      "rb_intern(#{value.to_s.inspect})"
+      return "rb_float_new(#{value})"
+    when Symbol
+      return "ID2SYM(rb_intern(#{value.to_s.inspect}))"
+    when Range
+      f = process_lit [ value.first ]
+      l = process_lit [ value.last ]
+      x = 0
+      x = 1 if value.exclude_end?
+
+      return "rb_range_new(#{f}, #{l}, #{x})"
+    when Regexp
+      src = value.source
+      return "rb_reg_new(#{src.inspect}, #{src.size}, #{value.options})"
     else
       raise "Bug! no: Unknown literal #{value}:#{value.class}"
     end
+    return nil
   end
+
+  # TODO: pull match/2/3 from obfuscator
+  # TODO: pull next from obfuscator (and modify for iters)
+
+  # TODO: process_not?!? wtf? I don't think the ansi not works
 
   ##
   # Nil, currently ruby nil, not C NULL (0).
@@ -156,12 +196,20 @@ class RubyToRubyC < RubyToAnsiC
     return "Qnil"
   end
 
+  ##
+  # Strings. woot.
+
   def process_str(exp)
-    value = exp.shift
-    "rb_str_new2(#{value.inspect})"
+    return "rb_str_new2(#{exp.shift.inspect})"
   end
+
+  ##
+  # Truth... what is truth? In this case, Qtrue.
 
   def process_true(exp)
     "Qtrue"
   end
+
+  # TODO: pull while from obfuscator
+  # TODO: pull zsuper from obfuscator
 end

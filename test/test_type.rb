@@ -44,6 +44,18 @@ class TestType < Test::Unit::TestCase
     assert_equal :long, @long.type.contents
   end
 
+  def test_type_good
+    file = Type.file
+    assert_kind_of Type, file
+    assert_equal :file, file.type.contents
+  end
+
+  def test_type_bad
+    assert_raises(RuntimeError) do
+      Type.blahblah
+    end
+  end
+
   def test_type=
     long = Type.long.deep_clone
     long.type = "something"

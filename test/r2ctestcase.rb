@@ -179,7 +179,7 @@ class R2CTestCase < Test::Unit::TestCase
                            Type.void),
                          Type.function(Type.unknown, [Type.value], Type.bool)),
       "R2CRewriter" => :same,
-      "RubyToRubyC"     => "VALUE\nbools(VALUE arg1) {\nif (rb_funcall(arg1, rb_intern(\"nil?\"), 0)) {\nreturn Qfalse;\n} else {\nreturn Qtrue;\n}\n}",
+      "RubyToRubyC"     => "VALUE\nbools(VALUE arg1) {\nif (NIL_P(arg1)) {\nreturn Qfalse;\n} else {\nreturn Qtrue;\n}\n}",
       "RubyToAnsiC"     => "bool\nbools(void * arg1) {\nif (arg1) {\nreturn 0;\n} else {\nreturn 1;\n}\n}",
     },
 
@@ -993,7 +993,7 @@ argl = argl - 1;
       "Rewriter"    => s(:lit, 1.1),
       "TypeChecker" => t(:lit, 1.1, Type.float),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "DBL2NUM(1.1)",
+      "RubyToRubyC" => "rb_float_new(1.1)",
       "RubyToAnsiC" => "1.1",
     },
 
@@ -1011,8 +1011,8 @@ argl = argl - 1;
       "Rewriter"    => s(:lit, :x),
       "TypeChecker" => t(:lit, :x, Type.symbol),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "rb_intern(\"x\")",
-      "RubyToAnsiC" => "\"x\"",
+      "RubyToRubyC" => "ID2SYM(rb_intern(\"x\"))",
+      "RubyToAnsiC" => "\"x\"", # HACK WRONG! (or... is it?)
     },
 
     "lit_str" => {
