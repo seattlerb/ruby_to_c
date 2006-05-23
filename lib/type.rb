@@ -6,26 +6,29 @@ class Type
 
   # REFACTOR: nuke this
   KNOWN_TYPES = {
-    :unknown => "Unknown",
-    :unknown_list => "Unknown list",
-    :long => "Integer",
-    :long_list => "Integer list",
-    :str => "String",
-    :str_list => "String list",
-    :void => "Void",
     :bool => "Bool",
     :bool_list => "Bool list",
-    :value => "Value",
-    :value_list => "Value list",
-    :function => "Function",
     :file => "File",
     :float => "Float",
     :float_list => "Float list",
+    :function => "Function",
+    :long => "Integer",
+    :long_list => "Integer list",
+    :range => "Range",
+    :regexp => "Regular Expression",
+    :str => "String",
+    :str_list => "String list",
     :symbol => "Symbol",
+    :value => "Value",
+    :value_list => "Value list",
+    :void => "Void",
     :zclass => "Class",
-    :homo => "Homogenous",
-    :hetero => "Heterogenous",
+
     :fucked => "Untranslatable type",
+    :hetero => "Heterogenous",
+    :homo => "Homogenous",
+    :unknown => "Unknown",
+    :unknown_list => "Unknown list",
   }
 
   TYPES = {}
