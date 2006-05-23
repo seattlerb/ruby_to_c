@@ -191,13 +191,15 @@ typedef char * str;
   ##
   # Argument List including variable types.
 
-  def process_args(exp) # TODO: audit against obfuscator
+  def process_args(exp)
     args = []
 
     until exp.empty? do
       arg = exp.shift
-
-      args << "#{self.class.c_type(arg.sexp_type)} #{arg.first}"
+      name = arg.first.to_s.sub(/^\*/, '').intern
+      type = arg.sexp_type
+      @env.add name, type
+      args << "#{self.class.c_type(type)} #{name}"
     end
 
     return "(#{args.join ', '})"
