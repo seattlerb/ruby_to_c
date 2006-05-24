@@ -11,16 +11,19 @@ require 'type_checker'
 require 'rewriter'
 require 'environment'
 
+# HACK: only here for bootstrapping
+class Sexp # Lets us play with the big boys
+  def sexp_type # sort=skip
+    return Type.value
+  end
+end
+
 ##
 # The whole point of this project! RubyToC is an actually very simple
 # SexpProcessor that does the final conversion from Sexp to C code.
 # This class has more unsupported nodes than any other (on
 # purpose--we'd like TypeChecker and friends to be as generally useful
 # as possible), and as a result, supports a very small subset of ruby.
-#
-# NOT SUPPORTED: (keep in sync w/ initialize)
-# 
-# :begin, :block_arg, :case, :dstr, :rescue, :self, :super, :when
 
 class RubyToAnsiC < SexpProcessor
 
@@ -531,6 +534,7 @@ typedef char * str;
       array_type = args.sexp_types.empty? ? 'void *' : self.class.c_type(args.sexp_types.first)
 
       args.shift # :arglist
+# TODO: look into alloca
       out << "#{var} = (#{array_type}) malloc(sizeof(#{array_type}) * #{args.length});\n"
       args.each_with_index do |o,i|
         out << "#{var}[#{i}] = #{process o};\n"
@@ -677,7 +681,14 @@ typedef char * str;
       @env.current.sort_by { |v,_| v.to_s }.each do |var, (type,val)|
         next if outer_scope.include? var
         decl = "#{self.class.c_type type} #{var}"
-        decl << " = #{val}" if val
+        case val
+        when nil then
+          # do nothing
+        when /^\[/ then
+          decl << "#{val}"
+        else
+          decl << " = #{val}"
+        end
         decl << ';'
         declarations << decl
       end

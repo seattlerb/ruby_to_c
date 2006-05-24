@@ -12,6 +12,7 @@ class TestRubyToRubyC < R2CTestCase
     @ruby_to_c = RubyToRubyC.new
     @ruby_to_c.env.extend
     @processor = @ruby_to_c
+    Unique.reset
   end
 
   def test_process_lit_float
@@ -68,7 +69,7 @@ class TestRubyToRubyC < R2CTestCase
     input = [:class, :Suck, :Object,
       [:defn, :something, [:scope, [:block, [:args], [:fcall, :"whaaa\?"]]]],
       [:defn, :foo, [:scope, [:block, [:args], [:vcall, :something]]]]]
-    expected = "// class Suck < Object\n\nVALUE\nsomething() {\nrb_funcall(self, rb_intern(\"whaaa?\"), 0);\n}\n\nVALUE\nfoo() {\nrb_funcall(self, rb_intern(\"something\"), 0);\n}"
+    expected = "// class Suck < Object\n\nstatic VALUE\nrrc_c_something(VALUE self) {\nrb_funcall(self, rb_intern(\"whaaa?\"), 0);\n}\n\nstatic VALUE\nrrc_c_foo(VALUE self) {\nrb_funcall(self, rb_intern(\"something\"), 0);\n}"
     assert_equal expected, RubyToRubyC.translator.process(input)
   end
 

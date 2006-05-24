@@ -98,6 +98,13 @@ class TestEnvironment < Test::Unit::TestCase
     assert_equal 42, @env.get_val(:var)
   end
 
+  def test_set_val_static_array
+    @env.add :var, Type.long
+    assert_equal "[2]", @env.set_val(:var, "[2]")
+
+    assert_equal "[2]", @env.get_val(:var)
+  end
+
   def test_get_val_unset
     @env.add :var, Type.long
 

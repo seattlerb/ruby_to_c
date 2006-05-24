@@ -13,6 +13,7 @@ class R2CTestCase < Test::Unit::TestCase
   def setup
     super
     @processor = nil
+    Unique.reset
   end
 
   @@testcase_order = [
@@ -179,7 +180,7 @@ class R2CTestCase < Test::Unit::TestCase
                            Type.void),
                          Type.function(Type.unknown, [Type.value], Type.bool)),
       "R2CRewriter" => :same,
-      "RubyToRubyC"     => "VALUE\nbools(VALUE arg1) {\nif (NIL_P(arg1)) {\nreturn Qfalse;\n} else {\nreturn Qtrue;\n}\n}",
+      "RubyToRubyC"     => "static VALUE\nrrc_c_bools(VALUE self, VALUE arg1) {\nif (NIL_P(arg1)) {\nreturn Qfalse;\n} else {\nreturn Qtrue;\n}\n}",
       "RubyToAnsiC"     => "bool\nbools(void * arg1) {\nif (arg1) {\nreturn 0;\n} else {\nreturn 1;\n}\n}",
     },
 
@@ -390,8 +391,8 @@ class R2CTestCase < Test::Unit::TestCase
                          Type.function(Type.unknown, [], Type.str)),
       "R2CRewriter" => :same,
 # HACK: I don't like the semis after the if blocks, but it is a compromise right now
-      "RubyToRubyC" => "VALUE
-case_stmt() {
+      "RubyToRubyC" => "static VALUE
+rrc_c_case_stmt(VALUE self) {
 VALUE result;
 VALUE var;
 var = LONG2NUM(2);
@@ -596,7 +597,7 @@ return result;
                            Type.void),
                          Type.function(Type.unknown, [], Type.void)),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "VALUE\nempty() {\nQnil;\n}",
+      "RubyToRubyC" => "static VALUE\nrrc_c_empty(VALUE self) {\nQnil;\n}",
       "RubyToAnsiC" => "void\nempty() {\nNULL;\n}",
     },
 
@@ -618,7 +619,7 @@ return result;
                              Type.unknown), Type.void),
                          Type.function(Type.unknown, [], Type.unknown_list)),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "VALUE\nempty() {\nVALUE a;\na = rb_ary_new2(0);\nreturn a;\n}",
+      "RubyToRubyC" => "static VALUE\nrrc_c_empty(VALUE self) {\nVALUE a;\na = rb_ary_new2(0);\nreturn a;\n}",
       "RubyToAnsiC" => "void *\nempty() {\nvoid * a;\na = (void *) malloc(sizeof(void *) * 0);\nreturn a;\n}",
     },
 
@@ -635,7 +636,7 @@ return result;
                            Type.void),
                          Type.function(Type.unknown, [], Type.void)),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "VALUE\nor() {\nQnil;\n}",
+      "RubyToRubyC" => "static VALUE\nrrc_c_or(VALUE self) {\nQnil;\n}",
       "RubyToAnsiC" => "void\nor() {\nNULL;\n}",
     },
 
@@ -652,7 +653,7 @@ return result;
                            Type.void),
                          Type.function(Type.unknown, [], Type.void)),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "VALUE\nis_something() {\nQnil;\n}",
+      "RubyToRubyC" => "static VALUE\nrrc_c_is_something(VALUE self) {\nQnil;\n}",
       "RubyToAnsiC" => "void\nis_something() {\nNULL;\n}",
     },
 
@@ -779,10 +780,12 @@ return result;
                            Type.void),
                          Type.void),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "unsigned long index_x;
-unsigned long arrays_max = FIX2LONG(rb_funcall(arrays, rb_intern(\"size\"), 0));
-for (index_x = 0; index_x < arrays_max; ++index_x) {
-VALUE x = rb_funcall(arrays, rb_intern(\"at\"), 1, LONG2FIX(index_x));
+      "RubyToRubyC" => "unsigned long index_temp_1;
+VALUE temp_2 = rb_funcall(arrays, rb_intern(\"to_a\"), 0);
+unsigned long temp_1_max = FIX2LONG(rb_funcall(temp_2, rb_intern(\"size\"), 0));
+for (index_temp_1 = 0; index_temp_1 < temp_1_max; ++index_temp_1) {
+VALUE x;
+x = rb_funcall(temp_2, rb_intern(\"at\"), 1, LONG2FIX(index_temp_1));
 rb_funcall(self, rb_intern(\"puts\"), 1, x);
 }",
       "RubyToAnsiC" => "unsigned long index_x;
@@ -1097,8 +1100,8 @@ argl = argl - 1;
                    Type.function(Type.unknown,
                                  [Type.long, Type.long], Type.str)),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "VALUE
-multi_args(VALUE arg1, VALUE arg2) {
+      "RubyToRubyC" => "static VALUE
+rrc_c_multi_args(VALUE self, VALUE arg1, VALUE arg2) {
 VALUE arg3;
 arg3 = rb_funcall(rb_funcall(arg1, rb_intern(\"*\"), 1, arg2), rb_intern(\"*\"), 1, LONG2NUM(7));
 rb_funcall(self, rb_intern(\"puts\"), 1, rb_funcall(arg3, rb_intern(\"to_s\"), 0));
@@ -1168,8 +1171,8 @@ return \"foo\";
                  Type.void),
                Type.function(Type.unknown, [], Type.void)),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => "VALUE
-whiles() {
+      "RubyToRubyC" => "static VALUE
+rrc_c_whiles(VALUE self) {
 while (Qfalse) {
 rb_funcall(self, rb_intern(\"puts\"), 1, rb_str_new2(\"false\"));
 };
