@@ -16,11 +16,20 @@ class TestRubyToRubyC < R2CTestCase
   end
 
   def test_process_dstr
-    input  = s(:dstr,
+    input  = t(:dstr,
                "var is ",
-               s(:lit, 42),
-               s(:str, ". So there."))
+               t(:lit, 42, Type.long),
+               t(:str, ". So there.", Type.str), Type.str)
     output = 'rb_funcall(rb_mKernel, rb_intern("sprintf"), 4, rb_str_new2("%s%s%s"), rb_str_new2("var is "), LONG2NUM(42), rb_str_new2(". So there."))'
+
+    assert_equal output, @ruby_to_c.process(input)
+  end
+
+  def test_process_dxstr
+    input  = t(:dxstr,
+               "touch ",
+               t(:lvar, :x, Type.str), Type.str)
+    output = 'rb_funcall(rb_mKernel, rb_intern("`"), 1, rb_funcall(rb_mKernel, rb_intern("sprintf"), 3, rb_str_new2("%s%s"), rb_str_new2("touch "), x))'
 
     assert_equal output, @ruby_to_c.process(input)
   end
@@ -76,7 +85,7 @@ class TestRubyToRubyC < R2CTestCase
 
   def test_process_xstr
     input  = t(:xstr, 'touch 5', Type.str)
-    output = 'rb_f_backquote(rb_str_new2("touch 5"))'
+    output = 'rb_funcall(rb_mKernel, rb_intern("`"), 1, rb_str_new2("touch 5"))'
 
     assert_equal output, @ruby_to_c.process(input)
   end
