@@ -40,6 +40,8 @@ class RubyToRubyC < RubyToAnsiC
   def initialize
     super
 
+    self.unsupported -= [:xstr]
+
     @blocks = []
     @c_klass_name = nil
     @current_klass = nil
@@ -72,6 +74,7 @@ class RubyToRubyC < RubyToAnsiC
   # TODO: pull process_cvar from obfuscator
   # TODO: pull process_dasgn_curr from obfuscator
   # TODO: pull process_dstr from obfuscator
+  # TODO: use dstr to implement dxstr
 
   ##
   # Function definition
@@ -382,6 +385,14 @@ class RubyToRubyC < RubyToAnsiC
 
   def process_true(exp)
     "Qtrue"
+  end
+
+  ##
+  # Backtick.  Maps directly to Kernel#`, no overriding.
+
+  def process_xstr(exp)
+    command = exp.shift
+    return "rb_f_backquote(rb_str_new2(#{command.inspect}))"
   end
 
   # TODO: pull while from obfuscator

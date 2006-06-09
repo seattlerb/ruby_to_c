@@ -64,6 +64,13 @@ class TestRubyToRubyC < R2CTestCase
     assert_equal output, @ruby_to_c.process(input)
   end
 
+  def test_process_xstr
+    input  = t(:xstr, 'touch 5', Type.str)
+    output = 'rb_f_backquote(rb_str_new2("touch 5"))'
+
+    assert_equal output, @ruby_to_c.process(input)
+  end
+
   def test_translator
     Object.class_eval "class Suck; end"
     input = [:class, :Suck, :Object,
