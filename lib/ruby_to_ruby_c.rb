@@ -40,7 +40,7 @@ class RubyToRubyC < RubyToAnsiC
   def initialize
     super
 
-    self.unsupported -= [:xstr]
+    self.unsupported -= [:dstr, :xstr]
 
     @blocks = []
     @c_klass_name = nil
@@ -73,7 +73,6 @@ class RubyToRubyC < RubyToAnsiC
   # TODO: pull process_colon2 from obfuscator
   # TODO: pull process_cvar from obfuscator
   # TODO: pull process_dasgn_curr from obfuscator
-  # TODO: pull process_dstr from obfuscator
   # TODO: use dstr to implement dxstr
 
   ##
@@ -108,6 +107,22 @@ class RubyToRubyC < RubyToAnsiC
 
       return "static VALUE\n#{@c_method_name}#{c_args} #{body}"
     end
+  end
+
+  ##
+  # String interpolation
+
+  def process_dstr(exp)
+    parts = []
+    parts << process(s(:str, exp.shift))
+    until exp.empty? do
+      parts << process(exp.shift)
+    end
+
+    pattern = process(s(:str, "%s" * parts.length))
+    parts.unshift pattern
+                     
+    return %{rb_funcall(rb_mKernel, rb_intern("sprintf"), #{parts.length}, #{parts.join(", ")})}
   end
 
   ##

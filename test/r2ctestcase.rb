@@ -740,7 +740,7 @@ return result;
                              t(:str, ". So there.", Type.str),
                              Type.str),
       "R2CRewriter" => :same,
-      "RubyToRubyC" => :unsupported,
+      "RubyToRubyC" => "rb_funcall(rb_mKernel, rb_intern(\"sprintf\"), 4, rb_str_new2(\"%s%s%s\"), rb_str_new2(\"var is \"), argl, rb_str_new2(\". So there.\"))",
       "RubyToAnsiC" => :unsupported,
     },
 

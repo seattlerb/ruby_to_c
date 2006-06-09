@@ -15,6 +15,16 @@ class TestRubyToRubyC < R2CTestCase
     Unique.reset
   end
 
+  def test_process_dstr
+    input  = s(:dstr,
+               "var is ",
+               s(:lit, 42),
+               s(:str, ". So there."))
+    output = 'rb_funcall(rb_mKernel, rb_intern("sprintf"), 4, rb_str_new2("%s%s%s"), rb_str_new2("var is "), LONG2NUM(42), rb_str_new2(". So there."))'
+
+    assert_equal output, @ruby_to_c.process(input)
+  end
+
   def test_process_lit_float
     input  = t(:lit, 1.0, Type.float)
     output = "rb_float_new(1.0)"
