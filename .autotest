@@ -1,0 +1,5 @@
+# -*- ruby -*-
+
+Autotest.add_hook :initialize do |at|
+  at.libs << ":test:../../ParseTree/dev/lib:../../ParseTree/dev/test:../../RubyInline/dev"
+end
