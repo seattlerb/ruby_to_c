@@ -475,6 +475,9 @@ typedef char * str;
   # are doing something not supported by C in the first place.
 
   def process_iter(exp) # TODO: audit against obfuscator
+    exp.clear
+    return "not yet we don't"
+
     out = []
     # Only support enums in C-land
     raise UnsupportedNodeError if exp[0][1].nil? # HACK ugly

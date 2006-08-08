@@ -189,6 +189,8 @@ class RubyToRubyC < RubyToAnsiC
   # are doing something not supported by C in the first place.
 
   def process_iter(exp)
+    exp.clear
+    return "not yet we don't" # HACK
     # TODO/REFACTOR: this needs severe cleaning
     out = []
     @env.scope do
