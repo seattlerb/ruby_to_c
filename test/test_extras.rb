@@ -3,7 +3,8 @@
 $TESTING = true
 
 require 'type_checker'
-require 'test/unit'
+require 'test/unit' if $0 == __FILE__
+require 'test/unit/testcase'
 
 class RandomCode # ZenTest SKIP
   def specific_method(x)

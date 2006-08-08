@@ -1,7 +1,7 @@
 
 $TESTING = false unless defined? $TESTING
 
-begin require 'rubygems' rescue LoadError end
+begin require 'rubygems'; rescue LoadError; end
 require 'ruby_to_ansi_c'
 
 class RubyToRubyC < RubyToAnsiC
@@ -15,7 +15,7 @@ class RubyToRubyC < RubyToAnsiC
       @translator = CompositeSexpProcessor.new
       @translator << Rewriter.new
       @translator << TypeChecker.new
-      @translator << R2CRewriter.new
+      @translator << CRewriter.new
       @translator << RubyToRubyC.new
       @translator.on_error_in(:defn) do |processor, exp, err|
         result = processor.expected.new

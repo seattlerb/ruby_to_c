@@ -2,9 +2,10 @@
 
 $TESTING = true
 
-require 'test/unit'
+require 'test/unit' if $0 == __FILE__
 require 'ruby_to_ruby_c'
 require 'r2ctestcase'
+require 'unique'
 
 class TestRubyToRubyC < R2CTestCase
 

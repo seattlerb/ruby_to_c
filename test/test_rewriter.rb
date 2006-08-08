@@ -2,11 +2,10 @@
 
 $TESTING = true
 
-begin require 'rubygems' rescue LoadError end
-require 'test/unit'
+begin require 'rubygems'; rescue LoadError; end
+require 'test/unit' if $0 == __FILE__
 require 'rewriter'
 require 'r2ctestcase'
-require 'parse_tree'
 
 class TestRewriter < R2CTestCase
 
@@ -248,44 +247,6 @@ class TestRewriter < R2CTestCase
     input = [:when, [:array, [:lit, 1]], [:str, "1"]]
 
     expected = [:when, [[:lit, 1]], [:str, "1"]]
-
-    assert_equal expected, @rewrite.process(input)
-  end
-end
-
-class TestR2CRewriter < R2CTestCase
-
-  def setup
-    @processor = R2CRewriter.new
-    @rewrite = R2CRewriter.new
-  end
-
-  def xtest_process_call_rewritten
-
-    input = t(:call,
-              t(:str, "this", Type.str),
-              :+,
-              t(:array, t(:str, "that", Type.str)),
-              Type.str)
-    expected = t(:call,
-                 nil,
-                 :strcat,
-                 t(:array,
-                   t(:str, "this", Type.str),
-                   t(:str, "that", Type.str)),
-                 Type.str)
-
-    assert_equal expected, @rewrite.process(input)
-  end
-
-  def xtest_process_call_same
-
-    input = t(:call,
-              t(:lit, 1, Type.long),
-              :+,
-              t(:array, t(:lit, 2, Type.long)),
-              Type.long)
-    expected = input.deep_clone
 
     assert_equal expected, @rewrite.process(input)
   end

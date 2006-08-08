@@ -2,13 +2,14 @@
 $TESTING = false unless defined? $TESTING
 
 require 'pp'
-begin require 'rubygems' rescue LoadError end
+begin require 'rubygems'; rescue LoadError; end
 require 'parse_tree'
 require 'sexp_processor'
 require 'composite_sexp_processor'
 
 require 'type_checker'
 require 'rewriter'
+require 'crewriter'
 require 'environment'
 
 # HACK: only here for bootstrapping
@@ -103,7 +104,7 @@ typedef char * str;
       @translator = CompositeSexpProcessor.new
       @translator << Rewriter.new
       @translator << TypeChecker.new
-      @translator << R2CRewriter.new
+      @translator << CRewriter.new
       @translator << RubyToAnsiC.new
       @translator.on_error_in(:defn) do |processor, exp, err|
         result = processor.expected.new

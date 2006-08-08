@@ -2,7 +2,7 @@
 
 $TESTING = true
 
-require 'test/unit'
+require 'test/unit' if $0 == __FILE__
 require 'ruby_to_ansi_c'
 require 'r2ctestcase'
 

@@ -3,7 +3,7 @@
 $TESTING = true
 
 begin require 'rubygems'; rescue LoadError; end
-require 'test/unit'
+require 'test/unit' if $0 == __FILE__
 require 'iter_rewriter'
 require 'r2ctestcase'
 require 'parse_tree'

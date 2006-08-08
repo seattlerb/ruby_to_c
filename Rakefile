@@ -16,6 +16,14 @@ Rake::TestTask.new(:test) do |t|
   t.verbose = true
 end
 
+task :test2 do
+  dirs = %w( lib test ../../ParseTree/dev/lib ../../ParseTree/dev/test ../../RubyInline/dev ).join ':'
+  
+  Dir["test/test_*.rb"].each do |test|
+    ruby "-w -I#{dirs} #{test}"
+  end
+end
+
 R2C_VERSION = $1 if File.read('./lib/ruby_to_ansi_c.rb') =~ /VERSION = '([^']+)'/
 
 spec = Gem::Specification.new do |s|

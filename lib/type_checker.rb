@@ -1,6 +1,6 @@
 
 require 'pp'
-begin require 'rubygems' rescue LoadError end
+begin require 'rubygems'; rescue LoadError; end
 require 'parse_tree'
 require 'sexp_processor'
 require 'rewriter'

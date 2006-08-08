@@ -1,5 +1,5 @@
 
-begin require 'rubygems' rescue LoadError end
+begin require 'rubygems'; rescue LoadError; end
 require 'sexp'
 require 'type'
 

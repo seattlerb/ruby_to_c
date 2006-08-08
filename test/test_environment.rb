@@ -2,7 +2,8 @@
 
 $TESTING = true
 
-require 'test/unit'
+require 'test/unit' if $0 == __FILE__
+require 'test/unit/testcase'
 require 'environment'
 require 'type'
 

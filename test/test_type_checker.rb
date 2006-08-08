@@ -2,7 +2,7 @@
 
 $TESTING = true
 
-require 'test/unit'
+require 'test/unit' if $0 == __FILE__
 require 'type_checker'
 require 'r2ctestcase'
 

@@ -2,7 +2,7 @@
 
 $TESTING = true
 
-require 'test/unit'
+require 'test/unit' if $0 == __FILE__
 require 'type'
 require 'sexp_processor' # for deep clone FIX ?
 

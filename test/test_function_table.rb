@@ -2,10 +2,10 @@
 
 $TESTING = true
 
-require 'test/unit'
+require 'test/unit' if $0 == __FILE__
+require 'test/unit/testcase'
 require 'function_table'
 require 'type'
-#require 'handle'
 
 class TestFunctionTable < Test::Unit::TestCase
 
