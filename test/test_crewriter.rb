@@ -177,7 +177,7 @@ class TestCRewriter < R2CTestCase
                  t(:call, t(:lvar, :arr, Type.long), :each, nil, Type.void),
                  t(:args,
                    t(:array, t(:dasgn_curr, :value, Type.long)),
-                   t(:array, t(:lvar, :sum, Type.value))), # FIX see below
+                   t(:array, t(:lvar, :sum, Type.long))),
                  :temp_1), Type.void)
 
     assert_equal expect, @rewrite.process(input)
@@ -231,7 +231,7 @@ class TestCRewriter < R2CTestCase
                      t(:dasgn_curr, :value, Type.long),
                      t(:dasgn_curr, :i, Type.long)),
                    t(:array,
-                     t(:lvar, :sum, Type.value))), # FIX!! I think this is a bug and should be Type.long - TypeChecker lists dasgn as unsupported currently - no idea where this is coming from
+                     t(:lvar, :sum, Type.long))),
                    :temp_1))
 
     assert_equal expect, @rewrite.process(input)

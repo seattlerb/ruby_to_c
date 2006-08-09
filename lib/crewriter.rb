@@ -103,7 +103,7 @@ class CRewriter < SexpProcessor
     var_names.each do |name, type| dasgns << t(:dasgn_curr, name, type) end
 
     frees = t(:array)
-    free.each do |name,type| frees << t(:lvar, name, type) end
+    free.each do |name, type| frees << t(:lvar, name, type) end
 
     args = t(:args, dasgns, frees)
 
@@ -123,7 +123,7 @@ class CRewriter < SexpProcessor
     name = exp.shift
     value = process(exp.shift)
 
-    @env.add name, Type.value
+    @env.add name, exp.sexp_type
     @env.set_val name, true
 
     return t(:lasgn, name, value, exp.sexp_type)
