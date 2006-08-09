@@ -593,6 +593,14 @@ class TestTypeChecker < R2CTestCase
     assert_equal output, @type_checker.process(input)
   end
 
+  def test_process_lasgn_masgn
+    @type_checker.env.extend
+    input  = t(:lasgn, :var)
+    output = t(:lasgn, :var, nil, Type.unknown)
+
+    assert_equal output, @type_checker.process(input)
+  end
+  
   def test_process_lit_float
     input  = t(:lit, 1.0)
     output = t(:lit, 1.0, Type.float)
@@ -618,6 +626,60 @@ class TestTypeChecker < R2CTestCase
     add_fake_var :arg, Type.long
     input  = t(:lvar, :arg)
     output = t(:lvar, :arg, Type.long)
+
+    assert_equal output, @type_checker.process(input)
+  end
+
+  def test_process_masgn_equal_args
+    input  = s(:masgn,
+               s(:array,
+                 s(:lasgn, :a),
+                 s(:lasgn, :b)),
+               s(:array, s(:lit, 1), s(:lit, 2)))
+    output = t(:masgn,
+               t(:array,
+                 t(:lasgn, :a, nil, Type.long),
+                 t(:lasgn, :b, nil, Type.long)),
+               t(:array,
+                 t(:lit, 1, Type.long),
+                 t(:lit, 2, Type.long),
+                 Type.long_list))
+
+    assert_equal output, @type_checker.process(input)
+  end
+
+  def test_process_masgn_less_args
+    input  = s(:masgn,
+               s(:array,
+                 s(:lasgn, :a),
+                 s(:lasgn, :b)),
+               s(:to_ary, s(:lit, 1)))
+    output = t(:masgn,
+               t(:array,
+                 t(:lasgn, :a, nil, Type.long),
+                 t(:lasgn, :b, nil, Type.value)),
+               t(:to_ary,
+                 t(:lit, 1, Type.long),
+                 Type.long_list))
+
+    assert_equal output, @type_checker.process(input)
+  end
+
+  def test_process_masgn_more_args
+    input  = s(:masgn,
+               s(:array,
+                 s(:lasgn, :a),
+                 s(:lasgn, :b)),
+               s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3)))
+    output = t(:masgn,
+               t(:array,
+                 t(:lasgn, :a, nil, Type.long),
+                 t(:lasgn, :b, nil, Type.long_list)),
+               t(:array,
+                 t(:lit, 1, Type.long),
+                 t(:lit, 2, Type.long),
+                 t(:lit, 3, Type.long),
+                 Type.long_list))
 
     assert_equal output, @type_checker.process(input)
   end
@@ -681,6 +743,16 @@ class TestTypeChecker < R2CTestCase
   def test_process_str
     input  = t(:str, "foo")
     output = t(:str, "foo", Type.str)
+
+    assert_equal output, @type_checker.process(input)
+  end
+
+  def test_process_to_ary
+    input  = s(:to_ary, s(:lit, 1), s(:lit, 2))
+    output = t(:to_ary,
+               t(:lit, 1, Type.long),
+               t(:lit, 2, Type.long),
+               Type.long_list)
 
     assert_equal output, @type_checker.process(input)
   end

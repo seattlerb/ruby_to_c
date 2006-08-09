@@ -117,7 +117,7 @@ class TypeChecker < SexpProcessor
     self.strict = true
     self.expected = TypedSexp
 
-    self.unsupported = [:alias, :alloca, :argscat, :argspush, :attrset, :back_ref, :bmethod, :break, :case, :cdecl, :cfunc, :cref, :cvdecl, :dasgn, :defs, :dmethod, :dot2, :dot3, :dregx, :dregx_once, :dsym, :dxstr, :evstr, :fbody, :fcall, :flip2, :flip3, :for, :ifunc, :last, :masgn, :match, :match2, :match3, :memo, :method, :module, :newline, :next, :nth_ref, :op_asgn1, :op_asgn2, :op_asgn_and, :opt_n, :postexe, :redo, :retry, :sclass, :svalue, :to_ary, :undef, :until, :valias, :vcall, :when, :xstr, :zarray, :zsuper]
+    self.unsupported = [:alias, :alloca, :argscat, :argspush, :attrset, :back_ref, :bmethod, :break, :case, :cdecl, :cfunc, :cref, :cvdecl, :dasgn, :defs, :dmethod, :dot2, :dot3, :dregx, :dregx_once, :dsym, :dxstr, :evstr, :fbody, :fcall, :flip2, :flip3, :for, :ifunc, :last, :match, :match2, :match3, :memo, :method, :module, :newline, :next, :nth_ref, :op_asgn1, :op_asgn2, :op_asgn_and, :opt_n, :postexe, :redo, :retry, :sclass, :svalue, :undef, :until, :valias, :vcall, :when, :xstr, :zarray, :zsuper]
 
     bootstrap
   end
@@ -680,27 +680,32 @@ class TypeChecker < SexpProcessor
   # with the assignment expression, and returns a sexp of that type.  If there
   # is no local variable in the environment, one is added with the type of the
   # assignment expression and a sexp of that type is returned.
+  #
+  # If an lasgn has no value (inside masgn) the returned sexp has an unknown
+  # Type and a nil node is added as the value.
 
   def process_lasgn(exp)
     name = exp.shift
     arg_exp = nil
-    arg_type = nil
+    arg_type = Type.unknown
     var_type = @env.lookup name rescue nil
 
-    sub_exp = exp.shift
-    sub_exp_type = sub_exp.first
-    arg_exp = process sub_exp
+    unless exp.empty? then
+      sub_exp = exp.shift
+      sub_exp_type = sub_exp.first
+      arg_exp = process sub_exp
 
-   # if we've got an array in there, unify everything in it.
-    if sub_exp_type == :array then
-      arg_type = arg_exp.sexp_types
-      arg_type = arg_type.inject(Type.unknown) do |t1, t2|
-        t1.unify t2
+      # if we've got an array in there, unify everything in it.
+      if sub_exp_type == :array then
+        arg_type = arg_exp.sexp_types
+        arg_type = arg_type.inject(Type.unknown) do |t1, t2|
+          t1.unify t2
+        end
+        arg_type = arg_type.dup # singleton type
+        arg_type.list = true
+      else
+        arg_type = arg_exp.sexp_type
       end
-      arg_type = arg_type.dup # singleton type
-      arg_type.list = true
-    else
-      arg_type = arg_exp.sexp_type
     end
 
     if var_type.nil? then
@@ -742,6 +747,32 @@ class TypeChecker < SexpProcessor
     name = exp.shift
     t = @env.lookup name
     return t(:lvar, name, t)
+  end
+
+  ##
+  # Multiple assignment
+
+  def process_masgn(exp)
+    mlhs = process exp.shift
+    mrhs = process exp.shift
+
+    mlhs_values = mlhs[1..-1]
+    mrhs_values = mrhs[1..-1]
+
+    mlhs_values.zip(mrhs_values) do |lasgn, value|
+      if value.nil? then
+        lasgn.sexp_type.unify Type.value # nil
+      else
+        lasgn.sexp_type.unify value.sexp_type
+      end
+    end
+
+    if mlhs_values.length < mrhs_values.length then
+      last_lasgn = mlhs_values.last
+      last_lasgn.sexp_type.list = true
+    end
+
+    return t(:masgn, mlhs, mrhs)
   end
 
   ##
@@ -891,6 +922,22 @@ class TypeChecker < SexpProcessor
   end
 
   ##
+  # Object#to_ary
+
+  def process_to_ary(exp)
+    to_ary = t(:to_ary)
+
+    until exp.empty?
+      to_ary << process(exp.shift)
+    end
+
+    to_ary.sexp_type = to_ary[1].sexp_type.dup
+    to_ary.sexp_type.list = true
+
+    return to_ary
+  end
+
+  ##
   # True returns a bool-typed sexp.
 
   def process_true(exp)
@@ -927,5 +974,4 @@ class TypeChecker < SexpProcessor
     self.process sexp
   end
 end
-
 

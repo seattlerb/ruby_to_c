@@ -111,7 +111,7 @@ class TestCRewriter < R2CTestCase
                          nil, Type.void),
                        t(:args,
                          t(:array, t(:dasgn_curr, :b, Type.long)),
-                         t(:array, t(:lvar, :sum, Type.value))), # HACK
+                         t(:array, t(:lvar, :sum, Type.long))),
                        :temp_2))), Type.void),
                t(:defn,
                  :example,
