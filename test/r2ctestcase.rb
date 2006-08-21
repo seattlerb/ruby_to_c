@@ -839,8 +839,8 @@ end",
                          :temp_2,
                          t(:args, :temp_2, :temp_3),
                          t(:scope, t(:block, nil)), Type.void)]],
-      "RubyToRubyC" => :unsupported,
-      "RubyToAnsiC" => :unsupported,
+      "RubyToRubyC" => "",
+      "RubyToAnsiC" => "",
     },
 
     "iteration2" => {
@@ -938,11 +938,7 @@ puts(x);
                                      1, Type.long)),
                                  Type.long), Type.long), Type.unknown), true)),
       "CRewriter" => :same,
-      "RubyToRubyC" => 'n = LONG2NUM(1);
-while (rb_funcall(n, rb_intern("<="), 1, LONG2NUM(3))) {
-rb_funcall(self, rb_intern("puts"), 1, rb_funcall(n, rb_intern("to_s"), 0));
-n = rb_funcall(n, rb_intern("+"), 1, LONG2NUM(1));
-}',
+      "RubyToRubyC" => '',
       "RubyToAnsiC" => 'n = 1;
 while (n <= 3) {
 puts(to_s(n));
@@ -986,11 +982,7 @@ n = n + 1;
                                Type.long),
                            Type.unknown), true)),
       "CRewriter" => :same,
-      "RubyToRubyC" => 'n = LONG2NUM(3);
-while (rb_funcall(n, rb_intern(">="), 1, LONG2NUM(1))) {
-rb_funcall(self, rb_intern("puts"), 1, rb_funcall(n, rb_intern("to_s"), 0));
-n = rb_funcall(n, rb_intern("-"), 1, LONG2NUM(1));
-}',
+      "RubyToRubyC" => '',
       "RubyToAnsiC" => 'n = 3;
 while (n >= 1) {
 puts(to_s(n));
@@ -1032,10 +1024,7 @@ n = n - 1;
                              Type.long),
                            Type.unknown), true),
       "CRewriter" => :same,
-      "RubyToRubyC" => 'while (rb_funcall(argl, rb_intern(">="), 1, LONG2NUM(1))) {
-rb_funcall(self, rb_intern("puts"), 1, rb_str_new2("hello"));
-argl = rb_funcall(argl, rb_intern("-"), 1, LONG2NUM(1));
-}',
+      "RubyToRubyC" => '',
       "RubyToAnsiC" => 'while (argl >= 1) {
 puts("hello");
 argl = argl - 1;

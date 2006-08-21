@@ -369,6 +369,10 @@ typedef char * str;
     "#{ret_type}\n#{name}#{args} #{body}"
   end
 
+  def process_defx(exp) # TODO: audit against obfuscator
+    return process_defn(exp)
+  end
+
   ##
   # Generic handler. Ignore me, I'm not here.
   #
