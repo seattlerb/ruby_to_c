@@ -99,20 +99,21 @@ class CRewriter < SexpProcessor
     end
 
     var_names = var_names_in vars
-    dasgns = t(:array, *var_names.map { |name, type| t(:dasgn_curr, name, type)})
-    frees  = t(:array, *free_vars.map { |name, type| t(:lvar, name, type) })
-    args   = t(:args, dasgns, frees)
+    dasgns = t(:array, Type.void).push(*var_names.map { |name, type| t(:dasgn_curr, name, type)})
+    frees  = t(:array, Type.void).push(*free_vars.map { |name, type| t(:lvar, name, type) })
+    args   = t(:args, dasgns, frees, Type.void)
 
     defx = t(:defx,
              iter_method_name,
-             t(:args, Unique.next, Unique.next),
+             t(:args, Unique.next, Unique.next), # won't this break body???
              t(:scope,
                t(:block,
                  body)), Type.void)
 
     @extra_methods << defx
 
-    return t(:iter, call, args, iter_method_name)
+    return t(:iter, call, args,
+             t(:call, nil, iter_method_name, t(:arglist, dasgns[1], t(:nil))))
   end
 
   def process_lasgn(exp)

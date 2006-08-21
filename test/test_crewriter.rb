@@ -110,9 +110,15 @@ class TestCRewriter < R2CTestCase
                          :each,
                          nil, Type.void),
                        t(:args,
-                         t(:array, t(:dasgn_curr, :b, Type.long)),
-                         t(:array, t(:lvar, :sum, Type.long))),
-                       :temp_2))), Type.void),
+                         t(:array, t(:dasgn_curr, :b, Type.long), Type.void),
+                         t(:array, t(:lvar, :sum, Type.long), Type.void),
+                         Type.void),
+                       t(:call,
+                         nil,
+                         :temp_2,
+                         t(:arglist,
+                           t(:dasgn_curr, :b, Type.long),
+                           t(:nil)))))), Type.void),
                t(:defn,
                  :example,
                  t(:args),
@@ -125,10 +131,13 @@ class TestCRewriter < R2CTestCase
                          :each,
                          nil, Type.void),
                        t(:args,
-                         t(:array, t(:dasgn_curr, :a, Type.long)),
-                         t(:array)),
-                       :temp_1),
-                       t(:return, t(:lvar, :sum, Type.long)))), Type.void))
+                         t(:array, t(:dasgn_curr, :a, Type.long), Type.void),
+                         t(:array, Type.void), Type.void),
+                       t(:call,
+                         nil,
+                         :temp_1,
+                         t(:arglist, t(:dasgn_curr, :a, Type.long), t(:nil)))),
+                     t(:return, t(:lvar, :sum, Type.long)))), Type.void))
 
     assert_equal expect, @rewrite.process(input)
   end
@@ -176,9 +185,9 @@ class TestCRewriter < R2CTestCase
                t(:iter, # new iter
                  t(:call, t(:lvar, :arr, Type.long), :each, nil, Type.void),
                  t(:args,
-                   t(:array, t(:dasgn_curr, :value, Type.long)),
-                   t(:array, t(:lvar, :sum, Type.long))),
-                 :temp_1), Type.void)
+                   t(:array, t(:dasgn_curr, :value, Type.long), Type.void),
+                   t(:array, t(:lvar, :sum, Type.long), Type.void), Type.void),
+                 t(:call, nil, :temp_1, t(:arglist, t(:dasgn_curr, :value, Type.long), t(:nil)))), Type.void)
 
     assert_equal expect, @rewrite.process(input)
 
@@ -229,10 +238,10 @@ class TestCRewriter < R2CTestCase
                  t(:args,
                    t(:array,
                      t(:dasgn_curr, :value, Type.long),
-                     t(:dasgn_curr, :i, Type.long)),
+                     t(:dasgn_curr, :i, Type.long), Type.void),
                    t(:array,
-                     t(:lvar, :sum, Type.long))),
-                   :temp_1))
+                     t(:lvar, :sum, Type.long), Type.void), Type.void),
+                   t(:call, nil, :temp_1, t(:arglist, t(:dasgn_curr, :value, Type.long), t(:nil)))))
 
     assert_equal expect, @rewrite.process(input)
 
