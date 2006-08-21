@@ -37,12 +37,14 @@ class RubyToRubyC < RubyToAnsiC
     "VALUE"
   end
 
+  attr_reader :extra_methods
+
   def initialize
     super
 
     self.unsupported -= [:dstr, :dxstr, :xstr]
 
-    @blocks = []
+    @extra_methods = []
     @c_klass_name = nil
     @current_klass = nil
     @klass_name = nil
@@ -270,7 +272,7 @@ class RubyToRubyC < RubyToAnsiC
         new_func << "rb_ary_push(#{ary_name}, #{tmp_name});"
         new_func << "return Qnil;"
         new_func << "}"
-        @blocks << new_func.flatten.compact.join("\n")
+        @extra_methods << new_func.flatten.compact.join("\n")
       when :each then
         # TODO: nuke for loop for above solution
         index = "index_#{enum_name}"

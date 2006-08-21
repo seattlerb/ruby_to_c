@@ -185,14 +185,14 @@ class TypeChecker < SexpProcessor
   end
 
   ##
-	# Arg list stuff
+  # Arg list stuff
 
-	def process_arglist(exp)
-		args = process_array exp
-		args[0] = :arglist
+  def process_arglist(exp)
+    args = process_array exp
+    args[0] = :arglist
 
-		args
-	end
+    args
+  end
 
   ##
   # Array processes each item in the array, then returns an untyped sexp.

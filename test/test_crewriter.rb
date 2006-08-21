@@ -194,7 +194,7 @@ class TestCRewriter < R2CTestCase
                      t(:arglist, t(:dvar, :value, Type.long)), Type.void),
                    Type.long))), Type.void)
 
-    assert_equal [defx], @rewrite.iter_functions
+    assert_equal [defx], @rewrite.extra_methods
   end
 
   def test_process_iter_each_with_index
@@ -248,7 +248,7 @@ class TestCRewriter < R2CTestCase
                      t(:arglist, t(:dvar, :value, Type.long)), Type.void),
                    Type.long))), Type.void)
 
-    assert_equal [defx], @rewrite.iter_functions
+    assert_equal [defx], @rewrite.extra_methods
   end
 
   def test_free

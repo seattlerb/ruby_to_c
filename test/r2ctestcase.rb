@@ -10,37 +10,35 @@ class R2CTestCase < Test::Unit::TestCase
 
   attr_accessor :processor # to be defined by subclass
 
+  def self.testcase_order; @@testcase_order; end
+  def self.testcases; @@testcases; end
+
   def setup
     super
     @processor = nil
     Unique.reset
   end
 
-  @@testcase_order = [
-    "ParseTree",
-    "Rewriter",
-    "TypeChecker",
-    "CRewriter",
-    "RubyToAnsiC",
-    "RubyToRubyC",
-  ]
+  @@testcase_order = %w(Ruby ParseTree Rewriter TypeChecker CRewriter RubyToAnsiC RubyToRubyC)
 
   @@testcases = {
 
     "accessor" => {
+      "Ruby"        => "attr_reader :accessor",
       "ParseTree"   => [:defn, :accessor, [:ivar, :@accessor]],
       "Rewriter"    => s(:defn, :accessor, s(:args),
                          s(:scope,
                            s(:block, s(:return, s(:ivar, :@accessor))))),
       "TypeChecker" => :skip,
-      "CRewriter" => :skip,
+      "CRewriter"   => :skip,
       "RubyToAnsiC" => :skip,
       "RubyToRubyC" => :skip,
     },
 
     "accessor_equals" => {
-      "ParseTree"   =>   [:defn, :accessor=, [:attrset, :@accessor]],
-      "Rewriter" => s(:defn,
+      "Ruby"        => "attr_writer :accessor",
+      "ParseTree"   => [:defn, :accessor=, [:attrset, :@accessor]],
+      "Rewriter"    => s(:defn,
                         :accessor=,
                         s(:args, :arg),
                         s(:scope,
@@ -48,12 +46,26 @@ class R2CTestCase < Test::Unit::TestCase
                             s(:return,
                               s(:iasgn, :@accessor, s(:lvar, :arg)))))),
       "TypeChecker" => :skip,
-      "CRewriter" => :skip,
+      "CRewriter"   => :skip,
       "RubyToRubyC" => :skip,
       "RubyToAnsiC" => :skip,
     },
 
     "defn_bbegin" => {
+      "Ruby"        => "def bbegin()
+  begin
+    1 + 1
+  rescue SyntaxError
+    e1 = $!
+    2
+  rescue Exception
+    e2 = $!
+    3
+  else
+    4end
+  ensure
+    5
+end",
      "ParseTree"   => [:defn, :bbegin,
        [:scope,
          [:block,
@@ -121,24 +133,14 @@ class R2CTestCase < Test::Unit::TestCase
       "RubyToAnsiC" => :unsupported,
     },
 
-    "defn_bmethod_added" => {
-      "ParseTree"   => [:defn, :bmethod_added,
-        [:bmethod,
-          [:dasgn_curr, :x],
-          [:call, [:dvar, :x], :+, [:array, [:lit, 1]]]]],
-      "Rewriter" => s(:defn,
-                      :bmethod_added,
-                      s(:args, :x),
-                      s(:scope,
-                        s(:block,
-                          s(:call, s(:lvar, :x), :+, s(:arglist, s(:lit, 1)))))),
-      "TypeChecker" => :skip,
-      "CRewriter" => :skip,
-      "RubyToRubyC" => :skip,
-      "RubyToAnsiC" => :skip,
-    },
-
     "bools" => {
+      "Ruby"      => "def bools(arg1)
+  if (arg1.nil?)
+    return false
+  else
+    return true
+  end
+end",
       "ParseTree" => [:defn, :bools,
         [:scope,
           [:block,
@@ -186,6 +188,7 @@ class R2CTestCase < Test::Unit::TestCase
 
 # TODO: move all call tests here
     "call_arglist"  => {
+      "Ruby"        => "puts(42)",
       "ParseTree"   => [:fcall,      :puts,  [:array,    [:lit, 42]]],
       "Rewriter"    => s(:call, nil, :puts, s(:arglist, s(:lit, 42))),
       "TypeChecker" => :skip,
@@ -195,6 +198,7 @@ class R2CTestCase < Test::Unit::TestCase
     },
 
     "call_attrasgn" => {
+      "Ruby"        => "42.method=(y)",
       "ParseTree"   => [:attrasgn, [:lit, 42], :method=, [:array, [:lvar, :y]]],
       "Rewriter"    => s(:call,   s(:lit, 42), :method=, s(:arglist, s(:lvar, :y))),
       "TypeChecker" => :skip,
@@ -204,6 +208,7 @@ class R2CTestCase < Test::Unit::TestCase
     },
 
     "call_self" => {
+      "Ruby"        => "self.method",
       "ParseTree" => [:call, [:self], :method],
       "Rewriter"  => s(:call, s(:lvar, :self), :method, nil),
       "TypeChecker" => :skip,
@@ -213,6 +218,31 @@ class R2CTestCase < Test::Unit::TestCase
     },
 
     "case_stmt" => {
+      "Ruby"        => "
+def case_stmt()
+  var = 2
+  result = \"\"
+  case var
+  when 1
+    puts(\"something\")
+    result = \"red\"
+  when 2, 3
+    result = \"yellow\"
+  when 4
+  else
+    result = \"green\"
+  end
+  case result
+  when \"red\"
+    var = 1
+  when \"yellow\"
+    var = 2
+  when \"green\"
+    var = 3
+  else
+  end
+  return result
+end",
       "ParseTree" => [:defn, :case_stmt,
    [:scope,
     [:block,
@@ -460,6 +490,7 @@ return result;
     },
 
     "conditional1" => {
+      "Ruby"        => "if (42 == 0)\n  return 1\n\nend",
       "ParseTree"   => [:if, [:call, [:lit, 42], :==, [:array, [:lit, 0]]], [:return, [:lit, 1]], nil],
       "Rewriter"    => s(:if, s(:call, s(:lit, 42), :==, s(:arglist, s(:lit, 0))), s(:return, s(:lit, 1)), nil),
       "TypeChecker" => t(:if,
@@ -481,6 +512,7 @@ return result;
     },
 
     "conditional2" => {
+      "Ruby"        => "unless (42 == 0)\n  return 2\nend",
       "ParseTree"   => [:if, [:call, [:lit, 42], :==, [:array, [:lit, 0]]], nil, [:return, [:lit, 2]]],
       "Rewriter"    => s(:if,
                          s(:call, s(:lit, 42),
@@ -503,6 +535,7 @@ return result;
     },
 
     "conditional3" => {
+      "Ruby"        => "if (42 == 0)\n  return 3\nelse\n  return 4\nend",
       "ParseTree"   => [:if, [:call, [:lit, 42], :==, [:array, [:lit, 0]]],
         [:return, [:lit, 3]],
         [:return, [:lit, 4]]],
@@ -534,6 +567,15 @@ return result;
     },
 
     "conditional4" => {
+      "Ruby"        => "if (42 == 0)
+  return 2
+else
+  if (42 < 0)
+    return 3
+  else
+    return 4
+  end
+end",
       "ParseTree"   => [:if,
         [:call, [:lit, 42], :==, [:array, [:lit, 0]]],
         [:return, [:lit, 2]],
@@ -584,7 +626,26 @@ return result;
       "RubyToAnsiC" => "if (42 == 0) {\nreturn 2;\n} else {\nif (42 < 0) {\nreturn 3;\n} else {\nreturn 4;\n}\n}",
     },
 
+    "defn_bmethod_added" => {
+      "Ruby"        => "def bmethod_added(x)\n  x + 1\nend",
+      "ParseTree"   => [:defn, :bmethod_added,
+        [:bmethod,
+          [:dasgn_curr, :x],
+          [:call, [:dvar, :x], :+, [:array, [:lit, 1]]]]],
+      "Rewriter" => s(:defn,
+                      :bmethod_added,
+                      s(:args, :x),
+                      s(:scope,
+                        s(:block,
+                          s(:call, s(:lvar, :x), :+, s(:arglist, s(:lit, 1)))))),
+      "TypeChecker" => :skip,
+      "CRewriter" => :skip,
+      "RubyToRubyC" => :skip,
+      "RubyToAnsiC" => :skip,
+    },
+
     "defn_empty" => {
+      "Ruby"        => "def empty()\n  nil\nend",
       "ParseTree"   => [:defn, :empty, [:scope, [:block, [:args], [:nil]]]],
       "Rewriter"    => s(:defn, :empty,
                          s(:args), s(:scope, s(:block, s(:nil)))),
@@ -602,6 +663,7 @@ return result;
     },
 
     "defn_zarray" => {
+      "Ruby"        => "def empty()\n  a = []\n  return a\nend",
       "ParseTree"   => [:defn, :empty, [:scope, [:block, [:args], [:lasgn, :a, [:zarray]], [:return, [:lvar, :a]]]]],
       "Rewriter"    => s(:defn,
                          :empty,
@@ -624,6 +686,7 @@ return result;
     },
 
     "defn_or" => {
+      "Ruby"        => "def |()\n  nil\nend",
       "ParseTree"   => [:defn, :|, [:scope, [:block, [:args], [:nil]]]],
       "Rewriter"    => s(:defn, :|,
                          s(:args), s(:scope, s(:block, s(:nil)))),
@@ -641,6 +704,7 @@ return result;
     },
 
     "defn_is_something" => {
+      "Ruby"        => "def something?()\n  nil\nend",
       "ParseTree"   => [:defn, :something?, [:scope, [:block, [:args], [:nil]]]],
       "Rewriter"    => s(:defn, :something?,
                          s(:args), s(:scope, s(:block, s(:nil)))),
@@ -658,6 +722,7 @@ return result;
     },
 
     "defn_fbody" => {
+      "Ruby"        => "def aliased()\n  puts(42)\nend",
       "ParseTree" => [:defn, :aliased,
                        [:fbody,
                        [:scope,
@@ -676,6 +741,7 @@ return result;
     },
 
     "defn_optargs" => {
+      "Ruby"        => "def x(a, *args)\n  p(a, args)\nend",
       "ParseTree" => [:defn, :x,
                       [:scope,
                        [:block,
@@ -695,6 +761,7 @@ return result;
     },
 
     "dmethod_added" => {
+      "Ruby"        => "def dmethod_added\n  define_method(:bmethod_added)\n  x {|(x + 1)|\n  }end",
       "ParseTree"   => [:defn,
         :dmethod_added,
         [:dmethod,
@@ -720,6 +787,7 @@ return result;
     },
 
     "global" => {
+      "Ruby"        => "$stderr",
       "ParseTree"   =>  [:gvar, :$stderr],
       "Rewriter"    => s(:gvar, :$stderr),
       # TODO: test s(:gvar, :$stderr) != t(:gvar, $stderr, Type.file)
@@ -730,6 +798,7 @@ return result;
     },
 
     "interpolated" => {
+      "Ruby"        => "\"var is \#{argl}. So there.\"",
       "ParseTree"   => [:dstr,
         "var is ", [:lvar, :argl], [:str, ". So there."]],
       "Rewriter" => s(:dstr,
@@ -745,6 +814,7 @@ return result;
     },
 
     "iter" => {
+      "Ruby"        => "loop do end",
       "ParseTree"   => [:iter, [:fcall, :loop], nil],
       "Rewriter"    => s(:iter,
                          s(:call, nil, :loop, nil),
@@ -755,12 +825,19 @@ return result;
                          t(:dasgn_curr, :temp_1, Type.unknown),
                          nil,
                          Type.unknown),
-      "CRewriter" => t(:iter,
+      "CRewriter" => [:defx,
+                      t(:iter,
                        t(:call, nil, :loop, nil, Type.unknown),
                        t(:args,
                          t(:array, t(:dasgn_curr, :temp_1, Type.unknown)),
                          t(:array)),
-                       :temp_1),
+                        t(:call, nil,
+                          :temp_2,
+                          s(:arglist, s(:dasgn_curr, :temp_1)))),
+                      [t(:defx,
+                         :temp_2,
+                         t(:args, :temp_2, :temp_3),
+                         t(:scope, t(:block, nil)), Type.void)]],
       "RubyToRubyC" => :unsupported,
       "RubyToAnsiC" => :unsupported,
     },
@@ -784,33 +861,43 @@ return result;
                            t(:arglist, t(:dvar, :x, Type.str)),
                            Type.void),
                          Type.void),
-       "CRewriter" => t(:iter,
-                        t(:call,
-                          t(:lvar, :arrays, Type.str_list),
-                          :each,
-                          nil, Type.unknown),
-                        t(:args,
-                          t(:array, t(:dasgn_curr, :x, Type.str), Type.void),
-                          t(:array, t(:lvar, :arrays, Type.value), Type.void), Type.void),
-                        :temp_1), # TODO: I'm not real happy with this, lost info in tests at the least...
-
-      "RubyToRubyC" => "unsigned long index_temp_1;
-VALUE temp_2 = rb_funcall(arrays, rb_intern(\"to_a\"), 0);
-unsigned long temp_1_max = FIX2LONG(rb_funcall(temp_2, rb_intern(\"size\"), 0));
+       "CRewriter" => [:defx,
+                       t(:iter,
+                         t(:call,
+                           t(:lvar, :arrays, Type.str_list),
+                           :each,
+                           nil, Type.unknown),
+                         t(:args,
+                           t(:array, t(:dasgn_curr, :x, Type.str), Type.void),
+                           t(:array, t(:lvar, :arrays, Type.value), Type.void), Type.void),
+                         t(:call, nil, :temp_1, t(:arglist, t(:dasgn_curr, :x)))),
+                       [t(:defx,
+                          :temp_1,
+                          t(:args, :temp_2, :temp_3),
+                          t(:scope,
+                            t(:block,
+                              t(:call,
+                                nil,
+                                :puts,
+                                t(:arglist, t(:dvar, :x, Type.str)), Type.void))), Type.void)]],
+      "RubyToRubyC" => 'unsigned long index_temp_1;
+VALUE temp_2 = rb_funcall(arrays, rb_intern("to_a"), 0);
+unsigned long temp_1_max = FIX2LONG(rb_funcall(temp_2, rb_intern("size"), 0));
 for (index_temp_1 = 0; index_temp_1 < temp_1_max; ++index_temp_1) {
 VALUE x;
-x = rb_funcall(temp_2, rb_intern(\"at\"), 1, LONG2FIX(index_temp_1));
-rb_funcall(self, rb_intern(\"puts\"), 1, x);
+x = rb_funcall(temp_2, rb_intern("at"), 1, LONG2FIX(index_temp_1));
+rb_funcall(self, rb_intern("puts"), 1, x);
 }",
       "RubyToAnsiC" => "unsigned long index_x;
 for (index_x = 0; arrays[index_x] != NULL; ++index_x) {
 str x = arrays[index_x];
 puts(x);
-}",
+}',
     },
 
 
     "iteration4" => {
+      "Ruby"        => "1.upto(3) {|n|\n  puts(n.to_s)\n}",
       "ParseTree"   => [:iter,
         [:call, [:lit, 1], :upto, [:array, [:lit, 3]]],
         [:dasgn_curr, :n],
@@ -850,19 +937,20 @@ puts(x);
                                      1, Type.long)),
                                  Type.long), Type.long), Type.unknown), true)),
       "CRewriter" => :same,
-      "RubyToRubyC" => "n = LONG2NUM(1);
-while (rb_funcall(n, rb_intern(\"<=\"), 1, LONG2NUM(3))) {
-rb_funcall(self, rb_intern(\"puts\"), 1, rb_funcall(n, rb_intern(\"to_s\"), 0));
-n = rb_funcall(n, rb_intern(\"+\"), 1, LONG2NUM(1));
-}",
-      "RubyToAnsiC" => "n = 1;
+      "RubyToRubyC" => 'n = LONG2NUM(1);
+while (rb_funcall(n, rb_intern("<="), 1, LONG2NUM(3))) {
+rb_funcall(self, rb_intern("puts"), 1, rb_funcall(n, rb_intern("to_s"), 0));
+n = rb_funcall(n, rb_intern("+"), 1, LONG2NUM(1));
+}',
+      "RubyToAnsiC" => 'n = 1;
 while (n <= 3) {
 puts(to_s(n));
 n = n + 1;
-}",
+}',
     },
 
     "iteration5" => {
+      "Ruby"        => "3.downto(1) {|n|\n  puts(n.to_s)\n}",
       "ParseTree"   => [:iter,
         [:call, [:lit, 3], :downto, [:array, [:lit, 1]]],
         [:dasgn_curr, :n],
@@ -897,19 +985,20 @@ n = n + 1;
                                Type.long),
                            Type.unknown), true)),
       "CRewriter" => :same,
-      "RubyToRubyC" => "n = LONG2NUM(3);
-while (rb_funcall(n, rb_intern(\">=\"), 1, LONG2NUM(1))) {
-rb_funcall(self, rb_intern(\"puts\"), 1, rb_funcall(n, rb_intern(\"to_s\"), 0));
-n = rb_funcall(n, rb_intern(\"-\"), 1, LONG2NUM(1));
-}",
-      "RubyToAnsiC" => "n = 3;
+      "RubyToRubyC" => 'n = LONG2NUM(3);
+while (rb_funcall(n, rb_intern(">="), 1, LONG2NUM(1))) {
+rb_funcall(self, rb_intern("puts"), 1, rb_funcall(n, rb_intern("to_s"), 0));
+n = rb_funcall(n, rb_intern("-"), 1, LONG2NUM(1));
+}',
+      "RubyToAnsiC" => 'n = 3;
 while (n >= 1) {
 puts(to_s(n));
 n = n - 1;
-}",
+}',
     },
 
     "iteration6" => {
+      "Ruby"        => "while ((argl >= (1))) do\nputs((\"hello\"))\nargl = (argl - (1))\n\nend",
       "ParseTree"   => [:while, [:call, [:lvar, :argl],
                         :>=, [:arglist, [:lit, 1]]], [:block,
                         [:call, nil, :puts, [:arglist, [:str, "hello"]]],
@@ -942,18 +1031,19 @@ n = n - 1;
                              Type.long),
                            Type.unknown), true),
       "CRewriter" => :same,
-      "RubyToRubyC" => "while (rb_funcall(argl, rb_intern(\">=\"), 1, LONG2NUM(1))) {
-rb_funcall(self, rb_intern(\"puts\"), 1, rb_str_new2(\"hello\"));
-argl = rb_funcall(argl, rb_intern(\"-\"), 1, LONG2NUM(1));
-}",
-      "RubyToAnsiC" => "while (argl >= 1) {
-puts(\"hello\");
+      "RubyToRubyC" => 'while (rb_funcall(argl, rb_intern(">="), 1, LONG2NUM(1))) {
+rb_funcall(self, rb_intern("puts"), 1, rb_str_new2("hello"));
+argl = rb_funcall(argl, rb_intern("-"), 1, LONG2NUM(1));
+}',
+      "RubyToAnsiC" => 'while (argl >= 1) {
+puts("hello");
 argl = argl - 1;
-}",
+}',
     },
 
     # TODO: this might still be too much
     "lasgn_call" => {
+      "Ruby"        => "c = 2 + 3",
       "ParseTree"   => [:lasgn, :c, [:call, [:lit, 2], :+, [:arglist, [:lit, 3]]]],
       "Rewriter"    => s(:lasgn, :c, s(:call, s(:lit, 2), :+, s(:arglist, s(:lit, 3)))),
       "TypeChecker" => t(:lasgn, :c,
@@ -965,11 +1055,12 @@ argl = argl - 1;
                            Type.long),
                          Type.long),
       "CRewriter" => :same,
-      "RubyToRubyC" => "c = rb_funcall(LONG2NUM(2), rb_intern(\"+\"), 1, LONG2NUM(3))", # FIX: probably not "c ="
+      "RubyToRubyC" => 'c = rb_funcall(LONG2NUM(2), rb_intern("+"), 1, LONG2NUM(3))', # FIX: probably not "c ="
       "RubyToAnsiC" => "c = 2 + 3",
     },
 
-"lasgn_array" => {
+    "lasgn_array" => {
+      "Ruby"        => "var = [\"foo\", \"bar\"]",
       "ParseTree"   => [:lasgn, :var, [:array,
                                          [:str, "foo"],
                                          [:str, "bar"]]],
@@ -983,11 +1074,16 @@ argl = argl - 1;
                            t(:str, "bar", Type.str)),
                          Type.str_list),
       "CRewriter" => :same,
-      "RubyToRubyC" => "var = rb_ary_new2(2);\nrb_ary_store(var, 0, rb_str_new2(\"foo\"));\nrb_ary_store(var, 1, rb_str_new2(\"bar\"))",
-      "RubyToAnsiC" => "var = (str) malloc(sizeof(str) * 2);\nvar[0] = \"foo\";\nvar[1] = \"bar\""
+      "RubyToRubyC" => 'var = rb_ary_new2(2);
+rb_ary_store(var, 0, rb_str_new2("foo"));
+rb_ary_store(var, 1, rb_str_new2("bar"))',
+      "RubyToAnsiC" => 'var = (str) malloc(sizeof(str) * 2);
+var[0] = "foo";
+var[1] = "bar"'
 },
 
     "lit_bool_false" => {
+      "Ruby"        => "false",
       "ParseTree"   => [:false],
       "Rewriter"    => s(:false),
       "TypeChecker" => t(:false, Type.bool),
@@ -997,6 +1093,7 @@ argl = argl - 1;
     },
 
     "lit_bool_true" => {
+      "Ruby"        => "true",
       "ParseTree"   => [:true],
       "Rewriter"    => s(:true),
       "TypeChecker" => t(:true, Type.bool),
@@ -1006,6 +1103,7 @@ argl = argl - 1;
     },
 
     "lit_float" => {
+      "Ruby"        => "1.1",
       "ParseTree"   => [:lit, 1.1],
       "Rewriter"    => s(:lit, 1.1),
       "TypeChecker" => t(:lit, 1.1, Type.float),
@@ -1015,6 +1113,7 @@ argl = argl - 1;
     },
 
     "lit_long" => {
+      "Ruby"        => "1",
       "ParseTree"   => [:lit, 1],
       "Rewriter"    => s(:lit, 1),
       "TypeChecker" => t(:lit, 1, Type.long),
@@ -1024,24 +1123,27 @@ argl = argl - 1;
     },
 
     "lit_sym" => {
+      "Ruby"        => ":x",
       "ParseTree"   => [:lit, :x],
       "Rewriter"    => s(:lit, :x),
       "TypeChecker" => t(:lit, :x, Type.symbol),
       "CRewriter" => :same,
-      "RubyToRubyC" => "ID2SYM(rb_intern(\"x\"))",
-      "RubyToAnsiC" => "\"x\"", # HACK WRONG! (or... is it?)
+      "RubyToRubyC" => 'ID2SYM(rb_intern("x"))',
+      "RubyToAnsiC" => '"x"', # HACK WRONG! (or... is it?)
     },
 
     "lit_str" => {
+      "Ruby"        => "\"x\"",
       "ParseTree"   => [:str, "x"],
       "Rewriter"    => s(:str, "x"),
       "TypeChecker" => t(:str, "x", Type.str),
       "CRewriter" => :same,
-      "RubyToRubyC" => "rb_str_new2(\"x\")",
-      "RubyToAnsiC" => "\"x\"",
+      "RubyToRubyC" => 'rb_str_new2("x")',
+      "RubyToAnsiC" => '"x"',
     },
 
     "multi_args" => {
+      "Ruby"        => "def multi_args(arg1, arg2)\n  arg3 = ((arg1 * arg2) * 7)\n  puts(arg3.to_s)\n  return \"foo\"\nend",
       "ParseTree"   => [:defn, :multi_args,
         [:scope,
           [:block,
@@ -1131,6 +1233,7 @@ return \"foo\";
     },
  
     "vcall" => {
+      "Ruby"        => "method",
       "ParseTree"   => [:vcall, :method],
       "Rewriter"    => s(:call, nil, :method, nil),
       "TypeChecker" => t(:call, nil, :method, nil, Type.unknown),
@@ -1140,6 +1243,7 @@ return \"foo\";
     },
 
     "whiles" => {
+      "Ruby"        => "def whiles()\n  while (false) do\n    puts(\"false\")\n  end\n  begin\n    puts(\"true\")\n  end while (false)\nend",
       "ParseTree"   => [:defn,
         :whiles,
         [:scope,
@@ -1206,42 +1310,41 @@ puts(\"true\");
     },
 
     "zarray" => {
+      "Ruby"        => "a = []",
       "ParseTree"   => [:lasgn, :a, [:zarray]],
       "Rewriter" => s(:lasgn, :a, s(:array)),
       "TypeChecker" => t(:lasgn, :a, t(:array), Type.unknown_list),
       "CRewriter" => :same,
-     # TODO: need to verify that our variable decl will be correct
+      # TODO: need to verify that our variable decl will be correct
       "RubyToRubyC" => "a = rb_ary_new2(0)",
       "RubyToAnsiC" => "a = (void *) malloc(sizeof(void *) * 0)",
     },
   }
 
   def self.previous(key)
-
-    # for now, RubyToC will mean RubyToAnsiC, since that is closest
-    #    "RubyToAnsiC" ,
-    #    "RubyToRubyC",
-
     idx = @@testcase_order.index(key)-1
     case key
-    when "RubyToC" then
-      raise "RubyToC is dead, use RubyToAnsiC."
     when "RubyToRubyC" then
       idx -= 1
     end
     @@testcase_order[idx]
   end
 
-  @@testcases.each do |node, data|
-    data.each do |key, val|
-      if val == :same then
-        prev_key = self.previous(key)
-        data[key] = data[prev_key].deep_clone
+  # lets us used unprocessed :self outside of tests, called when subclassed
+  def self.clone_same
+    @@testcases.each do |node, data|
+      data.each do |key, val|
+        if val == :same then
+          prev_key = self.previous(key)
+          data[key] = data[prev_key].deep_clone
+        end
       end
     end
   end
 
   def self.inherited(c)
+    self.clone_same
+
     output_name = c.name.to_s.sub(/^Test/, '')
     raise "Unknown class #{c}" unless @@testcase_order.include? output_name
 
@@ -1264,7 +1367,15 @@ puts(\"true\");
             processor.process(input)
           end
         else
+          extra_expected = []
+          extra_input = []
+          _, expected, extra_expected = *expected if Array === expected and expected.first == :defx
+          _, input, extra_input = *input if Array === input and input.first == :defx
+          
           assert_equal expected, processor.process(input)
+          extra_input.each do |input| processor.process(input) end
+          extra = processor.extra_methods rescue []
+          assert_equal extra_expected, extra
         end
       end
     end

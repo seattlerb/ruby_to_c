@@ -25,14 +25,14 @@ class CRewriter < SexpProcessor
   }
 
   attr_reader :env
-  attr_reader :iter_functions
+  attr_reader :extra_methods
 
   def initialize # :nodoc:
     super
     self.auto_shift_type = true
     self.expected = TypedSexp
     @env = Environment.new
-    @iter_functions = []
+    @extra_methods = []
   end
 
   def free # REFACTOR: this is a violation of responsibility, should be in Env
@@ -80,8 +80,8 @@ class CRewriter < SexpProcessor
       methods << process(exp.shift)
     end
 
-    @iter_functions.reverse_each do |defx| methods.unshift defx end
-    @iter_functions.clear
+    @extra_methods.reverse_each do |defx| methods.unshift defx end
+    @extra_methods.clear
 
     return t(:class, klassname, superklassname, *methods)
   end
@@ -93,19 +93,15 @@ class CRewriter < SexpProcessor
     vars = process exp.shift
     body = nil
 
-    free = @env.scope do
+    free_vars = @env.scope do
       body = process exp.shift
       self.free
     end
 
     var_names = var_names_in vars
-    dasgns = t(:array)
-    var_names.each do |name, type| dasgns << t(:dasgn_curr, name, type) end
-
-    frees = t(:array)
-    free.each do |name, type| frees << t(:lvar, name, type) end
-
-    args = t(:args, dasgns, frees)
+    dasgns = t(:array, *var_names.map { |name, type| t(:dasgn_curr, name, type)})
+    frees  = t(:array, *free_vars.map { |name, type| t(:lvar, name, type) })
+    args   = t(:args, dasgns, frees)
 
     defx = t(:defx,
              iter_method_name,
@@ -114,7 +110,7 @@ class CRewriter < SexpProcessor
                t(:block,
                  body)), Type.void)
 
-    @iter_functions << defx
+    @extra_methods << defx
 
     return t(:iter, call, args, iter_method_name)
   end
