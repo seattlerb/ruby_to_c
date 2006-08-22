@@ -86,8 +86,16 @@ class CRewriter < SexpProcessor
     return t(:class, klassname, superklassname, *methods)
   end
 
+  ##
+  # TODO register statics
+
   def process_iter(exp)
     iter_method_name = Unique.next
+
+    value_var_name = Unique.next
+    value_var_type = Type.unknown
+
+    memo_var_name = Unique.next
 
     call = process exp.shift
     vars = process exp.shift
@@ -99,21 +107,60 @@ class CRewriter < SexpProcessor
     end
 
     var_names = var_names_in vars
-    dasgns = t(:array, Type.void).push(*var_names.map { |name, type| t(:dasgn_curr, name, type)})
-    frees  = t(:array, Type.void).push(*free_vars.map { |name, type| t(:lvar, name, type) })
-    args   = t(:args, dasgns, frees, Type.void)
+
+    frees = t(:array, Type.void)
+    defx_body_block = t(:block)
+
+    # set statics first so block vars can update statics
+    free_vars.each do |name, type| # free vars go on both sides
+      frees << t(:lvar, name, type)
+      defx_body_block << t(:lasgn, name,
+                           t(:lvar, :"static_#{name}", type),
+                           type)
+    end
+
+    if var_names.length == 1 then # expand block args to lasgn
+      value_var_type = var_names.first.last
+
+      defx_body_block << t(:lasgn, var_names.first.first,
+                           t(:lvar, value_var_name, var_names.first.last),
+                           var_names.first.last)
+
+    else # expand block args to masgn
+      value_var_type = Type.value
+      dyn_vars = t(:array)
+
+      var_names.each do |name, type|
+        dyn_vars << t(:lasgn, name, nil, type)
+      end
+
+      defx_body_block << t(:masgn,
+                           dyn_vars,
+                           t(:to_ary, t(:lvar, value_var_name, Type.value)))
+    end
+
+    defx_body_block << body
+
+    free_vars.each do |name, type|
+      defx_body_block << t(:lasgn, :"static_#{name}",
+                           t(:lvar, name, type), type)
+    end
+
+    defx_body_block << t(:return, t(:nil, Type.value))
 
     defx = t(:defx,
              iter_method_name,
-             t(:args, Unique.next, Unique.next), # won't this break body???
-             t(:scope,
-               t(:block,
-                 body)), Type.void)
+             t(:args,
+               t(value_var_name, value_var_type),
+               t(memo_var_name, Type.value)),
+             t(:scope, defx_body_block),
+             Type.void)
 
     @extra_methods << defx
 
-    return t(:iter, call, args,
-             t(:call, nil, iter_method_name, t(:arglist, dasgns[1], t(:nil))))
+    args = t(:args, frees, Type.void)
+
+    return t(:iter, call, args, iter_method_name)
   end
 
   def process_lasgn(exp)

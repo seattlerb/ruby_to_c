@@ -37,14 +37,11 @@ class RubyToRubyC < RubyToAnsiC
     "VALUE"
   end
 
-  attr_reader :extra_methods
-
   def initialize
     super
 
     self.unsupported -= [:dstr, :dxstr, :xstr]
 
-    @extra_methods = []
     @c_klass_name = nil
     @current_klass = nil
     @klass_name = nil
@@ -80,34 +77,11 @@ class RubyToRubyC < RubyToAnsiC
   # Function definition
 
   def process_defn(exp)
-    name = exp.shift
-    # HACK: get from zentest
-    name = METHOD_MAP[name] if METHOD_MAP.has_key? name
-    name = name.to_s.sub(/(.*)\?$/, 'is_\1').intern
-    args = exp.shift
-    ruby_args = args.deep_clone
-    ruby_args.shift # :args
+    make_function exp
+  end
 
-    @method_name = name
-    @c_method_name = "rrc_c#{@c_klass_name}_#{normal_to_C name}"
-
-    @env.scope do
-      c_args = process args
-      c_args.each do |arg|
-        raise UnsupportedNodeError,
-        "'#{arg}' is not a supported variable type" if arg.to_s =~ /^\*/
-      end
-
-      @methods[name] = ruby_args
-      body = process exp.shift
-      if name == :initialize then
-        body[-1] = "return self;\n}"
-      end
-
-      c_args == '()' ? c_args = '(VALUE self)' : c_args.sub!('(', '(VALUE self, ')
-
-      return "static VALUE\n#{@c_method_name}#{c_args} #{body}"
-    end
+  def process_defx(exp)
+    make_function exp, false
   end
 
   ##
@@ -189,130 +163,28 @@ class RubyToRubyC < RubyToAnsiC
   # Iterators for loops. After rewriter nearly all iter nodes
   # should be able to be interpreted as a for loop. If not, then you
   # are doing something not supported by C in the first place.
+  #--
+  # TODO have CRewriter handle generating lasgns for statics
 
   def process_iter(exp)
-    exp.clear
-    return "not yet we don't" # HACK
-    # TODO/REFACTOR: this needs severe cleaning
+    call = exp.shift
+    args = exp.shift
+    block_method = exp.shift
+
+    iterable = process call[1] # t(:call, lhs, :iterable, rhs)
+
+    static_arg_exps = args[1] # t(:args, t(:array, of statics))
+
     out = []
-    @env.scope do
-      enum_name = Unique.next
-      enum = process exp[0][1].deep_clone
-      call_name = exp.first[-2]
-      call = process exp.shift # FIX: I'm not sure why we bother processing this
-      args = exp.shift # HACK process(exp.shift).intern
 
-      # this prevents iterator lvar decl in externed function
-      @env.add args[1], Type.value if call_name == :map and args.first == :dasgn_curr # HACK don't re-declare variable
+    # save
+    static_args = static_arg_exps[1..-1].map { |arg| process arg }
+    static_args.each { |arg| out << "static_#{arg} = #{arg};" }
 
-      declarations, body = with_scope do
-        case args.first
-        when :dasgn_curr then
-          @env.add args[1], Type.value
-        when :masgn then
-          args[1][1..-1].each do |ignore,arg|
-            @env.add arg, Type.value
-          end
-        else
-          raise "unknown iterator args type #{args.inspect}"
-        end if call_name == :each
+    out << "rb_iterate(rb_each, #{iterable}, #{block_method}, Qnil);"
 
-        process exp.shift # iter body
-      end
-
-      case call_name
-      when :map then
-        # DOC : block iterators MUST have the value explicitly at the end of the block
-        # create a temp function using Unique
-        func_name = "#{@c_method_name}_#{Unique.next}"
-        result_name = Unique.next
-        ary_name = Unique.next
-        tmp_name = Unique.next
-
-        @env.add result_name, Type.value, 1
-        @env.set_val result_name, 'rb_ary_new()'
-        out << "rb_iterate(rb_each, #{enum}, #{func_name}, #{result_name})"
-
-        # TODO: look at rewriting this using sexps and process.
-        # passing in self will allow for access to local ivars and the like
-        # and we won't have as much duplicate code, we just make a defn
-        # (and mark it private?)
-
-        new_func = []
-
-        case args.first
-        when :dasgn_curr then
-          var = process(args).intern
-          new_func << "static VALUE #{func_name}(VALUE #{var}, VALUE #{ary_name}) {"
-          new_func << "VALUE #{tmp_name};"
-          new_func.push(*declarations)
-        when :masgn then
-          args_ary = Unique.next
-          var = Unique.next
-
-          new_func << "static VALUE #{func_name}(VALUE #{var}, VALUE #{ary_name}) {"
-          new_func << "VALUE #{tmp_name};"
-          new_func.push(*declarations)
-
-          # [:masgn, [:array, [:dasign_curr, :a], ...]]
-          args = args[1][1..-1]
-          args.each_with_index do |pair, i|
-            arg = pair.last
-            new_func << "VALUE #{arg} = rb_funcall(#{var}, rb_intern(\"at\"), 1, LONG2FIX(#{i}));"
-          end
-        else
-          raise "unknown iterator args type #{args.inspect}"
-        end
-
-        body = body.sub(/\A;\s*/, '').split(/\n/) # blatent hack to deal with stupid obfuscator bug from dasgn_curr
-        body[-1] = "#{tmp_name} = #{body[-1]}"
-        body[-1] += ';' unless body[-1] =~ /;\Z/
-        new_func << body
-
-        new_func << "rb_ary_push(#{ary_name}, #{tmp_name});"
-        new_func << "return Qnil;"
-        new_func << "}"
-        @extra_methods << new_func.flatten.compact.join("\n")
-      when :each then
-        # TODO: nuke for loop for above solution
-        index = "index_#{enum_name}"
-
-        body += ";" unless body =~ /[;}]\Z/
-        body.gsub!(/\n\n+/, "\n")
-
-        ary_var = Unique.next
-
-        out << "unsigned long #{index};"
-        out << "VALUE #{ary_var} = rb_funcall(#{enum}, rb_intern(\"to_a\"), 0);"
-        out << "unsigned long #{enum_name}_max = FIX2LONG(rb_funcall(#{ary_var}, rb_intern(\"size\"), 0));"
-        out << "for (#{index} = 0; #{index} < #{enum_name}_max; ++#{index}) {"
-        out.push(*declarations)
-
-        # REFACTOR
-        case args.first
-        when :dasgn_curr then
-          var = process(args).intern
-          out << "#{var} = rb_funcall(#{ary_var}, rb_intern(\"at\"), 1, LONG2FIX(#{index}));"
-        when :masgn then
-          args_ary = Unique.next
-          out << "VALUE #{args_ary} = rb_funcall(#{ary_var}, rb_intern(\"at\"), 1, LONG2FIX(#{index}));"
-          # [:masgn, [:array, [:dasign_curr, :a], ...]]
-          args = args[1][1..-1]
-          args.each_with_index do |(ignore,arg),i|
-            out << "#{arg} = rb_funcall(#{args_ary}, rb_intern(\"at\"), 1, LONG2FIX(#{i}));"
-          end
-        else
-          raise "unknown iterator args type #{args.inspect}"
-        end
-
-        out << body
-        out << "}"
-      when :loop then
-        raise UnsupportedNodeError, "we don't do loop yet"
-      else
-        raise "unknown iter type #{call_name}"
-      end
-    end
+    # restore
+    static_args.each { |arg| out << "#{arg} = static_#{arg};" }
 
     return out.join("\n")
   end
@@ -425,6 +297,65 @@ class RubyToRubyC < RubyToAnsiC
   # TODO: pull zsuper from obfuscator
 
   ##
+  # Makes a new function from +exp+.  Registers the function in the method
+  # list and adds self to the signature when +register+ is true.
+
+  def make_function(exp, register = true)
+    name = map_name exp.shift
+    args = exp.shift
+    ruby_args = args.deep_clone
+    ruby_args.shift # :args
+
+    @method_name = name
+    @c_method_name = "rrc_c#{@c_klass_name}_#{normal_to_C name}"
+
+    @env.scope do
+      c_args = check_args args, register # registered methods get self
+      @methods[name] = ruby_args if register
+
+      body = process exp.shift
+
+      if name == :initialize then
+        body[-1] = "return self;\n}"
+      end
+
+      return "static VALUE\n#{@c_method_name}#{c_args} #{body}"
+    end
+  end
+
+  ##
+  # Checks +args+ for unsupported variable types.  Adds self when +add_self+
+  # is true.
+
+  def check_args(args, add_self = true)
+      c_args = process args
+
+      c_args.each do |arg|
+        raise UnsupportedNodeError,
+          "'#{arg}' is not a supported variable type" if arg.to_s =~ /^\*/
+      end
+
+      if add_self then
+        if c_args == '()' then
+          c_args = '(VALUE self)'
+        else
+          c_args.sub! '(', '(VALUE self, '
+        end
+      end
+
+      return c_args
+  end
+
+  ##
+  # HACK merge with normal_to_C (?)
+
+  def map_name(name)
+    # HACK: get from zentest
+    name = METHOD_MAP[name] if METHOD_MAP.has_key? name
+    name.to_s.sub(/(.*)\?$/, 'is_\1').intern
+  end
+
+  ##
   # DOC
   # TODO:  get mappings from zentest
 
@@ -438,4 +369,5 @@ class RubyToRubyC < RubyToAnsiC
 
     return name
   end
+
 end

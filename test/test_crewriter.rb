@@ -84,10 +84,20 @@ class TestCRewriter < R2CTestCase
                :IterExample,
                :Object,
                t(:defx,
-                 :temp_2,
-                 t(:args, :temp_3, :temp_4),
+                 :temp_4,
+                 t(:args,
+                   t(:temp_5, Type.long),
+                   t(:temp_6, Type.value)),
                  t(:scope,
                    t(:block,
+                     t(:lasgn,
+                       :sum,
+                       t(:lvar, :static_sum, Type.long),
+                       Type.long),
+                     t(:lasgn,
+                       :b,
+                       t(:lvar, :temp_5, Type.long),
+                       Type.long),
                      t(:lasgn,
                        :sum,
                        t(:call,
@@ -97,28 +107,31 @@ class TestCRewriter < R2CTestCase
                            t(:call,
                              t(:dvar, :a, Type.long),
                              :+,
-                             t(:arglist, t(:dvar, :b, Type.long)), Type.void)
-                           ), Type.void), Type.long))), Type.void),
+                             t(:arglist, t(:dvar, :b, Type.long)), Type.void)),
+                             Type.void), Type.long),
+                     t(:lasgn,
+                       :static_sum,
+                       t(:lvar, :sum, Type.long),
+                       Type.long),
+                     t(:return, t(:nil, Type.value)))), Type.void),
                t(:defx,
                  :temp_1,
-                 t(:args, :temp_5, :temp_6),
+                 t(:args,
+                   t(:temp_2, Type.long),
+                   t(:temp_3, Type.value)),
                  t(:scope,
                    t(:block,
+                     t(:lasgn, :a, t(:lvar, :temp_2, Type.long), Type.long),
                      t(:iter,
                        t(:call,
                          t(:lit, 0...10, Type.range),
                          :each,
                          nil, Type.void),
                        t(:args,
-                         t(:array, t(:dasgn_curr, :b, Type.long), Type.void),
                          t(:array, t(:lvar, :sum, Type.long), Type.void),
                          Type.void),
-                       t(:call,
-                         nil,
-                         :temp_2,
-                         t(:arglist,
-                           t(:dasgn_curr, :b, Type.long),
-                           t(:nil)))))), Type.void),
+                       :temp_4),
+                      t(:return, t(:nil, Type.value)))), Type.void),
                t(:defn,
                  :example,
                  t(:args),
@@ -131,12 +144,8 @@ class TestCRewriter < R2CTestCase
                          :each,
                          nil, Type.void),
                        t(:args,
-                         t(:array, t(:dasgn_curr, :a, Type.long), Type.void),
                          t(:array, Type.void), Type.void),
-                       t(:call,
-                         nil,
-                         :temp_1,
-                         t(:arglist, t(:dasgn_curr, :a, Type.long), t(:nil)))),
+                       :temp_1),
                      t(:return, t(:lvar, :sum, Type.long)))), Type.void))
 
     assert_equal expect, @rewrite.process(input)
@@ -185,23 +194,28 @@ class TestCRewriter < R2CTestCase
                t(:iter, # new iter
                  t(:call, t(:lvar, :arr, Type.long), :each, nil, Type.void),
                  t(:args,
-                   t(:array, t(:dasgn_curr, :value, Type.long), Type.void),
                    t(:array, t(:lvar, :sum, Type.long), Type.void), Type.void),
-                 t(:call, nil, :temp_1, t(:arglist, t(:dasgn_curr, :value, Type.long), t(:nil)))), Type.void)
+                 :temp_1),
+               Type.void)
 
     assert_equal expect, @rewrite.process(input)
 
     defx = t(:defx,
              :temp_1,
-             t(:args, :temp_2, :temp_3),
+             t(:args, t(:temp_2, Type.long), t(:temp_3, Type.value)),
              t(:scope,
                t(:block,
+                 t(:lasgn, :sum, t(:lvar, :static_sum, Type.long), Type.long),
+                 t(:lasgn, :value, t(:lvar, :temp_2, Type.long), Type.long),
                  t(:lasgn, :sum, # sum =
                    t(:call,
                      t(:lvar, :sum, Type.long), # sum + value
                      :+,
                      t(:arglist, t(:dvar, :value, Type.long)), Type.void),
-                   Type.long))), Type.void)
+                   Type.long),
+                 t(:lasgn, :static_sum, t(:lvar, :sum, Type.long), Type.long),
+                 t(:return, t(:nil, Type.value)))),
+                 Type.void)
 
     assert_equal [defx], @rewrite.extra_methods
   end
@@ -237,25 +251,32 @@ class TestCRewriter < R2CTestCase
                    nil, Type.void),
                  t(:args,
                    t(:array,
-                     t(:dasgn_curr, :value, Type.long),
-                     t(:dasgn_curr, :i, Type.long), Type.void),
-                   t(:array,
                      t(:lvar, :sum, Type.long), Type.void), Type.void),
-                   t(:call, nil, :temp_1, t(:arglist, t(:dasgn_curr, :value, Type.long), t(:nil)))))
+                   :temp_1))
 
     assert_equal expect, @rewrite.process(input)
 
     defx = t(:defx,
              :temp_1,
-             t(:args, :temp_2, :temp_3),
+             t(:args,
+               t(:temp_2, Type.value),
+               t(:temp_3, Type.value)),
              t(:scope,
                t(:block,
+                 t(:lasgn, :sum, t(:lvar, :static_sum, Type.long), Type.long),
+                 t(:masgn,
+                   t(:array,
+                     t(:lasgn, :value, nil, Type.long),
+                     t(:lasgn, :i, nil, Type.long)),
+                    t(:to_ary, t(:lvar, :temp_2, Type.value))), 
                  t(:lasgn, :sum, # sum =
                    t(:call,
                      t(:lvar, :sum, Type.long), # sum + value
                      :+,
                      t(:arglist, t(:dvar, :value, Type.long)), Type.void),
-                   Type.long))), Type.void)
+                   Type.long),
+                 t(:lasgn, :static_sum, t(:lvar, :sum, Type.long), Type.long),
+                 t(:return, t(:nil, Type.value)))), Type.void)
 
     assert_equal [defx], @rewrite.extra_methods
   end

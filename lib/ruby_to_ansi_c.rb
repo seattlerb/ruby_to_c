@@ -639,6 +639,8 @@ typedef char * str;
       process exp.shift unless exp.empty?
     end
 
+    declarations = declarations.reject { |d| d =~ / static_/ }
+
     result = []
     result << "{"
     result << declarations.join("\n") unless declarations.empty?

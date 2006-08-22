@@ -825,25 +825,24 @@ end",
                          t(:dasgn_curr, :temp_1, Type.unknown),
                          nil,
                          Type.unknown),
-      "CRewriter" => [:defx,
-                      t(:iter,
-                       t(:call, nil, :loop, nil, Type.unknown),
-                       t(:args,
-                         t(:array, t(:dasgn_curr, :temp_1, Type.unknown), Type.void),
-                         t(:array, Type.void), Type.void),
-                        t(:call, nil,
-                          :temp_2,
-                          s(:arglist, s(:dasgn_curr, :temp_1, Type.unknown),
-                            t(:nil)))),
-                      [t(:defx,
-                         :temp_2,
-                         t(:args, :temp_2, :temp_3),
-                         t(:scope, t(:block, nil)), Type.void)]],
+      "CRewriter" => :skip, # HACK don't do rb_iterate stuff for loop
+#      "CRewriter" => [:defx,
+#                      t(:iter,
+#                       t(:call, nil, :loop, nil, Type.unknown),
+#                       t(:args,
+#                         t(:array, t(:dasgn_curr, :temp_1, Type.unknown), Type.void),
+#                         t(:array, Type.void), Type.void),
+#                        t(:call, nil, :temp_1, nil)),
+#                      [t(:defx,
+#                         :temp_2,
+#                         t(:args, :temp_2, :temp_3),
+#                         t(:scope, t(:block, nil)), Type.void)]],
       "RubyToRubyC" => "",
       "RubyToAnsiC" => "",
     },
 
     "iteration2" => {
+#      "Ruby"        => "arrays.each do |x| puts x end",
       "ParseTree"   => [:iter,
         [:call, [:lvar, :arrays], :each],
         [:dasgn_curr, :x],
@@ -869,31 +868,50 @@ end",
                            :each,
                            nil, Type.unknown),
                          t(:args,
-                           t(:array, t(:dasgn_curr, :x, Type.str), Type.void),
-                           t(:array, t(:lvar, :arrays, Type.value), Type.void), Type.void),
-                         t(:call, nil, :temp_1, t(:arglist, t(:dasgn_curr, :x, Type.str), t(:nil)))),
+                           t(:array, t(:lvar, :arrays, Type.value), Type.void),
+                           Type.void),
+                         :temp_1),
                        [t(:defx,
                           :temp_1,
-                          t(:args, :temp_2, :temp_3),
+                          t(:args,
+                            t(:temp_2, Type.str),
+                            t(:temp_3, Type.value)),
                           t(:scope,
                             t(:block,
+                              t(:lasgn,
+                                :arrays,
+                                t(:lvar, :static_arrays, Type.value),
+                                Type.value),
+                              t(:lasgn, :x, t(:lvar, :temp_2, Type.str),
+                                Type.str),
                               t(:call,
                                 nil,
                                 :puts,
-                                t(:arglist, t(:dvar, :x, Type.str)), Type.void))), Type.void)]],
-      "RubyToRubyC" => 'unsigned long index_temp_1;
-VALUE temp_2 = rb_funcall(arrays, rb_intern("to_a"), 0);
-unsigned long temp_1_max = FIX2LONG(rb_funcall(temp_2, rb_intern("size"), 0));
-for (index_temp_1 = 0; index_temp_1 < temp_1_max; ++index_temp_1) {
-VALUE x;
-x = rb_funcall(temp_2, rb_intern("at"), 1, LONG2FIX(index_temp_1));
-rb_funcall(self, rb_intern("puts"), 1, x);
-}",
-      "RubyToAnsiC" => "unsigned long index_x;
+                                t(:arglist, t(:dvar, :x, Type.str)), Type.void),
+                              t(:lasgn,
+                                :static_arrays,
+                                t(:lvar, :arrays, Type.value),
+                                Type.value),
+                              t(:return, t(:nil, Type.value)))), Type.void)]],
+      "RubyToAnsiC" => 'unsigned long index_x;
 for (index_x = 0; arrays[index_x] != NULL; ++index_x) {
 str x = arrays[index_x];
 puts(x);
 }',
+      "RubyToRubyC" => [:defx,
+                        "static_arrays = arrays;
+rb_iterate(rb_each, arrays, temp_1, Qnil);
+arrays = static_arrays;",
+                        ["static VALUE
+rrc_c_temp_1(VALUE temp_2, VALUE temp_3) {
+VALUE arrays;
+VALUE x;
+arrays = static_arrays;
+x = temp_2;
+rb_funcall(self, rb_intern(\"puts\"), 1, x);
+static_arrays = arrays;
+return Qnil;
+}"]]
     },
 
 
@@ -1359,13 +1377,19 @@ puts(\"true\");
         else
           extra_expected = []
           extra_input = []
+
           _, expected, extra_expected = *expected if Array === expected and expected.first == :defx
           _, input, extra_input = *input if Array === input and input.first == :defx
           
           assert_equal expected, processor.process(input)
-          extra_input.each do |input| processor.process(input) end
-          extra = processor.extra_methods rescue []
-          assert_equal extra_expected, extra
+
+          if processor.respond_to? :extra_methods then
+            assert_equal extra_expected, processor.extra_methods
+          else
+            extra_expected.zip extra_input do |expected, input|
+              assert_equal expected, processor.process(input)
+            end
+          end
         end
       end
     end
