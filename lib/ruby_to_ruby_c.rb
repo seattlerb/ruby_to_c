@@ -173,18 +173,26 @@ class RubyToRubyC < RubyToAnsiC
 
     iterable = process call[1] # t(:call, lhs, :iterable, rhs)
 
-    static_arg_exps = args[1] # t(:args, t(:array, of statics))
+    # t(:args, t(:array, of frees), t(:array, of statics))
+    free_arg_exps = args[1]
+    static_arg_exps = args[2]
+    free_arg_exps.shift # :array
+    static_arg_exps.shift # :array
+
+    free_args = free_arg_exps.zip(static_arg_exps).map { |f,s| [process(f), process(s)] }
 
     out = []
 
     # save
-    static_args = static_arg_exps[1..-1].map { |arg| process arg }
-    static_args.each { |arg| out << "static_#{arg} = #{arg};" }
+    out.push(*free_args.map { |free,static| "#{static} = #{free};" })
 
     out << "rb_iterate(rb_each, #{iterable}, #{block_method}, Qnil);"
 
     # restore
-    static_args.each { |arg| out << "#{arg} = static_#{arg};" }
+    free_args.each do |free, static|
+      out << "#{free} = #{static};"
+      statics << "static VALUE #{static};"
+    end
 
     return out.join("\n")
   end

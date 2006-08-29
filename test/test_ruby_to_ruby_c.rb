@@ -42,6 +42,64 @@ class TestRubyToRubyC < R2CTestCase
     assert_equal output, @ruby_to_c.process(input)
   end
 
+  def test_process_iter
+    # ruby: arrays.each { ... }
+    input = t(:iter,
+              t(:call,
+                t(:lvar, :arrays, Type.str_list), # should register static
+                :each,
+                nil, Type.unknown),
+              t(:args,
+                t(:array, t(:lvar, :arrays, Type.value), Type.void),
+                t(:array, t(:lvar, :static_temp_4, Type.value), Type.void),
+                Type.void),
+              :temp_1)
+    output = "static_temp_4 = arrays;
+rb_iterate(rb_each, arrays, temp_1, Qnil);
+arrays = static_temp_4;"
+
+    assert_equal output, @ruby_to_c.process(input)
+  end
+
+  def test_process_defx
+    # ruby: this is the ... from arrays.each { ... } 
+    input = t(:defx,
+              :temp_1,
+              t(:args,
+                t(:temp_2, Type.str),
+                t(:temp_3, Type.value)),
+              t(:scope,
+                t(:block,
+                  t(:lasgn,
+                    :arrays,
+                    t(:lvar, :static_arrays, Type.value),
+                    Type.value),
+                  t(:lasgn, :x, t(:lvar, :temp_2, Type.str),
+                    Type.str),
+                  t(:call,
+                    nil,
+                    :puts,
+                    t(:arglist, t(:dvar, :x, Type.str)), Type.void),
+                  t(:lasgn,
+                    :static_arrays,
+                    t(:lvar, :arrays, Type.value),
+                    Type.value),
+                  t(:return, t(:nil, Type.value)))), Type.void)
+
+    output = "static VALUE
+rrc_c_temp_1(VALUE temp_2, VALUE temp_3) {
+VALUE arrays;
+VALUE x;
+arrays = static_arrays;
+x = temp_2;
+rb_funcall(self, rb_intern(\"puts\"), 1, x);
+static_arrays = arrays;
+return Qnil;
+}"
+
+    assert_equal output, @ruby_to_c.process(input)
+  end
+
   def test_process_lit_long
     input  = t(:lit, 1, Type.long)
     output = "LONG2NUM(1)"

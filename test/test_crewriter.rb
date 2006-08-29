@@ -83,6 +83,7 @@ class TestCRewriter < R2CTestCase
     expect = t(:class,
                :IterExample,
                :Object,
+               t(:static, "static VALUE static_temp_7;", Type.fucked),
                t(:defx,
                  :temp_4,
                  t(:args,
@@ -92,7 +93,7 @@ class TestCRewriter < R2CTestCase
                    t(:block,
                      t(:lasgn,
                        :sum,
-                       t(:lvar, :static_sum, Type.long),
+                       t(:lvar, :static_temp_7, Type.long),
                        Type.long),
                      t(:lasgn,
                        :b,
@@ -110,7 +111,7 @@ class TestCRewriter < R2CTestCase
                              t(:arglist, t(:dvar, :b, Type.long)), Type.void)),
                              Type.void), Type.long),
                      t(:lasgn,
-                       :static_sum,
+                       :static_temp_7,
                        t(:lvar, :sum, Type.long),
                        Type.long),
                      t(:return, t(:nil, Type.value)))), Type.void),
@@ -129,6 +130,7 @@ class TestCRewriter < R2CTestCase
                          nil, Type.void),
                        t(:args,
                          t(:array, t(:lvar, :sum, Type.long), Type.void),
+                         t(:array, t(:lvar, :static_temp_7, Type.long), Type.void),
                          Type.void),
                        :temp_4),
                       t(:return, t(:nil, Type.value)))), Type.void),
@@ -144,7 +146,9 @@ class TestCRewriter < R2CTestCase
                          :each,
                          nil, Type.void),
                        t(:args,
-                         t(:array, Type.void), Type.void),
+                         t(:array, Type.void),
+                         t(:array, Type.void),
+                         Type.void),
                        :temp_1),
                      t(:return, t(:lvar, :sum, Type.long)))), Type.void))
 
@@ -194,18 +198,22 @@ class TestCRewriter < R2CTestCase
                t(:iter, # new iter
                  t(:call, t(:lvar, :arr, Type.long), :each, nil, Type.void),
                  t(:args,
-                   t(:array, t(:lvar, :sum, Type.long), Type.void), Type.void),
+                   t(:array, t(:lvar, :sum, Type.long), Type.void),
+                   t(:array, t(:lvar, :static_temp_4, Type.long), Type.void),
+                   Type.void),
                  :temp_1),
                Type.void)
 
     assert_equal expect, @rewrite.process(input)
+
+    static = t(:static, "static VALUE static_temp_4;", Type.fucked)
 
     defx = t(:defx,
              :temp_1,
              t(:args, t(:temp_2, Type.long), t(:temp_3, Type.value)),
              t(:scope,
                t(:block,
-                 t(:lasgn, :sum, t(:lvar, :static_sum, Type.long), Type.long),
+                 t(:lasgn, :sum, t(:lvar, :static_temp_4, Type.long), Type.long),
                  t(:lasgn, :value, t(:lvar, :temp_2, Type.long), Type.long),
                  t(:lasgn, :sum, # sum =
                    t(:call,
@@ -213,11 +221,11 @@ class TestCRewriter < R2CTestCase
                      :+,
                      t(:arglist, t(:dvar, :value, Type.long)), Type.void),
                    Type.long),
-                 t(:lasgn, :static_sum, t(:lvar, :sum, Type.long), Type.long),
+                 t(:lasgn, :static_temp_4, t(:lvar, :sum, Type.long), Type.long),
                  t(:return, t(:nil, Type.value)))),
                  Type.void)
 
-    assert_equal [defx], @rewrite.extra_methods
+    assert_equal [static, defx], @rewrite.extra_methods
   end
 
   def test_process_iter_each_with_index
@@ -250,11 +258,14 @@ class TestCRewriter < R2CTestCase
                    :each_with_index,
                    nil, Type.void),
                  t(:args,
-                   t(:array,
-                     t(:lvar, :sum, Type.long), Type.void), Type.void),
+                   t(:array, t(:lvar, :sum, Type.long), Type.void),
+                   t(:array, t(:lvar, :static_temp_4, Type.long), Type.void),
+                   Type.void),
                    :temp_1))
 
     assert_equal expect, @rewrite.process(input)
+
+    static = t(:static, "static VALUE static_temp_4;", Type.fucked)
 
     defx = t(:defx,
              :temp_1,
@@ -263,7 +274,7 @@ class TestCRewriter < R2CTestCase
                t(:temp_3, Type.value)),
              t(:scope,
                t(:block,
-                 t(:lasgn, :sum, t(:lvar, :static_sum, Type.long), Type.long),
+                 t(:lasgn, :sum, t(:lvar, :static_temp_4, Type.long), Type.long),
                  t(:masgn,
                    t(:array,
                      t(:lasgn, :value, nil, Type.long),
@@ -275,10 +286,10 @@ class TestCRewriter < R2CTestCase
                      :+,
                      t(:arglist, t(:dvar, :value, Type.long)), Type.void),
                    Type.long),
-                 t(:lasgn, :static_sum, t(:lvar, :sum, Type.long), Type.long),
+                 t(:lasgn, :static_temp_4, t(:lvar, :sum, Type.long), Type.long),
                  t(:return, t(:nil, Type.value)))), Type.void)
 
-    assert_equal [defx], @rewrite.extra_methods
+    assert_equal [static, defx], @rewrite.extra_methods
   end
 
   def test_free

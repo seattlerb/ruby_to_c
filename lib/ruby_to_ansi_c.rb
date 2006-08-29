@@ -71,6 +71,12 @@ class RubyToAnsiC < SexpProcessor
   end
 
   ##
+  # Provides a place to put things at the file scope.
+  # Be smart, make them static (hence the name).
+
+  attr_reader :statics
+
+  ##
   # Provides access to the variable scope.
 
   attr_reader :env
@@ -104,7 +110,7 @@ typedef char * str;
       @translator = CompositeSexpProcessor.new
       @translator << Rewriter.new
       @translator << TypeChecker.new
-      @translator << CRewriter.new
+#      @translator << CRewriter.new
       @translator << RubyToAnsiC.new
       @translator.on_error_in(:defn) do |processor, exp, err|
         result = processor.expected.new
@@ -172,6 +178,7 @@ typedef char * str;
     self.strict = true
     self.expected = String
 
+    @statics = []
     @prototypes = []
   end
 
@@ -303,12 +310,13 @@ typedef char * str;
 
     result = []
 
-    result << "// class #{name} < #{superklass}"
-
     until exp.empty? do
       # HACK: cheating!
       result << process(exp.shift)
     end
+
+    result.unshift(*statics)
+    result.unshift "// class #{name} < #{superklass}"
 
     return result.join("\n\n")
   end
@@ -479,14 +487,14 @@ typedef char * str;
   # are doing something not supported by C in the first place.
 
   def process_iter(exp) # TODO: audit against obfuscator
-    exp.clear
-    return "not yet we don't"
-
     out = []
     # Only support enums in C-land
     raise UnsupportedNodeError if exp[0][1].nil? # HACK ugly
     @env.scope do
       enum = exp[0][1][1] # HACK ugly t(:iter, t(:call, lhs <-- get lhs
+
+      p exp
+
       call = process exp.shift
       var  = process(exp.shift).intern # semi-HACK-y
       body = process exp.shift
@@ -628,12 +636,6 @@ typedef char * str;
   # body and use this as our opportunity to open a variable
   # scope. Crafty, no?
 
-  ##
-  # Scope has no real equivalent in C-land, except that like
-  # process_block above. We put variable declarations here before the
-  # body and use this as our opportunity to open a variable
-  # scope. Crafty, no?
-
   def process_scope(exp)
     declarations, body = with_scope do
       process exp.shift unless exp.empty?
@@ -648,6 +650,13 @@ typedef char * str;
     result << "}"
     
     return result.join("\n")
+  end
+
+  ##
+  # A bogus ruby sexp type for generating static variable declarations
+
+  def process_static(exp)
+    return exp.shift
   end
 
   ##

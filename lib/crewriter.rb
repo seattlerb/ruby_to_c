@@ -103,19 +103,21 @@ class CRewriter < SexpProcessor
 
     free_vars = @env.scope do
       body = process exp.shift
-      self.free
+      self.free.map { |name, type| [name, :"static_#{Unique.next}", type] }
     end
 
     var_names = var_names_in vars
 
     frees = t(:array, Type.void)
+    statics = t(:array, Type.void)
     defx_body_block = t(:block)
 
     # set statics first so block vars can update statics
-    free_vars.each do |name, type| # free vars go on both sides
+    free_vars.each do |name, static_name, type| # free vars go on both sides
       frees << t(:lvar, name, type)
+      statics << t(:lvar, static_name, type)
       defx_body_block << t(:lasgn, name,
-                           t(:lvar, :"static_#{name}", type),
+                           t(:lvar, static_name, type),
                            type)
     end
 
@@ -141,9 +143,9 @@ class CRewriter < SexpProcessor
 
     defx_body_block << body
 
-    free_vars.each do |name, type|
-      defx_body_block << t(:lasgn, :"static_#{name}",
-                           t(:lvar, name, type), type)
+    free_vars.each do |name, static_name, type|
+      defx_body_block << t(:lasgn, static_name, t(:lvar, name, type), type)
+      @extra_methods << t(:static, "static VALUE #{static_name};", Type.fucked)
     end
 
     defx_body_block << t(:return, t(:nil, Type.value))
@@ -158,7 +160,7 @@ class CRewriter < SexpProcessor
 
     @extra_methods << defx
 
-    args = t(:args, frees, Type.void)
+    args = t(:args, frees, statics, Type.void)
 
     return t(:iter, call, args, iter_method_name)
   end
