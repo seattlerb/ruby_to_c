@@ -205,6 +205,8 @@ class Rewriter < SexpProcessor
 
     var = s(:dasgn_curr, Unique.next) if var.nil?
 
+    return s(:iter, call, var, body) if call.first == :postexe
+
     assert_type call, :call
 
     if call[2] != :each then # TODO: fix call[n] (api)
