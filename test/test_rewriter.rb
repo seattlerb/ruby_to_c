@@ -2,8 +2,6 @@
 
 $TESTING = true
 
-begin require 'rubygems'; rescue LoadError; end
-require 'test/unit' if $0 == __FILE__
 require 'rewriter'
 require 'r2ctestcase'
 require 'pt_testcase'
@@ -21,22 +19,6 @@ class TestRewriter < ParseTreeTestCase
 
   add_test("and",
            s(:and, s(:call, nil, :a, nil), s(:call, nil, :b, nil)))
-
-  add_test("args",
-           s(:defn,
-             :x,
-             s(:args, :a, :b, "*c".intern),
-             s(:scope,
-               s(:block,
-                 s(:if,
-                   s(:call, s(:lvar, :b), :nil?),
-                   s(:lasgn, :b, s(:lit, 42)), nil),
-                 s(:block_arg, :d),
-                 s(:call,
-                   nil,
-                   :p,
-                   s(:arglist,
-                     s(:lvar, :a), s(:lvar, :b), s(:lvar, :c), s(:lvar, :d)))))))
 
   add_test("argscat",
            s(:lasgn,
@@ -61,6 +43,10 @@ class TestRewriter < ParseTreeTestCase
              s(:lasgn, :y, s(:lit, 0)),
              s(:call, s(:lit, 42), :method=, s(:arglist, s(:lvar, :y)))))
 
+  add_test("attrasgn_index_equals",
+           s(:call, s(:call, nil, :a, nil), :[]=,
+             s(:arglist, s(:lit, 42), s(:lit, 24))))
+
   add_test("attrset",
            s(:defn,
              :writer=,
@@ -84,10 +70,18 @@ class TestRewriter < ParseTreeTestCase
 
   add_test("bmethod",
            s(:defn,
-             :bmethod_added,
+             :unsplatted,
              s(:args, :x),
              s(:scope,
                s(:block, s(:call, s(:lvar, :x), :+, s(:arglist, s(:lit, 1)))))))
+
+  add_test("bmethod_splat",
+           s(:defn, :splatted,
+             s(:args, :"*args"),
+             s(:scope,
+               s(:block,
+                 s(:lasgn, :y, s(:call, s(:lvar, :args), :first, nil)),
+                 s(:call, s(:lvar, :y), :+, s(:arglist, s(:lit, 42)))))))
 
   add_test("break",
            s(:iter,
@@ -103,9 +97,12 @@ class TestRewriter < ParseTreeTestCase
 
   add_test("call", # uhhhh FIX should be s(:self)
            s(:call, s(:lvar, :self), :method, nil))
-  
+
   add_test("call_arglist",
            s(:call, nil, :puts, s(:arglist, s(:lit, 42))))
+
+  add_test("call_index",
+           s(:call, s(:call, nil, :a, nil), :[], s(:arglist, s(:lit, 42))))
 
   add_test("case",
            s(:block,
@@ -143,32 +140,64 @@ class TestRewriter < ParseTreeTestCase
                    s(:lasgn, :var, s(:lit, 3)),
                    nil)))))
 
+  add_test("case_nested",
+           s(:block,
+             s(:lasgn, :var1, s(:lit, 1)),
+             s(:lasgn, :var2, s(:lit, 2)),
+             s(:lasgn, :result, s(:nil)),
+             s(:if,
+               s(:call, s(:lvar, :var1), :===, s(:arglist, s(:lit, 1))),
+               s(:if,
+                 s(:call, s(:lvar, :var2), :===, s(:arglist, s(:lit, 1))),
+                 s(:lasgn, :result, s(:lit, 1)),
+                 s(:if,
+                   s(:call, s(:lvar, :var2), :===, s(:arglist, s(:lit, 2))),
+                   s(:lasgn, :result, s(:lit, 2)),
+                   s(:lasgn, :result, s(:lit, 3)))),
+               s(:if,
+                 s(:call, s(:lvar, :var1), :===, s(:arglist, s(:lit, 2))),
+                 s(:if,
+                   s(:call, s(:lvar, :var2), :===, s(:arglist, s(:lit, 1))),
+                   s(:lasgn, :result, s(:lit, 4)),
+                   s(:if,
+                     s(:call, s(:lvar, :var2), :===, s(:arglist, s(:lit, 2))),
+                     s(:lasgn, :result, s(:lit, 5)),
+                     s(:lasgn, :result, s(:lit, 6)))),
+                 s(:lasgn, :result, s(:lit, 7))))))
+
+  add_test("case_no_expr",
+           s(:if,
+             s(:call, nil, :===, s(:arglist, s(:lit, 1))),
+             s(:lit, :a),
+             s(:if,
+               s(:call, nil, :===, s(:arglist, s(:lit, 2))),
+               s(:lit, :b),
+               s(:lit, :c))))
+
   add_test("cdecl",
            s(:cdecl, :X, s(:lit, 42)))
 
-  add_test("class",
-           s(:class,
-             :X,
-             s(:const, :Array),
+  add_test("class_plain",
+           s(:class, :X, nil,
              s(:scope,
-               s(:defn,
-                 :blah,
-                 s(:args),
-                 s(:scope,
-                   s(:block,
-                     s(:call, nil, :puts, s(:arglist, s(:str, "hello")))))))))
+               s(:block,
+                 s(:call, nil, :puts,
+                   s(:arglist,
+                     s(:call, s(:lit, 1), :+, s(:arglist, s(:lit, 1))))),
+                 s(:defn, :blah,
+                   s(:args),
+                   s(:scope,
+                     s(:block,
+                       s(:call, nil, :puts, s(:arglist, s(:str, "hello"))))))))))
 
-  add_test("class_obj",
-           s(:class,
-             :X,
-             nil,
-             s(:scope,
-               s(:defn,
-                 :blah,
-                 s(:args),
-                 s(:scope,
-                   s(:block,
-                     s(:call, nil, :puts, s(:arglist, s(:str, "hello")))))))))
+  add_test("class_super_array",
+           s(:class, :X, s(:const, :Array), s(:scope)))
+
+  add_test("class_super_expr",
+           s(:class, :X, s(:call, nil, :expr, nil), s(:scope)))
+
+  add_test("class_super_object",
+           s(:class, :X, s(:const, :Object), s(:scope)))
 
   add_test("colon2",
            s(:colon2, s(:const, :X), :Y))
@@ -181,14 +210,14 @@ class TestRewriter < ParseTreeTestCase
              s(:call, s(:lit, 42), :==, s(:arglist, s(:lit, 0))),
              s(:return, s(:lit, 1)),
              nil))
-  
+
   add_test("conditional2",
            s(:if,
              s(:call, s(:lit, 42),
                :==, s(:arglist, s(:lit, 0))),
              nil,
              s(:return, s(:lit, 2))))
-  
+
   add_test("conditional3",
            s(:if,
              s(:call,
@@ -197,7 +226,7 @@ class TestRewriter < ParseTreeTestCase
                s(:arglist, s(:lit, 0))),
              s(:return, s(:lit, 3)),
              s(:return, s(:lit, 4))))
-  
+
   add_test("conditional4",
            s(:if,
              s(:call,
@@ -212,6 +241,11 @@ class TestRewriter < ParseTreeTestCase
                  s(:arglist, s(:lit, 0))),
                s(:return, s(:lit, 3)),
                s(:return, s(:lit, 4)))))
+
+  add_test("conditional5",
+           s(:if, s(:true),
+             nil,
+             s(:if, s(:false), s(:return), nil)))
 
   add_test("const",
            s(:const, :X))
@@ -237,8 +271,31 @@ class TestRewriter < ParseTreeTestCase
                s(:dasgn, :x,
                  s(:call, s(:dvar, :x), :+, s(:arglist, s(:lit, 1)))))))
 
+  add_test("dasgn_curr",
+           s(:iter,
+             s(:call, s(:call, nil, :data, nil), :each, nil),
+             s(:masgn, s(:array, s(:dasgn_curr, :x), s(:dasgn_curr, :y))),
+             s(:block,
+               s(:dasgn_curr, :a, s(:dasgn_curr, :b)),
+               s(:dasgn_curr, :a, s(:lit, 1)),
+               s(:dasgn_curr, :b, s(:dvar, :a)),
+               s(:dasgn_curr, :b, s(:dasgn_curr, :a, s(:dvar, :x))))))
+
   add_test("defined",
            s(:defined, s(:gvar, :$x)))
+
+  add_test("defn_args",
+           s(:defn, :x,
+             s(:args, :a, :b, :"*c"),
+             s(:scope,
+               s(:block,
+                 s(:if, s(:call, s(:lvar, :b), :nil?),
+                   s(:lasgn, :b, s(:lit, 42)),
+                   nil),
+                 s(:block_arg, :d),
+                 s(:call, nil, :p,
+                   s(:arglist,
+                     s(:lvar, :a), s(:lvar, :b), s(:lvar, :c), s(:lvar, :d)))))))
 
   add_test("defn_empty",
            s(:defn, :empty,
@@ -250,11 +307,20 @@ class TestRewriter < ParseTreeTestCase
 
   add_test("defn_or",
            s(:defn, :|,
-             s(:args), s(:scope, s(:block, s(:nil)))))
+             s(:args, :o), s(:scope, s(:block, s(:nil)))))
+
+  add_test("defn_rescue",
+           s(:defn, :blah,
+             s(:args),
+             s(:scope,
+               s(:block,
+                 s(:rescue,
+                   s(:lit, 42),
+                   s(:resbody, nil, s(:lit, 24)))))))
 
   add_test("defn_zarray",
            s(:defn,
-             :empty,
+             :zarray,
              s(:args),
              s(:scope,
                s(:block, s(:lasgn, :a, s(:array)), s(:return, s(:lvar, :a))))))
@@ -306,23 +372,18 @@ class TestRewriter < ParseTreeTestCase
              s(:lasgn, :t, s(:lit, 5)), s(:dxstr, "touch ", s(:lvar, :t))))
 
   add_test("ensure",
-           s(:defn,
-             :bbegin,
-             s(:args),
-             s(:scope,
-               s(:block,
-                 s(:begin,
-                   s(:ensure,
-                     s(:rescue,
-                       s(:call, s(:lit, 1), :+, s(:arglist, s(:lit, 1))),
+               s(:begin,
+                 s(:ensure,
+                   s(:rescue,
+                     s(:call, s(:lit, 1), :+, s(:arglist, s(:lit, 1))),
+                     s(:resbody,
+                       s(:array, s(:const, :SyntaxError)),
+                       s(:block, s(:lasgn, :e1, s(:gvar, :$!)), s(:lit, 2)),
                        s(:resbody,
-                         s(:array, s(:const, :SyntaxError)),
-                         s(:block, s(:lasgn, :e1, s(:gvar, :$!)), s(:lit, 2)),
-                         s(:resbody,
-                           s(:array, s(:const, :Exception)),
-                           s(:block, s(:lasgn, :e2, s(:gvar, :$!)), s(:lit, 3)))),
-                       s(:lit, 4)),
-                     s(:lit, 5)))))))
+                         s(:array, s(:const, :Exception)),
+                         s(:block, s(:lasgn, :e2, s(:gvar, :$!)), s(:lit, 3)))),
+                     s(:lit, 4)),
+                   s(:lit, 5))))
 
   add_test("false",
            s(:false))
@@ -330,10 +391,10 @@ class TestRewriter < ParseTreeTestCase
   add_test("fbody",
            s(:defn,
              :an_alias,
-             s(:args),
+             s(:args, :x),
              s(:scope,
                s(:block,
-                 s(:call, s(:lit, 1), :+, s(:arglist, s(:lit, 1)))))))
+                 s(:call, s(:lvar, :x), :+, s(:arglist, s(:lit, 1)))))))
 
   add_test("fcall",
            s(:call, nil, :p, s(:arglist, s(:lit, 4))))
@@ -384,7 +445,7 @@ class TestRewriter < ParseTreeTestCase
 
   add_test("gvar",
            s(:gvar, :$x))
-  
+
   add_test("hash",
            s(:hash, s(:lit, 1), s(:lit, 2), s(:lit, 3), s(:lit, 4)))
 
@@ -414,7 +475,7 @@ class TestRewriter < ParseTreeTestCase
                  s(:lasgn, :n,
                    s(:call, s(:lvar, :n), :+, s(:arglist, s(:lit, 1))))),
                true)))
- 
+
   add_test("iteration4",
            s(:dummy,
              s(:lasgn, :n, s(:lit, 3)),
@@ -496,13 +557,18 @@ class TestRewriter < ParseTreeTestCase
 
   add_test("lit_str",
            s(:str, "x"))
-  
+
   add_test("lit_sym",
            s(:lit, :x))
 
   add_test("masgn",
            s(:masgn,
              s(:array, s(:lasgn, :a), s(:lasgn, :b)),
+             s(:array, s(:call, nil, :c, nil), s(:call, nil, :d, nil))))
+
+  add_test("masgn_iasgn",
+           s(:masgn,
+             s(:array, s(:lasgn, :a), s(:iasgn, :@b)),
              s(:array, s(:call, nil, :c, nil), s(:call, nil, :d, nil))))
 
   add_test("match",
@@ -524,10 +590,10 @@ class TestRewriter < ParseTreeTestCase
              s(:call, nil, :loop, nil),
              s(:dasgn_curr, :temp_1),
              s(:if, s(:false), s(:next), nil)))
- 
+
   add_test("not",
            s(:not, s(:true)))
-  
+
   add_test("nth_ref",
            s(:nth_ref, 1))
 
@@ -564,12 +630,24 @@ class TestRewriter < ParseTreeTestCase
            s(:block,
              s(:lasgn, :a, s(:lit, 0)),
              s(:op_asgn_or, s(:lvar, :a), s(:lasgn, :a, s(:lit, 1)))))
-  
+
   add_test("or",
            s(:or, s(:call, nil, :a, nil), s(:call, nil, :b, nil)))
-  
+
   add_test("postexe", # question that variable
            s(:iter, s(:postexe), s(:dasgn_curr, :temp_1), s(:lit, 1)))
+
+  add_test("proc_args",
+           s(:iter,
+             s(:call, nil, :proc, nil),
+             s(:dasgn_curr, :x),
+             s(:call, s(:dvar, :x), :+, s(:arglist, s(:lit, 1)))))
+
+  add_test("proc_no_args", # TODO: verify that this dasgn_curr is correct
+           s(:iter,
+             s(:call, nil, :proc, nil),
+             s(:dasgn_curr, :temp_1),
+             s(:call, s(:call, nil, :x, nil), :+, s(:arglist, s(:lit, 1)))))
 
   add_test("redo",
            s(:iter,
@@ -577,8 +655,20 @@ class TestRewriter < ParseTreeTestCase
              s(:dasgn_curr, :temp_1),
              s(:if, s(:false), s(:redo), nil)))
 
-  add_test("rescue_block",
-           s(:begin, s(:rescue, s(:call, nil, :blah, nil), s(:resbody, nil))))
+  add_test("rescue",
+           s(:rescue,
+             s(:call, nil, :blah, nil),
+             s(:resbody, nil, s(:nil))))
+
+  add_test("rescue_block_body",
+           s(:begin,
+             s(:rescue,
+               s(:call, nil, :blah, nil), s(:resbody, nil, s(:nil)))))
+
+  add_test("rescue_block_nada",
+           s(:begin,
+             s(:rescue,
+               s(:call, nil, :blah, nil), s(:resbody, nil))))
 
   add_test("rescue_exceptions",
            s(:begin,
@@ -628,7 +718,13 @@ class TestRewriter < ParseTreeTestCase
              s(:undef, s(:lit, :y)),
              s(:undef, s(:lit, :z))))
 
-  add_test("until",
+  add_test("until_post",
+           s(:while,
+             s(:not, s(:false)),
+             s(:call, s(:lit, 1), :+, s(:arglist, s(:lit, 1))),
+             false))
+
+  add_test("until_pre",
            s(:while,
              s(:not, s(:false)),
              s(:call, s(:lit, 1), :+, s(:arglist, s(:lit, 1))),
@@ -636,24 +732,20 @@ class TestRewriter < ParseTreeTestCase
 
   add_test("valias",
            s(:valias, :$y, :$x))
-  
+
   add_test("vcall",
            s(:call, nil, :method, nil))
 
-  add_test("whiles",
-           s(:defn,
-             :whiles,
-             s(:args),
-             s(:scope,
-               s(:block,
-                 s(:while,
-                   s(:false),
-                   s(:call, nil, :puts, s(:arglist, s(:str, "false"))),
-                   true),
-                 s(:while,
-                   s(:false),
-                   s(:call, nil, :puts, s(:arglist, s(:str, "true"))),
-                   false)))))
+  add_test("while_post",
+           s(:while, s(:false),
+             s(:call, s(:lit, 1), :+, s(:arglist, s(:lit, 1))), false))
+
+  add_test("while_pre",
+           s(:while, s(:false),
+             s(:call, s(:lit, 1), :+, s(:arglist, s(:lit, 1))), true))
+
+  add_test("while_pre_nil",
+           s(:while, s(:false), nil, true))
 
   add_test("xstr",
            s(:xstr, "touch 5"))
@@ -672,4 +764,9 @@ class TestRewriter < ParseTreeTestCase
 
   add_test("zsuper",
            s(:defn, :x, s(:args), s(:scope, s(:block, s(:zsuper)))))
+end
+
+if $0 == __FILE__
+  require 'test/unit'
+  ARGV << '-t' << "Test#{ParseTreeTestCase.testcase_order.last}"
 end
