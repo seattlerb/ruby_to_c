@@ -11,13 +11,13 @@ require 'rbconfig'
 task :default => :test
 
 Rake::TestTask.new(:test) do |t|
-  t.libs.push(*%w( test ../../ParseTree/dev/lib ../../ParseTree/dev/test ../../RubyInline/dev ))
+  t.libs.push(*%w( test ../../ParseTree/dev/lib ../../ParseTree/dev/test ../../RubyInline/dev/lib ))
   t.pattern = 'test/test_*.rb'
   t.verbose = true
 end
 
 task :test2 do
-  dirs = %w( lib test ../../ParseTree/dev/lib ../../ParseTree/dev/test ../../RubyInline/dev ).join ':'
+  dirs = %w( lib test ../../ParseTree/dev/lib ../../ParseTree/dev/test ../../RubyInline/dev/lib ).join ':'
   
   Dir["test/test_*.rb"].each do |test|
     ruby "-w -I#{dirs} #{test}"
