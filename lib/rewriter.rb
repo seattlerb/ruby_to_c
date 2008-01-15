@@ -211,10 +211,17 @@ class Rewriter < SexpProcessor
 
   def process_iter(exp)
     call = process exp.shift
-    var  = process exp.shift
+    var  = exp.shift
     body = process exp.shift
 
-    var = s(:dasgn_curr, Unique.next) if var.nil?
+    var = case var
+          when 0 then
+            var # leave 0
+          when nil then
+            s(:dasgn_curr, Unique.next)
+          else
+            process var
+          end
 
     return s(:iter, call, var, body) if call.first == :postexe
 

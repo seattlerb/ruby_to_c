@@ -8,6 +8,7 @@ class Type
   KNOWN_TYPES = {
     :bool => "Bool",
     :bool_list => "Bool list",
+    :const => "Const",
     :file => "File",
     :float => "Float",
     :float_list => "Float list",

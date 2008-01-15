@@ -83,7 +83,10 @@ class CRewriter < SexpProcessor
     @extra_methods.reverse_each do |defx| methods.unshift defx end
     @extra_methods.clear
 
-    return t(:class, klassname, superklassname, *methods)
+    result = t(:class, klassname, superklassname, Type.zclass)
+    result.push(*methods)
+
+    return result
   end
 
   ##
