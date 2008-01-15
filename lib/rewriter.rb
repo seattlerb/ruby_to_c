@@ -173,7 +173,7 @@ class Rewriter < SexpProcessor
       cond = args.pop
       cond.shift # take off :block
       new_code =  cond.map do |t, var, val|
-        s(:if, s(:call, s(:lvar, var), :nil?), s(:lasgn, var, val), nil)
+        s(:if, s(:call, s(:lvar, var), :nil?, nil), s(:lasgn, var, val), nil)
       end
       body[1].insert 1, *new_code
     end
@@ -212,7 +212,7 @@ class Rewriter < SexpProcessor
   def process_iter(exp)
     call = process exp.shift
     var  = exp.shift
-    body = process exp.shift
+    body = process(exp.shift) || s(:scope, s(:block))
 
     var = case var
           when 0 then
