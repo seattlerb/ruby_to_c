@@ -1,60 +1,61 @@
-ruby_to_c
-    http://rubyforge.org/projects/ruby2c/
-    ryand-ruby@zenspider.com
-    ruby2c@zenspider.com - mailing list
+= RubyToC
 
-DESCRIPTION:
+* http://rubyforge.org/projects/ruby2c/
+* ryand-ruby@zenspider.com
+* ruby2c@zenspider.com - mailing list
+
+== DESCRIPTION:
 
 ruby_to_c translates a static ruby subset to C. Hopefully it works.
 
-NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE
-
-                   THIS IS BETA SOFTWARE!
-
-NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE
+  NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE
+  
+                     THIS IS BETA SOFTWARE!
+  
+  NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE
 
 RubyToC has the following modules:
 
-	Rewriter      - massages the sexp into a more consistent form.
-	TypeChecker   - type inferencer for the above sexps.
-	RubyToRubyC   - converts a ruby (subset) sexp to ruby interals C.
-	RubyToAnsiC   - converts a ruby (subset) sexp to ANSI C.
+* Rewriter      - massages the sexp into a more consistent form.
+* TypeChecker   - type inferencer for the above sexps.
+* RubyToRubyC   - converts a ruby (subset) sexp to ruby interals C.
+* RubyToAnsiC   - converts a ruby (subset) sexp to ANSI C.
 
 and the following tools:
 
-	translate.rb  - Translates a given file to C.
+* translate.rb  - Translates a given file to C.
 
-FEATURES/PROBLEMS:
+== FEATURES/PROBLEMS:
   
-+ This is a preview release! BETA BETA BETA! Do NOT use this!
-+ Please contact me or Eric (drbrain of segment7 dot net) if you:
-	+ have any feedback!
-	+ have any changes!
-	+ want to work on this!
+* This is a preview release! BETA BETA BETA! Do NOT use this!
+* Please contact me or Eric (drbrain of segment7 dot net) if you:
+  *  have any feedback!
+  * have any changes!
+  * want to work on this!
 
-SYNOPSYS:
+== SYNOPSYS:
 
   ./translate.rb blah.rb > blah.c; gcc -c -I /rubylib/1.8/platform blah.c
 
-TODO:
+== TODO:
 
-+ Numerous, but we are trying to get them in here... sorry...
-+ Want to move to a gem directory structure (lib/ test/ bin/ etc)
+* Numerous, but we are trying to get them in here... sorry...
+* Want to move to a gem directory structure (lib/ test/ bin/ etc)
 
-REQUIREMENTS:
+== REQUIREMENTS:
 
-+ ParseTree - http://rubyforge.org/projects/parsetree/
-+ RubyInline - http://rubyforge.org/projects/rubyinline/
+* ParseTree - http://rubyforge.org/projects/parsetree/
+* RubyInline - http://rubyforge.org/projects/rubyinline/
 
-INSTALL:
+== INSTALL:
 
-+ Um. Please don't install this crap yet...
+* Um. Please don't install this crap yet...
 
-LICENSE:
+== LICENSE:
 
 (The MIT License)
 
-Copyright (c) 2001-2002 Ryan Davis, Zen Spider Software
+Copyright (c) 2001-2008 Ryan Davis, Zen Spider Software
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
