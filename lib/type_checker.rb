@@ -114,7 +114,7 @@ class TypeChecker < SexpProcessor
     @genv = Environment.new
     @functions = FunctionTable.new
     self.auto_shift_type = true
-    self.strict = true
+#    self.strict = true
     self.expected = TypedSexp
 
     self.unsupported = [:alias, :alloca, :argscat, :argspush, :attrset, :back_ref, :bmethod, :break, :case, :cdecl, :cfunc, :cref, :cvdecl, :dasgn, :defs, :dmethod, :dot2, :dot3, :dregx, :dregx_once, :dsym, :dxstr, :evstr, :fbody, :fcall, :flip2, :flip3, :for, :ifunc, :last, :match, :match2, :match3, :memo, :method, :module, :newline, :next, :nth_ref, :op_asgn1, :op_asgn2, :op_asgn_and, :opt_n, :postexe, :redo, :retry, :sclass, :svalue, :undef, :until, :valias, :vcall, :when, :xstr, :zarray, :zsuper]
@@ -280,7 +280,7 @@ class TypeChecker < SexpProcessor
   def process_call(exp)
     lhs = process exp.shift     # can be nil
     name = exp.shift
-    args = process exp.shift
+    args = exp.empty? ? nil : process(exp.shift)
 
     arg_types = if args.nil? then
                   []
@@ -358,8 +358,8 @@ class TypeChecker < SexpProcessor
   # Colon 2 returns a zclass-typed sexp
 
   def process_colon2(exp) # (Module::Class/Module)
-    name = exp.shift
-    return t(:colon2, name, Type.zclass)
+    name = process(exp.shift)
+    return t(:colon2, name, exp.shift, Type.zclass)
   end
 
   ##
@@ -367,7 +367,7 @@ class TypeChecker < SexpProcessor
 
   def process_colon3(exp) # (::OUTER_CONST)
     name = exp.shift
-    return t(:colon2, name, Type.const)
+    return t(:colon3, name, Type.const)
   end
 
   ##
@@ -446,13 +446,7 @@ class TypeChecker < SexpProcessor
 
     @env.scope do
       args = process unprocessed_args
-
-      begin
-        body = process exp.shift
-      rescue TypeError => err
-        puts "Error in method #{name}, trying to unify, whole body blew out"
-        raise
-      end
+      body = process exp.shift
 
       # Function might already have been defined by a :call node.
       # TODO: figure out the receiver type? Is that possible at this stage?
@@ -473,22 +467,10 @@ class TypeChecker < SexpProcessor
 
     return_count = 0
     body.each_of_type(:return) do |sub_exp|
-      begin
-        return_type.unify sub_exp[1].sexp_type
-        return_count += 1
-      rescue TypeError => err
-        puts "Error in method #{name}, trying to unify #{sub_exp.inspect} against #{return_type.inspect}"
-        raise
-      end
+      return_type.unify sub_exp[1].sexp_type
+      return_count += 1
     end
-    if return_count == 0 then
-      begin
-        return_type.unify Type.void
-      rescue TypeError => err
-        puts "Error in method #{name}, trying to unify #{function_type.inspect} against Type.void"
-        raise
-      end
-    end
+    return_type.unify Type.void if return_count == 0
 
     # TODO: bad API, clean
     raise "wrong" if
@@ -732,6 +714,12 @@ class TypeChecker < SexpProcessor
       type = Type.float
     when Symbol then
       type = Type.symbol
+    when Regexp then
+      type = Type.regexp
+    when Range then
+      type = Type.range
+    when Const then
+      type = Type.const
     else
       raise "Bug! no: Unknown literal #{value}:#{value.class}"
     end
@@ -796,15 +784,12 @@ class TypeChecker < SexpProcessor
 
   ##
   # ||= operator is currently unsupported.  Returns an untyped sexp.
-  #--
-  # TODO support ||=
 
   def process_op_asgn_or(exp)
-    ivar = process exp.shift
-    iasgn = process exp.shift
-    body = process exp.shift
-    # TODO: probably need to unify all three? or at least the first two...
-    return t(:op_asgn_or, ivar, iasgn, body)
+    lhs = exp.shift
+    rhs = process(exp.shift)
+
+    return t(:op_asgn_or, lhs, rhs)
   end
 
   ##
@@ -829,7 +814,7 @@ class TypeChecker < SexpProcessor
 
   def process_resbody(exp)
     o1 = process exp.shift
-    o2 = process exp.shift
+    o2 = exp.empty? ? nil : process(exp.shift)
     o3 = exp.empty? ? nil : process(exp.shift)
 
     result = t(:resbody, Type.unknown) # void?
@@ -843,25 +828,20 @@ class TypeChecker < SexpProcessor
   ##
   # Rescue unifies the begin, rescue and ensure types, and returns an untyped
   # sexp.
-  #--
-  # FIX isn't used anywhere
 
   def process_rescue(exp)
-    # TODO: I think there is also an else stmt. Should make it
-    # mandatory, not optional.
-    # TODO: test me
     try_block = process exp.shift
     rescue_block = process exp.shift
-    ensure_block = process exp.shift
+    els = exp.empty? ? nil : process(exp.shift)
 
     try_type = try_block.sexp_type
     rescue_type = rescue_block.sexp_type
-    ensure_type = ensure_block.sexp_type # FIX: not sure if I should unify
+#    ensure_type = els.sexp_type # HACK/FIX: not sure if I should unify
 
     try_type.unify rescue_type
-    try_type.unify ensure_type
+#    try_type.unify ensure_type 
 
-    return t(:rescue, try_block, rescue_block, ensure_block, try_type)
+    return t(:rescue, try_block, rescue_block, els, try_type)
   end
 
   ##

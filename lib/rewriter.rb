@@ -3,6 +3,7 @@ begin require 'rubygems'; rescue LoadError; end
 require 'sexp'
 require 'sexp_processor'
 require 'unique'
+require 'unified_ruby'
 
 class Sexp
   # add arglist because we introduce the new array type in this file
@@ -17,12 +18,18 @@ end
 # what it does.
 
 class Rewriter < SexpProcessor
+  include UnifiedRuby
 
   def initialize # :nodoc:
     super
     self.auto_shift_type = true
     self.unsupported = [ :cfunc, ]
     # self.debug[:defn] = /method/ # coolest debugging feature ever
+  end
+
+  def process(sexp)
+    sexp = Sexp.from_array(sexp) if sexp and sexp.class == Array
+    super
   end
 
   ##
@@ -37,20 +44,7 @@ class Rewriter < SexpProcessor
   def process_attrasgn(exp)
     lhs = process exp.shift
     name = exp.shift
-    args = process exp.shift
-    args[0] = :arglist unless args.nil?
-
-    s(:call, lhs, name, args)
-  end
-
-  ##
-  # Rewrites :call nodes to the unified :call format:
-  # [:call, lhs, :name, args]
-
-  def process_call(exp)
-    lhs = process exp.shift
-    name = exp.shift
-    args = process exp.shift
+    args = (exp.empty? ? nil : process(exp.shift))
     args[0] = :arglist unless args.nil?
 
     s(:call, lhs, name, args)
@@ -99,102 +93,6 @@ class Rewriter < SexpProcessor
   end
 
   ##
-  # Rewrites :defn nodes to pull the functions arguments to the top:
-  #
-  # Input:
-  #
-  #   [:defn, name, [:scope, [:block, [:args, ...]]]]
-  #   [:defn, name, [:fbody, [:scope, [:block, [:args, ...]]]]]
-  #   [:defn, name, [:ivar, name]]
-  #   [:defn, name, [:attrset, name]]
-  #
-  # Output:
-  #
-  #   [:defn, name, args, body]
-
-  def process_defn(exp)
-    name = exp.shift
-    args = s(:args)
-    body = process exp.shift
-
-    case body.first
-    when :scope, :fbody then
-      body = body[1] if body.first == :fbody
-      args = body.last[1]
-      assert_type args, :args
-      assert_type body, :scope
-      assert_type body[1], :block
-      body.last.delete_at 1
-    when :bmethod then
-      # REFACTOR: stolen from ruby2ruby
-      unless body.block
-        body[0] = :block
-        body = s(:scope, body)
-      else
-        body[0] = :scope
-      end
-
-
-      masgn = body.masgn(true)
-      if masgn then
-        splat = :"*#{masgn[-1][-1]}"
-        args.push(splat)
-
-        body.block.delete_at(1) # nuke the decl
-
-        # HACK
-        dasgn_curr = body.block.dasgn_curr
-        if dasgn_curr then
-          dasgn_curr[0] = :lasgn
-        end
-      else
-        dasgn_curr = body.block.dasgn_curr(true)
-        if dasgn_curr then
-          arg = :"#{dasgn_curr[-1]}"
-          args.push(arg)
-        end
-      end
-
-      body.find_and_replace_all(:dvar, :lvar)
-    when :dmethod
-      body = body.scope
-      args = body.block.args(true)
-    when :ivar then
-      body = s(:scope, s(:block, s(:return, body)))
-    when :attrset then
-      argname = body.last
-      args << :arg
-      body = s(:scope, s(:block, s(:return, s(:iasgn, argname, s(:lvar, :arg)))))
-    else
-      raise "Unknown :defn format: #{name.inspect} #{args.inspect} #{body.inspect}"
-    end
-
-    if Array === args.last and args.last.first == :block then
-      cond = args.pop
-      cond.shift # take off :block
-      new_code =  cond.map do |t, var, val|
-        s(:if, s(:call, s(:lvar, var), :nil?, nil), s(:lasgn, var, val), nil)
-      end
-      body[1].insert 1, *new_code
-    end
-
-
-    return s(:defn, name, args, body)
-  end
-
-  ##
-  # Rewrites :fcall nodes to the unified :call format:
-  # [:call, lhs, :name, args]
-
-  def process_fcall(exp)
-    name = exp.shift
-    args = process exp.shift
-    args[0] = :arglist unless args.nil? # for :fcall with block (:iter)
-
-    return s(:call, nil, name, args)
-  end
-
-  ##
   # I'm not really sure what this is for, other than to guarantee that
   # there are 4 elements in the sexp.
 
@@ -212,7 +110,7 @@ class Rewriter < SexpProcessor
   def process_iter(exp)
     call = process exp.shift
     var  = exp.shift
-    body = process(exp.shift) || s(:scope, s(:block))
+    body = exp.empty? ? s(:scope, s(:block)) : process(exp.shift)
 
     var = case var
           when 0 then
@@ -223,70 +121,7 @@ class Rewriter < SexpProcessor
             process var
           end
 
-    return s(:iter, call, var, body) if call.first == :postexe
-
-    assert_type call, :call
-
-    if call[2] != :each then # TODO: fix call[n] (api)
-      call.shift # :call
-      lhs = call.shift
-      method_name = call.shift
-
-      case method_name
-      when :downto then
-        var.shift # 
-        start_value = lhs
-        finish_value = call.pop.pop # not sure about this
-        var_name = var.shift
-        body.find_and_replace_all(:dvar, :lvar)
-        result = s(:dummy,
-                   s(:lasgn, var_name, start_value),
-                   s(:while,
-                     s(:call, s(:lvar, var_name), :>=,
-                       s(:arglist, finish_value)),
-                     s(:block,
-                       body,
-                       s(:lasgn, var_name,
-                         s(:call, s(:lvar, var_name), :-,
-                           s(:arglist, s(:lit, 1))))), true))
-      when :upto then
-        # REFACTOR: completely duped from above and direction changed
-        var.shift # 
-        start_value = lhs
-        finish_value = call.pop.pop # not sure about this
-        var_name = var.shift
-        body.find_and_replace_all(:dvar, :lvar)
-        result = s(:dummy,
-                   s(:lasgn, var_name, start_value),
-                   s(:while,
-                     s(:call, s(:lvar, var_name), :<=,
-                       s(:arglist, finish_value)),
-                     s(:block,
-                       body,
-                       s(:lasgn, var_name,
-                         s(:call, s(:lvar, var_name), :+,
-                           s(:arglist, s(:lit, 1))))), true))
-      when :define_method then
-        # BEFORE: [:iter, [:call, nil, :define_method, [:array, [:lit, :bmethod_added]]], [:dasgn_curr, :x], [:call, [:dvar, :x], :+, [:array, [:lit, 1]]]]
-        # we want to get it rewritten for the scope/block context, so:
-        #   - throw call away
-        #   - rewrite to args
-        #   - plop body into a scope
-        # AFTER:  [:block, [:args, :x], [:call, [:lvar, :x], :+, [:arglist, [:lit, 1]]]]
-        var.find_and_replace_all(:dasgn_curr, :args)
-        body.find_and_replace_all(:dvar, :lvar)
-        result = s(:block, var, body)
-      else
-        # HACK we butchered call up top
-        result = s(:iter, s(:call, lhs, method_name, call.shift), var, body)
-      end
-    else
-      if var.nil? then
-        var = s(:lvar, Unique.next)
-      end
-
-      s(:iter, call, var, body)
-    end
+    return s(:iter, call, var, body) # if call.first == :postexe
   end
 
   ##
@@ -308,16 +143,6 @@ class Rewriter < SexpProcessor
   end
 
   ##
-  # Rewrites :vcall nodes to the unified :call format:
-  # [:call, lhs, :name, args]
-
-  def process_vcall(exp)
-    name = exp.shift
-
-    s(:call, nil, name, nil) # TODO: never has any args?
-  end
-
-  ##
   # Rewrites :when nodes so :case can digest it into if/else structure
   # [:when, [args], body]
 
@@ -336,5 +161,35 @@ class Rewriter < SexpProcessor
     return s(:array)
   end
 
+  def rewrite_defn(exp) # extends UnifiedRuby's rewriter
+    exp = super
+
+    case exp.last[0]
+    when :ivar then
+      ivar = exp.pop
+      # exp.push s(:args)
+      exp.push s(:scope, s(:block, s(:return, ivar)))
+    when :attrset then
+      var = exp.pop
+      exp.push s(:args, :arg)
+      exp.push s(:scope,
+                 s(:block,
+                   s(:return, s(:iasgn, var.last, s(:lvar, :arg)))))
+    end
+    exp
+  end
+
+
+  def rewrite_call(exp) # extends UnifiedRuby's rewriter
+    exp = super
+    exp[-1] = s(:arglist, exp[-1]) if exp[-1][0] == :splat
+    exp[-1] = nil if exp[-1] == s(:arglist)
+    exp
+  end
+
+  def rewrite_resbody(exp)
+    exp[1] = nil if exp[1] == s(:array)
+    exp
+  end
 end
 
