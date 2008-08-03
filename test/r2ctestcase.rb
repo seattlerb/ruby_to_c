@@ -12,19 +12,22 @@ class R2CTestCase < ParseTreeTestCase
   testcase_order.push(*%w(Ruby ParseTree Rewriter TypeChecker
                           CRewriter RubyToAnsiC RubyToRubyC))
 
-  add_tests("accessor",
+  add_tests("accessor", # TODO: not in pttc
+            "Rewriter" => :skip,
             "TypeChecker" => :skip,
             "CRewriter"   => :skip,
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
-  add_tests("accessor_equals",
+  add_tests("accessor_equals", # TODO: not in pttc
+            "Rewriter" => :skip,
             "TypeChecker" => :skip,
             "CRewriter"   => :skip,
             "RubyToRubyC" => :skip,
             "RubyToAnsiC" => :skip)
 
-  add_tests("defn_bbegin",
+  add_tests("defn_bbegin", # TODO: not in pttc
+            "Rewriter" => :skip,
             "TypeChecker" => t(:defn, :bbegin,
                                t(:args),
                                t(:scope,
@@ -57,7 +60,8 @@ class R2CTestCase < ParseTreeTestCase
             "RubyToRubyC" => :unsupported,
             "RubyToAnsiC" => :unsupported)
 
-  add_tests("bools",
+  add_tests("bools", # TODO: not in pttc
+              "Rewriter" => :skip,
             # TODO: why does return false have type void?
             "TypeChecker" => t(:defn, :bools,
                                t(:args, t(:arg1, Type.value)),
@@ -90,19 +94,22 @@ class R2CTestCase < ParseTreeTestCase
             "RubyToRubyC" => :skip,
             "RubyToAnsiC" => :skip)
 
-  add_tests("call_attrasgn",
+  add_tests("call_attrasgn", # TODO: not in pttc
+            "Rewriter" => :skip,
             "TypeChecker" => :skip,
             "CRewriter" => :skip,
             "RubyToRubyC" => :skip,
             "RubyToAnsiC" => :skip)
 
-  add_tests("call_self",
+  add_tests("call_self", # TODO: not in pttc
+            "Rewriter" => :skip,
             "TypeChecker" => :skip,
             "CRewriter" => :skip,
             "RubyToRubyC" => :skip,
             "RubyToAnsiC" => :skip)
 
-  add_tests("case_stmt",
+  add_tests("case_stmt", # TODO: not in pttc
+            "Rewriter" => :skip,
             "TypeChecker" => t(:defn, :case_stmt,
                                t(:args),
                                t(:scope,
@@ -400,7 +407,8 @@ return result;
               "RubyToRubyC" => "static VALUE\nrrc_c_or(VALUE self) {\nQnil;\n}",
               "RubyToAnsiC" => "void\nor() {\nNULL;\n}")
 
-    add_tests("defn_is_something",
+    add_tests("defn_is_something", # TODO: not in pttc
+              "Rewriter" => :skip,
               "TypeChecker" => t(:defn, :something?,
                                  t(:args),
                                  t(:scope,
@@ -413,7 +421,8 @@ return result;
               "RubyToRubyC" => "static VALUE\nrrc_c_is_something(VALUE self) {\nQnil;\n}",
               "RubyToAnsiC" => "void\nis_something() {\nNULL;\n}")
 
-    add_tests("defn_fbody",
+    add_tests("defn_fbody", # TODO: not in pttc
+              "Rewriter" => :skip,
               "TypeChecker" => :skip,
               "CRewriter" => :skip,
               "RubyToRubyC" => :skip,
@@ -425,7 +434,8 @@ return result;
               "RubyToRubyC" => :skip,
               "RubyToAnsiC" => :skip)
 
-    add_tests("dmethod_added",
+    add_tests("dmethod_added", # TODO: not in pttc
+              "Rewriter" => :skip,
               "TypeChecker" => :skip,
               "CRewriter" => :skip,
               "RubyToRubyC" => :skip,
@@ -438,7 +448,8 @@ return result;
               "RubyToRubyC" => "rb_gv_get(\"$stderr\")",
               "RubyToAnsiC" => "stderr")
 
-    add_tests("interpolated",
+    add_tests("interpolated", # TODO: not in pttc
+              "Rewriter" => :skip,
               "TypeChecker" => t(:dstr,
                                  "var is ",
                                  t(:lvar, :argl, Type.long),
@@ -448,7 +459,8 @@ return result;
               "RubyToRubyC" => "rb_funcall(rb_mKernel, rb_intern(\"sprintf\"), 4, rb_str_new2(\"%s%s%s\"), rb_str_new2(\"var is \"), argl, rb_str_new2(\". So there.\"))",
               "RubyToAnsiC" => :unsupported)
 
-    add_tests("iter",
+    add_tests("iter", # TODO: not in pttc
+              "Rewriter" => :skip,
               "TypeChecker" => t(:iter,
                                  t(:call, nil, :loop, nil, Type.unknown),
                                  t(:dasgn_curr, :temp_1, Type.unknown),
@@ -841,12 +853,12 @@ puts(\"true\");
   add_tests("attrasgn_index_equals_space",
             "Rewriter" => :same)
 
-  add_test("attrset",
-           "Rewriter" => s(:defn, :writer=,
-                           s(:args, :arg),
-                           s(:scope,
-                             s(:block,
-                               s(:return, s(:iasgn, :@writer, s(:lvar, :arg)))))))
+  add_tests("attrset",
+            "Rewriter" => s(:defn, :writer=,
+                            s(:args, :arg),
+                            s(:scope,
+                              s(:block,
+                                s(:return, s(:iasgn, :@writer, s(:lvar, :arg)))))))
 
   add_tests("back_ref",
             "Rewriter" => :same)
