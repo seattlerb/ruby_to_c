@@ -297,6 +297,8 @@ typedef char * str;
         args = "#{receiver}, #{args}"
       end
 
+      args = '' if args == 'rb_ary_new()' # HACK
+
       return "#{name}(#{args})"
     end
   end

@@ -1007,16 +1007,17 @@ class R2CTestCase < ParseTreeTestCase
   add_tests("defn_or",
             "Rewriter"    => :same,
             "TypeChecker" => t(:defn, :|,
-                               t(:args),
+                               t(:args, t(:o, Type.unknown)),
                                t(:scope,
                                  t(:block,
                                    t(:nil, Type.value),
                                    Type.unknown),
                                  Type.void),
-                               Type.function(Type.unknown, [], Type.void)),
+                               Type.function(Type.unknown, [Type.unknown],
+                                             Type.void)),
             "CRewriter"   => :same,
-            "RubyToRubyC" => "static VALUE\nrrc_c_or(VALUE self) {\nQnil;\n}",
-            "RubyToAnsiC" => "void\nor() {\nNULL;\n}")
+            "RubyToRubyC" => "static VALUE\nrrc_c_or(VALUE self, VALUE o) {\nQnil;\n}",
+            "RubyToAnsiC" => "void\nor(void * o) {\nNULL;\n}")
 
   add_tests("defn_rescue",
             "Rewriter"    => :same,
@@ -1042,7 +1043,7 @@ class R2CTestCase < ParseTreeTestCase
   add_tests("defn_zarray",
             "Rewriter"    => :same,
             "TypeChecker" => t(:defn,
-                               :empty,
+                               :zarray,
                                t(:args),
                                t(:scope,
                                  t(:block,
@@ -1053,8 +1054,8 @@ class R2CTestCase < ParseTreeTestCase
                                    Type.unknown), Type.void),
                                Type.function(Type.unknown, [], Type.unknown_list)),
             "CRewriter"   => :same,
-            "RubyToRubyC" => "static VALUE\nrrc_c_empty(VALUE self) {\nVALUE a;\na = rb_ary_new2(0);\nreturn a;\n}",
-            "RubyToAnsiC" => "void *\nempty() {\nvoid * a;\na = (void *) malloc(sizeof(void *) * 0);\nreturn a;\n}")
+            "RubyToRubyC" => "static VALUE\nrrc_c_zarray(VALUE self) {\nVALUE a;\na = rb_ary_new2(0);\nreturn a;\n}",
+            "RubyToAnsiC" => "void *\nzarray() {\nvoid * a;\na = (void *) malloc(sizeof(void *) * 0);\nreturn a;\n}")
 
   add_tests("defs",
             "Rewriter"    => :same,
@@ -1537,7 +1538,7 @@ return Qnil;
                                        t(:call,
                                          t(:lvar, :n, Type.long),
                                          :to_s,
-                                         nil, Type.str)), Type.void),
+                                         t(:arglist), Type.str)), Type.void),
                                    t(:lasgn, :n,
                                      t(:call,
                                        t(:lvar, :n, Type.long),
@@ -1547,8 +1548,8 @@ return Qnil;
                                            1, Type.long)),
                                        Type.long), Type.long), Type.unknown), true)),
             "CRewriter"   => :same,
-            "RubyToAnsiC" => "n = 1;\nwhile (n <= 3) {\n  puts(to_s(n));\n  n = n + 1;\n}",
-            "RubyToRubyC" => 'n = LONG2NUM(1);\n  while (rb_funcall(n, rb_intern("<="), 1, LONG2NUM(3))) {\n      rb_funcall(self, rb_intern("puts"), 1, rb_funcall(n, rb_intern("to_s"), 0));\n      n = rb_funcall(n, rb_intern("+"), 1, LONG2NUM(1));\n    }')
+            "RubyToAnsiC" => "n = 1;\nwhile (n <= 3) {\nputs(to_s(n));\nn = n + 1;\n}",
+            "RubyToRubyC" => "n = LONG2NUM(1);\nwhile (rb_funcall(n, rb_intern(\"<=\"), 1, LONG2NUM(3))) {\nrb_funcall(self, rb_intern(\"puts\"), 1, rb_funcall(n, rb_intern(\"to_s\"), 0));\nn = rb_funcall(n, rb_intern(\"+\"), 1, LONG2NUM(1));\n}")
 
   add_tests("iteration5",
             "Rewriter"    => :same,
@@ -1565,7 +1566,7 @@ return Qnil;
                                        t(:call,
                                          t(:lvar, :n, Type.long),
                                          :to_s,
-                                         nil, Type.str)), Type.void),
+                                         t(:arglist), Type.str)), Type.void),
                                    t(:lasgn, :n,
                                      t(:call,
                                        t(:lvar, :n, Type.long),
@@ -1575,8 +1576,8 @@ return Qnil;
                                      Type.long),
                                    Type.unknown), true)),
             "CRewriter"   => :same,
-            "RubyToAnsiC" => 'n = 3;\nwhile (n >= 1) {\nputs(to_s(n));\nn = n - 1;\n}',
-            "RubyToRubyC" => 'n = LONG2NUM(3);\nwhile (rb_funcall(n, rb_intern(">="), 1, LONG2NUM(1))) {\nrb_funcall(self, rb_intern("puts"), 1, rb_funcall(n, rb_intern("to_s"), 0));\nn = rb_funcall(n, rb_intern("-"), 1, LONG2NUM(1));\n}')
+            "RubyToAnsiC" => "n = 3;\nwhile (n >= 1) {\nputs(to_s(n));\nn = n - 1;\n}",
+            "RubyToRubyC" => "n = LONG2NUM(3);\nwhile (rb_funcall(n, rb_intern(\">=\"), 1, LONG2NUM(1))) {\nrb_funcall(self, rb_intern(\"puts\"), 1, rb_funcall(n, rb_intern(\"to_s\"), 0));\nn = rb_funcall(n, rb_intern(\"-\"), 1, LONG2NUM(1));\n}")
 
   add_tests("iteration6",
             "Rewriter"    => :same,
@@ -1655,9 +1656,14 @@ argl = rb_funcall(argl, rb_intern("-"), 1, LONG2NUM(1));
             "RubyToRubyC" => :skip)
 
   add_tests("ivar",
-            "Rewriter" => s(:defn, :reader,
-                            s(:args),
-                            s(:scope, s(:block, s(:return, s(:ivar, :@reader))))))
+            "Rewriter"    => s(:defn, :reader,
+                               s(:args),
+                               s(:scope, s(:block,
+                                           s(:return, s(:ivar, :@reader))))),
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
 
   # TODO: this might still be too much
   add_tests("lasgn_array",
@@ -1909,7 +1915,31 @@ var[1] = "bar"')
             "RubyToRubyC" => :skip)
 
   add_tests("multi_args", # TODO: not in pttc
-            "Rewriter"    => :skip,
+            "Ruby"        => "def multi_args(arg1, arg2)
+                                arg3 = arg1 * arg2 * 7
+                                puts arg3.to_s
+                                return \"foo\"
+                              end",
+            "ParseTree"   => s(:defn, :multi_args,
+                               s(:args, :arg1, :arg2),
+                               s(:scope,
+                                 s(:block,
+                                   s(:lasgn,
+                                     :arg3,
+                                     s(:call,
+                                       s(:call,
+                                         s(:lvar, :arg1),
+                                         :*,
+                                         s(:arglist, s(:lvar, :arg2))),
+                                       :*,
+                                       s(:arglist, s(:lit, 7)))),
+                                   s(:call,
+                                     nil,
+                                     :puts,
+                                     s(:arglist, s(:call, s(:lvar, :arg3),
+                                                   :to_s, s(:arglist)))),
+                                   s(:return, s(:str, "foo"))))),
+            "Rewriter"    => :same,
             "TypeChecker" => t(:defn, :multi_args,
                                t(:args,
                                  t(:arg1, Type.long),
@@ -1922,14 +1952,10 @@ var[1] = "bar"')
                                        t(:call,
                                          t(:lvar, :arg1, Type.long),
                                          :*,
-                                         t(:arglist,
-                                           t(:lvar,
-                                             :arg2,
-                                             Type.long)),
+                                         t(:arglist, t(:lvar, :arg2, Type.long)),
                                          Type.long),
                                        :*,
-                                       t(:arglist,
-                                         t(:lit, 7, Type.long)),
+                                       t(:arglist, t(:lit, 7, Type.long)),
                                        Type.long),
                                      Type.long),
                                    t(:call,
@@ -1939,7 +1965,7 @@ var[1] = "bar"')
                                        t(:call,
                                          t(:lvar, :arg3, Type.long),
                                          :to_s,
-                                         nil,
+                                         t(:arglist),
                                          Type.str)),
                                      Type.void),
                                    t(:return, t(:str, "foo", Type.str),
@@ -2449,7 +2475,7 @@ return \"foo\";
 
   add_tests("vcall",
             "Rewriter"    => :same,
-            "TypeChecker" => t(:call, nil, :method, nil, Type.unknown),
+            "TypeChecker" => t(:call, nil, :method, t(:arglist), Type.unknown),
             "CRewriter"   => :same,
             "RubyToRubyC" => "rb_funcall(self, rb_intern(\"method\"), 0)",
             "RubyToAnsiC" => "method()")
@@ -2514,16 +2540,16 @@ return \"foo\";
                               end",
             "ParseTree"   => s(:defn,
                                :whiles,
+                               s(:args),
                                s(:scope,
                                  s(:block,
-                                   s(:args),
                                    s(:while, s(:false),
-                                     s(:fcall, :puts,
-                                       s(:array, s(:str, "false"))),
+                                     s(:call, nil, :puts,
+                                       s(:arglist, s(:str, "false"))),
                                      true),
                                    s(:while, s(:false),
-                                     s(:fcall, :puts,
-                                       s(:array, s(:str, "true"))),
+                                     s(:call, nil, :puts,
+                                       s(:arglist, s(:str, "true"))),
                                      false)))),
             "Rewriter"    => :same,
             "TypeChecker" => t(:defn,
@@ -2549,8 +2575,8 @@ return \"foo\";
                                  Type.void),
                                Type.function(Type.unknown, [], Type.void)),
             "CRewriter"   => :same,
-            "RubyToRubyC" => "static VALUE\nrrc_c_whiles(VALUE self) {\nwhile (Qfalse) {\n    rb_funcall(self, rb_intern(\"puts\"), 1, rb_str_new2(\"false\"));\n};\n{\nrb_funcall(self, rb_intern(\"puts\"), 1, rb_str_new2(\"true\"));\n} while (Qfalse);\n}",
-            "RubyToAnsiC" => "void\nwhiles() {\nwhile (0) {\n    puts(\"false\");\n};\n{\nputs(\"true\");\n} while (0);\n}")
+            "RubyToRubyC" => "static VALUE\nrrc_c_whiles(VALUE self) {\nwhile (Qfalse) {\nrb_funcall(self, rb_intern(\"puts\"), 1, rb_str_new2(\"false\"));\n};\n{\nrb_funcall(self, rb_intern(\"puts\"), 1, rb_str_new2(\"true\"));\n} while (Qfalse);\n}",
+            "RubyToAnsiC" => "void\nwhiles() {\nwhile (0) {\nputs(\"false\");\n};\n{\nputs(\"true\");\n} while (0);\n}")
 
   add_tests("xstr",
             "Rewriter"    => :same,

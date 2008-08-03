@@ -52,17 +52,17 @@ class RubyToRubyC < RubyToAnsiC
     receiver = process(exp.shift) || "self"
     name = exp.shift.to_s
     arg_count = exp.first.size - 1 rescue 0
-    args = [process(exp.shift)].flatten.compact
+    args = process(exp.shift) # TODO: we never ever test multiple arguments!
 
     # TODO: eric is a big boner
     return "NIL_P(#{receiver})" if name == "nil?"
 
     name = '===' if name =~ /^case_equal_/ # undo the evils of TypeChecker
 
-    if args.empty?
+    if args.empty? || args == "rb_ary_new()" then # HACK
       args = "0"
     else
-      args = "#{arg_count}, #{args.join(", ")}"
+      args = "#{arg_count}, #{args}"
     end
 
     "rb_funcall(#{receiver}, rb_intern(#{name.inspect}), #{args})"
