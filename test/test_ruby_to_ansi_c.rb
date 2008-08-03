@@ -466,14 +466,14 @@ bar", Type.str)
     assert_equal "void empty();\n", @ruby_to_c.prototypes.first
   end
 
-  def test_translator
-    Object.class_eval "class Suck; end"
-    input = [:class, :Suck, :Object,
-      [:defn, :something, [:scope, [:block, [:args], [:fcall, :"whaaa\?"]]]],
-      [:defn, :foo, [:scope, [:block, [:args], [:vcall, :something]]]]]
-    expected = "// class Suck < Object\n\nvoid\nsomething() {\nwhaaa?();\n}\n\nvoid\nfoo() {\nsomething();\n}"
-    assert_equal expected, RubyToAnsiC.translator.process(input)
-  end
+#   def test_translator
+#     Object.class_eval "class Suck; end"
+#     input = [:class, :Suck, :Object,
+#       [:defn, :something, [:scope, [:block, [:args], [:fcall, :"whaaa\?"]]]],
+#       [:defn, :foo, [:scope, [:block, [:args], [:vcall, :something]]]]]
+#     expected = "// class Suck < Object\n\nvoid\nsomething() {\nwhaaa?();\n}\n\nvoid\nfoo() {\nsomething();\n}"
+#     assert_equal expected, RubyToAnsiC.translator.process(input)
+#   end
 
   def disabled_test_dstr
     input  = t(:dstr,

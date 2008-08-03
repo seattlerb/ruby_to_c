@@ -149,13 +149,13 @@ return Qnil;
     assert_equal output, @ruby_to_c.process(input)
   end
 
-  def test_translator
-    Object.class_eval "class Suck; end"
-    input = [:class, :Suck, :Object,
-      [:defn, :something, [:scope, [:block, [:args], [:fcall, :"whaaa\?"]]]],
-      [:defn, :foo, [:scope, [:block, [:args], [:vcall, :something]]]]]
-    expected = "// class Suck < Object\n\nstatic VALUE\nrrc_c_something(VALUE self) {\nrb_funcall(self, rb_intern(\"whaaa?\"), 0);\n}\n\nstatic VALUE\nrrc_c_foo(VALUE self) {\nrb_funcall(self, rb_intern(\"something\"), 0);\n}"
-    assert_equal expected, RubyToRubyC.translator.process(input)
-  end
+#   def test_translator
+#     Object.class_eval "class Suck; end"
+#     input = [:class, :Suck, :Object,
+#       [:defn, :something, [:scope, [:block, [:args], [:fcall, :"whaaa\?"]]]],
+#       [:defn, :foo, [:scope, [:block, [:args], [:vcall, :something]]]]]
+#     expected = "// class Suck < Object\n\nstatic VALUE\nrrc_c_something(VALUE self) {\nrb_funcall(self, rb_intern(\"whaaa?\"), 0);\n}\n\nstatic VALUE\nrrc_c_foo(VALUE self) {\nrb_funcall(self, rb_intern(\"something\"), 0);\n}"
+#     assert_equal expected, RubyToRubyC.translator.process(input)
+#   end
 
 end

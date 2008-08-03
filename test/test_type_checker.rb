@@ -4,6 +4,7 @@ $TESTING = true
 
 require 'test/unit' if $0 == __FILE__
 require 'type_checker'
+require 'pt_testcase'
 require 'r2ctestcase'
 
 # Test::Unit::Assertions.use_pp = false
@@ -18,7 +19,6 @@ class X # ZenTest SKIP
 end
 
 class TestTypeChecker < R2CTestCase
-
   def setup
     @type_checker = TypeChecker.new
     @processor = @type_checker
@@ -29,13 +29,6 @@ class TestTypeChecker < R2CTestCase
     @type_checker.env.add :arrays, Type.str_list
     @type_checker.genv.add :SyntaxError, Type.fucked
     @type_checker.genv.add :Exception, Type.fucked
-  end
-
-  def test_and
-    input  = t(:and, t(:true), t(:false))
-    output = t(:and, t(:true, Type.bool), t(:false, Type.bool), Type.bool)
-
-    assert_equal output, @type_checker.process(input)
   end
 
   def test_bootstrap
@@ -55,17 +48,12 @@ class TestTypeChecker < R2CTestCase
     add_fake_function :specific, Type.unknown, Type.unknown, Type.unknown
 
     # now in specific, unify with a long
-# puts "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-# pp @type_checker.functions
     s = @type_checker.process(s(:defn, :specific,
                                 s(:args, :x),
                                 s(:scope,
                                   s(:block,
                                     s(:lasgn, :x, s(:lit, 2))))))
-# pp @type_checker.functions
     s_type = @type_checker.functions[:specific]
-
-# p s_type
 
     assert_equal(Type.long,
                  s_type.list_type.formal_types[0])
@@ -74,7 +62,7 @@ class TestTypeChecker < R2CTestCase
 
   def test_env
     @type_checker.env.add :blah, Type.long
-    assert_equal Type.long, @type_checker.env.lookup(:blah) 
+    assert_equal Type.long, @type_checker.env.lookup(:blah)
   end
 
   def test_functions
@@ -127,7 +115,7 @@ class TestTypeChecker < R2CTestCase
 
     result = @type_checker.process(input)
 
-    assert_equal Type.homo, result.sexp_type    
+    assert_equal Type.homo, result.sexp_type
     assert_equal [ Type.long ], result.sexp_types
     assert_equal output, result
   end
@@ -314,7 +302,7 @@ class TestTypeChecker < R2CTestCase
     assert_equal a_type, @type_checker.env.lookup(:a)
     assert_equal(@type_checker.env.lookup(:a),
                  @type_checker.functions[:unify_3_inner].list_type.formal_types[0])
-    
+
     # def unify_3_inner(a)
     #   a = 1
     # end
@@ -329,7 +317,7 @@ class TestTypeChecker < R2CTestCase
 
     @type_checker.env.scope do
       @type_checker.env.add :a, a_type
-      
+
       @type_checker.process t(:lasgn, :a, t(:lit, 1))
     end
 
@@ -550,7 +538,7 @@ class TestTypeChecker < R2CTestCase
   end
 
   def test_process_ivar
-    @type_checker.env.add :@blah, Type.long    
+    @type_checker.env.add :@blah, Type.long
     input = s(:ivar, :@blah)
     expected = t(:ivar, :@blah, Type.long)
 
@@ -570,13 +558,13 @@ class TestTypeChecker < R2CTestCase
     # => raises elsewhere... etc etc etc
     # makes debugging very difficult
     input  = t(:lasgn, :var, t(:str, "foo"))
-    output = t(:lasgn, :var, 
+    output = t(:lasgn, :var,
                t(:str, "foo", Type.str),
                Type.str)
 
     assert_equal output, @type_checker.process(input)
   end
-  
+
   def test_process_lasgn_array
     @type_checker.env.extend
     input  = t(:lasgn,
@@ -600,7 +588,7 @@ class TestTypeChecker < R2CTestCase
 
     assert_equal output, @type_checker.process(input)
   end
-  
+
   def test_process_lit_float
     input  = t(:lit, 1.0)
     output = t(:lit, 1.0, Type.float)
@@ -705,11 +693,11 @@ class TestTypeChecker < R2CTestCase
     assert_equal output, @type_checker.process(input)
   end
 
-  def test_process_rescue
-    assert_raises RuntimeError do
-      @type_checker.process s(:rescue, s(:true), s(:true))
-    end
-  end
+#   def test_process_rescue
+#     assert_raises RuntimeError do
+#       @type_checker.process s(:rescue, s(:true), s(:true))
+#     end
+#   end
 
   def test_process_return
     input  = t(:return, t(:nil))
@@ -775,7 +763,7 @@ class TestTypeChecker < R2CTestCase
     output = t(:if,
                t(:call,
                  t(:lit, 1, Type.long),
-                 :==, 
+                 :==,
                  t(:arglist,
                    t(:lit, 2, Type.long)),
                  Type.bool),
@@ -796,17 +784,17 @@ class TestTypeChecker < R2CTestCase
     assert_equal expected, @type_checker.process(input)
   end
 
-  def test_translate
-    result = @type_checker.translate DumbClass, :empty
-    expect = t(:defn,
-               :empty,
-               t(:args),
-               t(:scope,
-                 t(:block,
-                   t(:nil, Type.value), Type.unknown), Type.void),
-               Type.function(Type.unknown, [], Type.void))
-    assert_equal(expect, result)
-  end
+#   def test_translate
+#     result = @type_checker.translate DumbClass, :empty
+#     expect = t(:defn,
+#                :empty,
+#                t(:args),
+#                t(:scope,
+#                  t(:block,
+#                    t(:nil, Type.value), Type.unknown), Type.void),
+#                Type.function(Type.unknown, [], Type.void))
+#     assert_equal(expect, result)
+#   end
 
   def add_fake_function(name, reciever_type, return_type, *arg_types)
     @type_checker.functions.add_function(name,
