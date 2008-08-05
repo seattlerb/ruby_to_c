@@ -196,6 +196,7 @@ typedef char * str;
   # Arglist is used by call arg lists.
 
   def process_arglist(exp)
+    return '' if exp.empty?
     return process_array(exp)
   end
 
@@ -291,7 +292,7 @@ typedef char * str;
         args = ""
       elsif receiver.nil? then
         # nothing to do 
-      elsif args.nil? then
+      elsif args.nil? or args.empty? then
         args = receiver
       else
         args = "#{receiver}, #{args}"
