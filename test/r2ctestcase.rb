@@ -12,20 +12,6 @@ class R2CTestCase < ParseTreeTestCase
   testcase_order.push(*%w(Ruby ParseTree Rewriter TypeChecker
                           CRewriter RubyToAnsiC RubyToRubyC))
 
-  add_tests("accessor", # TODO: not in pttc
-            "Rewriter"    => :skip,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("accessor_equals", # TODO: not in pttc
-            "Rewriter"    => :skip,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToRubyC" => :skip,
-            "RubyToAnsiC" => :skip)
-
   add_tests("alias",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
@@ -42,10 +28,13 @@ class R2CTestCase < ParseTreeTestCase
 
   add_tests("and",
             "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
+            "TypeChecker" => t(:and,
+                               t(:call, nil, :a, t(:arglist), Type.bool),
+                               t(:call, nil, :b, t(:arglist), Type.bool),
+                               Type.bool),
+            "CRewriter"   => :same,
+            "RubyToAnsiC" => "a() && b()",
+            "RubyToRubyC" => 'rb_funcall(self, rb_intern("a"), 0) && rb_funcall(self, rb_intern("b"), 0)')
 
   add_tests("argscat_inside",
             "Rewriter"    => :same,
