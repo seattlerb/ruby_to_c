@@ -294,8 +294,8 @@ class R2CTestCase < ParseTreeTestCase
                                Type.function(Type.unknown,
                                              [Type.value], Type.bool)),
             "CRewriter"   => :same,
-            "RubyToRubyC" => "static VALUE\nrrc_c_bools(VALUE self, VALUE arg1) {\nif (NIL_P(arg1)) {\nreturn Qfalse;\n} else {\nreturn Qtrue;\n}\n}",
-            "RubyToAnsiC" => "bool\nbools(void * arg1) {\nif (arg1) {\nreturn 0;\n} else {\nreturn 1;\n}\n}")
+            "RubyToAnsiC" => "bool\nbools(void * arg1) {\nif (arg1) {\nreturn 0;\n} else {\nreturn 1;\n}\n}",
+            "RubyToRubyC" => "static VALUE\nrrc_c_bools(VALUE self, VALUE arg1) {\nif (NIL_P(arg1)) {\nreturn Qfalse;\n} else {\nreturn Qtrue;\n}\n}")
 
   add_tests("break",
             "Rewriter"    => :same,
@@ -322,8 +322,8 @@ class R2CTestCase < ParseTreeTestCase
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
             "CRewriter"   => :skip,
-            "RubyToRubyC" => :skip,
-            "RubyToAnsiC" => :skip)
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
 
   add_tests("call_arglist_hash",
             "Rewriter"    => :same,
@@ -350,8 +350,8 @@ class R2CTestCase < ParseTreeTestCase
             "Rewriter"    => :skip,
             "TypeChecker" => :skip,
             "CRewriter"   => :skip,
-            "RubyToRubyC" => :skip,
-            "RubyToAnsiC" => :skip)
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
 
   add_tests("call_command",
             "Rewriter"    => :same,
@@ -392,8 +392,8 @@ class R2CTestCase < ParseTreeTestCase
             "Rewriter"    => :skip,
             "TypeChecker" => :skip,
             "CRewriter"   => :skip,
-            "RubyToRubyC" => :skip,
-            "RubyToAnsiC" => :skip)
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
 
   add_tests("call_unary_neg",
             "Rewriter"    => :same,
@@ -537,8 +537,8 @@ class R2CTestCase < ParseTreeTestCase
                                Type.function(Type.unknown, [], Type.str)),
             "CRewriter"   => :same,
             # HACK: I don't like the semis after the if blocks, but it is a compromise right now
-            "RubyToRubyC" => "static VALUE\nrrc_c_case_stmt(VALUE self) {\nVALUE result;\nVALUE var;\nvar = LONG2NUM(2);\nresult = rb_str_new2(\"\");\nif (rb_funcall(var, rb_intern(\"===\"), 1, LONG2NUM(1))) {\nrb_funcall(self, rb_intern(\"puts\"), 1, rb_str_new2(\"something\"));\nresult = rb_str_new2(\"red\");\n} else {\nif (rb_funcall(var, rb_intern(\"===\"), 1, LONG2NUM(2)) || rb_funcall(var, rb_intern(\"===\"), 1, LONG2NUM(3))) {\nresult = rb_str_new2(\"yellow\");\n} else {\nif (rb_funcall(var, rb_intern(\"===\"), 1, LONG2NUM(4))) {\n;\n} else {\nresult = rb_str_new2(\"green\");\n}\n}\n};\nif (rb_funcall(result, rb_intern(\"===\"), 1, rb_str_new2(\"red\"))) {\nvar = LONG2NUM(1);\n} else {\nif (rb_funcall(result, rb_intern(\"===\"), 1, rb_str_new2(\"yellow\"))) {\nvar = LONG2NUM(2);\n} else {\nif (rb_funcall(result, rb_intern(\"===\"), 1, rb_str_new2(\"green\"))) {\nvar = LONG2NUM(3);\n}\n}\n};\nreturn result;\n}",
-            "RubyToAnsiC" => "str\ncase_stmt() {\nstr result;\nlong var;\nvar = 2;\nresult = \"\";\nif (case_equal_long(var, 1)) {\nputs(\"something\");\nresult = \"red\";\n} else {\nif (case_equal_long(var, 2) || case_equal_long(var, 3)) {\nresult = \"yellow\";\n} else {\nif (case_equal_long(var, 4)) {\n;\n} else {\nresult = \"green\";\n}\n}\n};\nif (case_equal_str(result, \"red\")) {\nvar = 1;\n} else {\nif (case_equal_str(result, \"yellow\")) {\nvar = 2;\n} else {\nif (case_equal_str(result, \"green\")) {\nvar = 3;\n}\n}\n};\nreturn result;\n}")
+            "RubyToAnsiC" => "str\ncase_stmt() {\nstr result;\nlong var;\nvar = 2;\nresult = \"\";\nif (case_equal_long(var, 1)) {\nputs(\"something\");\nresult = \"red\";\n} else {\nif (case_equal_long(var, 2) || case_equal_long(var, 3)) {\nresult = \"yellow\";\n} else {\nif (case_equal_long(var, 4)) {\n;\n} else {\nresult = \"green\";\n}\n}\n};\nif (case_equal_str(result, \"red\")) {\nvar = 1;\n} else {\nif (case_equal_str(result, \"yellow\")) {\nvar = 2;\n} else {\nif (case_equal_str(result, \"green\")) {\nvar = 3;\n}\n}\n};\nreturn result;\n}",
+            "RubyToRubyC" => "static VALUE\nrrc_c_case_stmt(VALUE self) {\nVALUE result;\nVALUE var;\nvar = LONG2NUM(2);\nresult = rb_str_new2(\"\");\nif (rb_funcall(var, rb_intern(\"===\"), 1, LONG2NUM(1))) {\nrb_funcall(self, rb_intern(\"puts\"), 1, rb_str_new2(\"something\"));\nresult = rb_str_new2(\"red\");\n} else {\nif (rb_funcall(var, rb_intern(\"===\"), 1, LONG2NUM(2)) || rb_funcall(var, rb_intern(\"===\"), 1, LONG2NUM(3))) {\nresult = rb_str_new2(\"yellow\");\n} else {\nif (rb_funcall(var, rb_intern(\"===\"), 1, LONG2NUM(4))) {\n;\n} else {\nresult = rb_str_new2(\"green\");\n}\n}\n};\nif (rb_funcall(result, rb_intern(\"===\"), 1, rb_str_new2(\"red\"))) {\nvar = LONG2NUM(1);\n} else {\nif (rb_funcall(result, rb_intern(\"===\"), 1, rb_str_new2(\"yellow\"))) {\nvar = LONG2NUM(2);\n} else {\nif (rb_funcall(result, rb_intern(\"===\"), 1, rb_str_new2(\"green\"))) {\nvar = LONG2NUM(3);\n}\n}\n};\nreturn result;\n}")
 
   add_tests("cdecl",
             "Rewriter"    => :same,
@@ -619,8 +619,8 @@ class R2CTestCase < ParseTreeTestCase
                                t(:return, t(:lit, 1, Type.long), Type.void),
                                nil,
                                Type.void),
-            "RubyToRubyC" => "if (rb_funcall(LONG2NUM(42), rb_intern(\"==\"), 1, LONG2NUM(0))) {\nreturn LONG2NUM(1);\n}",
-            "RubyToAnsiC" => "if (42 == 0) {\nreturn 1;\n}")
+            "RubyToAnsiC" => "if (42 == 0) {\nreturn 1;\n}",
+            "RubyToRubyC" => "if (rb_funcall(LONG2NUM(42), rb_intern(\"==\"), 1, LONG2NUM(0))) {\nreturn LONG2NUM(1);\n}")
 
   add_tests("conditional2",
             "Rewriter"    => :same,
@@ -635,8 +635,8 @@ class R2CTestCase < ParseTreeTestCase
                                t(:return, t(:lit, 2, Type.long), Type.void),
                                Type.void),
             "CRewriter"   => :same,
-            "RubyToRubyC" => "if (rb_funcall(LONG2NUM(42), rb_intern(\"==\"), 1, LONG2NUM(0))) {\n;\n} else {\nreturn LONG2NUM(2);\n}",
-            "RubyToAnsiC" => "if (42 == 0) {\n;\n} else {\nreturn 2;\n}")
+            "RubyToAnsiC" => "if (42 == 0) {\n;\n} else {\nreturn 2;\n}",
+            "RubyToRubyC" => "if (rb_funcall(LONG2NUM(42), rb_intern(\"==\"), 1, LONG2NUM(0))) {\n;\n} else {\nreturn LONG2NUM(2);\n}")
 
   add_tests("conditional3",
             "Rewriter"    => :same,
@@ -656,8 +656,8 @@ class R2CTestCase < ParseTreeTestCase
                                  Type.void),
                                Type.void),
             "CRewriter"   => :same,
-            "RubyToRubyC" => "if (rb_funcall(LONG2NUM(42), rb_intern(\"==\"), 1, LONG2NUM(0))) {\nreturn LONG2NUM(3);\n} else {\nreturn LONG2NUM(4);\n}",
-            "RubyToAnsiC" => "if (42 == 0) {\nreturn 3;\n} else {\nreturn 4;\n}")
+            "RubyToAnsiC" => "if (42 == 0) {\nreturn 3;\n} else {\nreturn 4;\n}",
+            "RubyToRubyC" => "if (rb_funcall(LONG2NUM(42), rb_intern(\"==\"), 1, LONG2NUM(0))) {\nreturn LONG2NUM(3);\n} else {\nreturn LONG2NUM(4);\n}")
 
   add_tests("conditional4",
             "Rewriter"    => :same,
@@ -687,8 +687,8 @@ class R2CTestCase < ParseTreeTestCase
                                  Type.void),
                                Type.void),
             "CRewriter"   => :same,
-            "RubyToRubyC" => "if (rb_funcall(LONG2NUM(42), rb_intern(\"==\"), 1, LONG2NUM(0))) {\nreturn LONG2NUM(2);\n} else {\nif (rb_funcall(LONG2NUM(42), rb_intern(\"<\"), 1, LONG2NUM(0))) {\nreturn LONG2NUM(3);\n} else {\nreturn LONG2NUM(4);\n}\n}",
-            "RubyToAnsiC" => "if (42 == 0) {\nreturn 2;\n} else {\nif (42 < 0) {\nreturn 3;\n} else {\nreturn 4;\n}\n}")
+            "RubyToAnsiC" => "if (42 == 0) {\nreturn 2;\n} else {\nif (42 < 0) {\nreturn 3;\n} else {\nreturn 4;\n}\n}",
+            "RubyToRubyC" => "if (rb_funcall(LONG2NUM(42), rb_intern(\"==\"), 1, LONG2NUM(0))) {\nreturn LONG2NUM(2);\n} else {\nif (rb_funcall(LONG2NUM(42), rb_intern(\"<\"), 1, LONG2NUM(0))) {\nreturn LONG2NUM(3);\n} else {\nreturn LONG2NUM(4);\n}\n}")
 
   add_tests("conditional5",
             "Rewriter"    => :same,
@@ -931,15 +931,15 @@ class R2CTestCase < ParseTreeTestCase
                                  Type.void),
                                Type.function(Type.unknown, [], Type.void)),
             "CRewriter"   => :same,
-            "RubyToRubyC" => :unsupported,
-            "RubyToAnsiC" => :unsupported)
+            "RubyToAnsiC" => :unsupported,
+            "RubyToRubyC" => :unsupported)
 
   add_tests("defn_bmethod_added", # TODO: not in pttc
             "Rewriter"    => :skip,
             "TypeChecker" => :skip,
             "CRewriter"   => :skip,
-            "RubyToRubyC" => :skip,
-            "RubyToAnsiC" => :skip)
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
 
   add_tests("defn_empty",
             "Rewriter"    => :same,
@@ -952,8 +952,8 @@ class R2CTestCase < ParseTreeTestCase
                                  Type.void),
                                Type.function(Type.unknown, [], Type.void)),
             "CRewriter"   => :same,
-            "RubyToRubyC" => "static VALUE\nrrc_c_empty(VALUE self) {\nQnil;\n}",
-            "RubyToAnsiC" => "void\nempty() {\nNULL;\n}")
+            "RubyToAnsiC" => "void\nempty() {\nNULL;\n}",
+            "RubyToRubyC" => "static VALUE\nrrc_c_empty(VALUE self) {\nQnil;\n}")
 
   add_tests("defn_empty_args",
             "Rewriter"    => :same,
@@ -966,8 +966,8 @@ class R2CTestCase < ParseTreeTestCase
             "Rewriter"    => :skip,
             "TypeChecker" => :skip,
             "CRewriter"   => :skip,
-            "RubyToRubyC" => :skip,
-            "RubyToAnsiC" => :skip)
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
 
   add_tests("defn_is_something", # TODO: not in pttc
             "Rewriter"    => :skip,
@@ -980,8 +980,8 @@ class R2CTestCase < ParseTreeTestCase
                                  Type.void),
                                Type.function(Type.unknown, [], Type.void)),
             "CRewriter"   => :same,
-            "RubyToRubyC" => "static VALUE\nrrc_c_is_something(VALUE self) {\nQnil;\n}",
-            "RubyToAnsiC" => "void\nis_something() {\nNULL;\n}")
+            "RubyToAnsiC" => "void\nis_something() {\nNULL;\n}",
+            "RubyToRubyC" => "static VALUE\nrrc_c_is_something(VALUE self) {\nQnil;\n}")
 
   add_tests("defn_lvar_boundary",
             "Rewriter"    => :same,
@@ -994,8 +994,8 @@ class R2CTestCase < ParseTreeTestCase
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
             "CRewriter"   => :skip,
-            "RubyToRubyC" => :skip,
-            "RubyToAnsiC" => :skip)
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
 
   add_tests("defn_or",
             "Rewriter"    => :same,
@@ -1009,8 +1009,8 @@ class R2CTestCase < ParseTreeTestCase
                                Type.function(Type.unknown, [Type.unknown],
                                              Type.void)),
             "CRewriter"   => :same,
-            "RubyToRubyC" => "static VALUE\nrrc_c_or(VALUE self, VALUE o) {\nQnil;\n}",
-            "RubyToAnsiC" => "void\nor(void * o) {\nNULL;\n}")
+            "RubyToAnsiC" => "void\nor(void * o) {\nNULL;\n}",
+            "RubyToRubyC" => "static VALUE\nrrc_c_or(VALUE self, VALUE o) {\nQnil;\n}")
 
   add_tests("defn_rescue",
             "Rewriter"    => :same,
@@ -1047,8 +1047,8 @@ class R2CTestCase < ParseTreeTestCase
                                    Type.unknown), Type.void),
                                Type.function(Type.unknown, [], Type.unknown_list)),
             "CRewriter"   => :same,
-            "RubyToRubyC" => "static VALUE\nrrc_c_zarray(VALUE self) {\nVALUE a;\na = rb_ary_new2(0);\nreturn a;\n}",
-            "RubyToAnsiC" => "void *\nzarray() {\nvoid * a;\na = (void *) malloc(sizeof(void *) * 0);\nreturn a;\n}")
+            "RubyToAnsiC" => "void *\nzarray() {\nvoid * a;\na = (void *) malloc(sizeof(void *) * 0);\nreturn a;\n}",
+            "RubyToRubyC" => "static VALUE\nrrc_c_zarray(VALUE self) {\nVALUE a;\na = rb_ary_new2(0);\nreturn a;\n}")
 
   add_tests("defs",
             "Rewriter"    => :same,
@@ -1089,8 +1089,8 @@ class R2CTestCase < ParseTreeTestCase
             "Rewriter"    => :skip,
             "TypeChecker" => :skip,
             "CRewriter"   => :skip,
-            "RubyToRubyC" => :skip,
-            "RubyToAnsiC" => :skip)
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
 
   add_tests("dot2",
             "Rewriter"    => :same,
@@ -1343,8 +1343,8 @@ class R2CTestCase < ParseTreeTestCase
             # TODO: test s(:gvar, :$stderr) != t(:gvar, $stderr, Type.file)
             "TypeChecker" => t(:gvar, :$stderr, Type.file),
             "CRewriter"   => :same,
-            "RubyToRubyC" => "rb_gv_get(\"$stderr\")",
-            "RubyToAnsiC" => "stderr")
+            "RubyToAnsiC" => "stderr",
+            "RubyToRubyC" => "rb_gv_get(\"$stderr\")")
 
   add_tests("gvar",
             "Rewriter"    => :same,
@@ -1410,8 +1410,8 @@ class R2CTestCase < ParseTreeTestCase
                                t(:str, ". So there.", Type.str),
                                Type.str),
             "CRewriter"   => :same,
-            "RubyToRubyC" => "rb_funcall(rb_mKernel, rb_intern(\"sprintf\"), 4, rb_str_new2(\"%s%s%s\"), rb_str_new2(\"var is \"), argl, rb_str_new2(\". So there.\"))",
-            "RubyToAnsiC" => :unsupported)
+            "RubyToAnsiC" => :unsupported,
+            "RubyToRubyC" => "rb_funcall(rb_mKernel, rb_intern(\"sprintf\"), 4, rb_str_new2(\"%s%s%s\"), rb_str_new2(\"var is \"), argl, rb_str_new2(\". So there.\"))")
 
   add_tests("iter", # TODO: not in pttc
             "Rewriter"    => :skip,
@@ -1432,8 +1432,8 @@ class R2CTestCase < ParseTreeTestCase
             #                      :temp_2,
             #                      t(:args, :temp_2, :temp_3),
             #                      t(:scope, t(:block, nil)), Type.void)]],
-            "RubyToRubyC" => "",
-            "RubyToAnsiC" => "")
+            "RubyToAnsiC" => "",
+            "RubyToRubyC" => "")
 
   add_tests("iteration1",
             "Rewriter"    => :same,
@@ -1745,36 +1745,36 @@ var[1] = "bar"')
                                  Type.long),
                                Type.long),
             "CRewriter"   => :same,
-            "RubyToRubyC" => 'c = rb_funcall(LONG2NUM(2), rb_intern("+"), 1, LONG2NUM(3))', # FIX: probably not "c ="
-            "RubyToAnsiC" => "c = 2 + 3")
+            "RubyToAnsiC" => "c = 2 + 3", # FIX: probably not "c =
+            "RubyToRubyC" => 'c = rb_funcall(LONG2NUM(2), rb_intern("+"), 1, LONG2NUM(3))')
 
   add_tests("lit_bool_false",
             "Rewriter"    => :same,
             "TypeChecker" => t(:false, Type.bool),
             "CRewriter"   => :same,
-            "RubyToRubyC" => "Qfalse",
-            "RubyToAnsiC" => "0")
+            "RubyToAnsiC" => "0",
+            "RubyToRubyC" => "Qfalse")
 
   add_tests("lit_bool_true",
             "Rewriter"    => :same,
             "TypeChecker" => t(:true, Type.bool),
             "CRewriter"   => :same,
-            "RubyToRubyC" => "Qtrue",
-            "RubyToAnsiC" => "1")
+            "RubyToAnsiC" => "1",
+            "RubyToRubyC" => "Qtrue")
 
   add_tests("lit_float",
             "Rewriter"    => :same,
             "TypeChecker" => t(:lit, 1.1, Type.float),
             "CRewriter"   => :same,
-            "RubyToRubyC" => "rb_float_new(1.1)",
-            "RubyToAnsiC" => "1.1")
+            "RubyToAnsiC" => "1.1",
+            "RubyToRubyC" => "rb_float_new(1.1)")
 
   add_tests("lit_long",
             "Rewriter"    => :same,
             "TypeChecker" => t(:lit, 1, Type.long),
             "CRewriter"   => :same,
-            "RubyToRubyC" => "LONG2NUM(1)",
-            "RubyToAnsiC" => "1")
+            "RubyToAnsiC" => "1",
+            "RubyToRubyC" => "LONG2NUM(1)")
 
   add_tests("lit_long_negative",
             "Rewriter"    => :same,
@@ -1834,8 +1834,8 @@ var[1] = "bar"')
             "Rewriter"    => :same,
             "TypeChecker" => t(:str, "x", Type.str),
             "CRewriter"   => :same,
-            "RubyToRubyC" => 'rb_str_new2("x")',
-            "RubyToAnsiC" => '"x"')
+            "RubyToAnsiC" => '"x"',
+            "RubyToRubyC" => 'rb_str_new2("x")')
 
   add_tests("lit_sym",
             "Rewriter"    => :same,
@@ -2536,8 +2536,8 @@ return \"foo\";
             "Rewriter"    => :same,
             "TypeChecker" => t(:call, nil, :method, t(:arglist), Type.unknown),
             "CRewriter"   => :same,
-            "RubyToRubyC" => "rb_funcall(self, rb_intern(\"method\"), 0)",
-            "RubyToAnsiC" => "method()")
+            "RubyToAnsiC" => "method()",
+            "RubyToRubyC" => "rb_funcall(self, rb_intern(\"method\"), 0)")
 
   add_tests("while_post",
             "Rewriter"    => :same,
@@ -2634,8 +2634,8 @@ return \"foo\";
                                  Type.void),
                                Type.function(Type.unknown, [], Type.void)),
             "CRewriter"   => :same,
-            "RubyToRubyC" => "static VALUE\nrrc_c_whiles(VALUE self) {\nwhile (Qfalse) {\nrb_funcall(self, rb_intern(\"puts\"), 1, rb_str_new2(\"false\"));\n};\n{\nrb_funcall(self, rb_intern(\"puts\"), 1, rb_str_new2(\"true\"));\n} while (Qfalse);\n}",
-            "RubyToAnsiC" => "void\nwhiles() {\nwhile (0) {\nputs(\"false\");\n};\n{\nputs(\"true\");\n} while (0);\n}")
+            "RubyToAnsiC" => "void\nwhiles() {\nwhile (0) {\nputs(\"false\");\n};\n{\nputs(\"true\");\n} while (0);\n}",
+            "RubyToRubyC" => "static VALUE\nrrc_c_whiles(VALUE self) {\nwhile (Qfalse) {\nrb_funcall(self, rb_intern(\"puts\"), 1, rb_str_new2(\"false\"));\n};\n{\nrb_funcall(self, rb_intern(\"puts\"), 1, rb_str_new2(\"true\"));\n} while (Qfalse);\n}")
 
   add_tests("xstr",
             "Rewriter"    => :same,
@@ -2670,8 +2670,8 @@ return \"foo\";
             "TypeChecker" => t(:lasgn, :a, t(:array), Type.unknown_list),
             "CRewriter"   => :same,
             # TODO: need to verify that our variable decl will be correct
-            "RubyToRubyC" => "a = rb_ary_new2(0)",
-            "RubyToAnsiC" => "a = (void *) malloc(sizeof(void *) * 0)")
+            "RubyToAnsiC" => "a = (void *) malloc(sizeof(void *) * 0)",
+            "RubyToRubyC" => "a = rb_ary_new2(0)")
 
   add_tests("zsuper",
             "Rewriter"    => :same,
