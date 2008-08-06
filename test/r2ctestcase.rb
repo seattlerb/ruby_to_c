@@ -2062,10 +2062,10 @@ return \"foo\";
 
   add_tests("not",
             "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
+            "TypeChecker" => t(:not, t(:true, Type.bool), Type.bool),
+            "CRewriter"   => :same,
+            "RubyToAnsiC" => "!(1)",
+            "RubyToRubyC" => "!(Qtrue)")
 
   add_tests("nth_ref",
             "Rewriter"    => :same,
