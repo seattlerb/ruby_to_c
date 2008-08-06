@@ -2138,10 +2138,13 @@ return \"foo\";
 
   add_tests("or",
             "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
+            "TypeChecker" => t(:or,
+                               t(:call, nil, :a, t(:arglist), Type.bool),
+                               t(:call, nil, :b, t(:arglist), Type.bool),
+                               Type.bool),
+            "CRewriter"   => :same,
+            "RubyToAnsiC" => 'a() || b()',
+            "RubyToRubyC" => 'rb_funcall(self, rb_intern("a"), 0) || rb_funcall(self, rb_intern("b"), 0)')
 
   add_tests("or_big",
             "Rewriter"    => :same,
