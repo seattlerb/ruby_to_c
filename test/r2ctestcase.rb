@@ -59,10 +59,14 @@ class R2CTestCase < ParseTreeTestCase
 
   add_tests("array",
             "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
+            "TypeChecker" => t(:array,
+                               t(:lit, 1, Type.long),
+                               t(:lit, :b, Type.symbol),
+                               t(:str, "c", Type.str),
+                               Type.hetero),
+            "CRewriter"   => :same,
+            "RubyToAnsiC" => "1, \"b\", \"c\"",
+            "RubyToRubyC" => "LONG2NUM(1), ID2SYM(rb_intern(\"b\")), rb_str_new2(\"c\")")
 
   add_tests("array_pct_W",
             "Rewriter"    => :same,
@@ -1774,50 +1778,54 @@ var[1] = "bar"')
 
   add_tests("lit_long_negative",
             "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
+            "TypeChecker" => t(:lit, -1, Type.long),
+            "CRewriter"   => :same,
+            "RubyToAnsiC" => "-1",
+            "RubyToRubyC" => "LONG2NUM(-1)")
 
   add_tests("lit_range2",
             "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
+            "TypeChecker" => t(:lit, 1..10, Type.range),
+            "CRewriter"   => :same,
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
   add_tests("lit_range3",
             "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
+            "TypeChecker" => t(:lit, 1...10, Type.range),
+            "CRewriter"   => :same,
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
   add_tests("lit_regexp",
             "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
+            "TypeChecker" => t(:lit, /x/, Type.regexp),
+            "CRewriter"   => :same,
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
   add_tests("lit_regexp_i_wwtt",
             "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
+            "TypeChecker" => t(:call,
+                               t(:call, nil, :str, t(:arglist), Type.unknown),
+                               :split,
+                               t(:arglist, t(:lit, //i, Type.regexp)),
+                               Type.unknown),
+            "CRewriter"   => :same,
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
   add_tests("lit_regexp_n",
             "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
+            "TypeChecker" => t(:lit, /x/n, Type.regexp),
+            "CRewriter"   => :same,
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
   add_tests("lit_regexp_once",
             "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
+            "TypeChecker" => t(:lit, /x/, Type.regexp), # HACK - once?
+            "CRewriter"   => :same,
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
@@ -1833,15 +1841,15 @@ var[1] = "bar"')
             "Rewriter"    => :same,
             "TypeChecker" => t(:lit, :x, Type.symbol),
             "CRewriter"   => :same,
-            "RubyToRubyC" => 'ID2SYM(rb_intern("x"))',
-            "RubyToAnsiC" => '"x"') # HACK WRONG! (or... is it?
+            "RubyToAnsiC" => '"x"', # HACK WRONG! (or... is it?
+            "RubyToRubyC" => 'ID2SYM(rb_intern("x"))')
 
   add_tests("lit_sym_splat",
             "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
+            "TypeChecker" => t(:lit, :"*args", Type.symbol),
+            "CRewriter"   => :same,
+            "RubyToAnsiC" => '"*args"',
+            "RubyToRubyC" => 'ID2SYM(rb_intern("*args"))')
 
   add_tests("lvar_def_boundary",
             "Rewriter"    => :same,
