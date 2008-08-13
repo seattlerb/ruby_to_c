@@ -34,25 +34,32 @@ class Type
 
   TYPES = {}
 
+  def self.function lhs_type, arg_types, return_type = nil
+    unless return_type then
+      $stderr.puts "\nWARNING: adding Type.unknown for #{caller[0]}" if $DEBUG
+      # TODO: gross, maybe go back to the *args version from method_missing
+      return_type = arg_types
+      arg_types = lhs_type
+      lhs_type = Type.unknown
+    end
+
+    self.new FunctionType.new(lhs_type, arg_types, return_type)
+  end
+
+  def self.unknown
+    self.new :unknown
+  end
+
   def self.method_missing(type, *args)
-    raise "Unknown type Type.#{type} (#{type.inspect})" unless Type::KNOWN_TYPES.has_key?(type)
-    case type 
-    when :unknown then
-      return self.new(type)
-    when :function then
-      if args.size == 2 then
-        $stderr.puts "\nWARNING: adding Type.unknown for #{caller[0]}" if $DEBUG
-        args.unshift Type.unknown
-      end
-      return self.new(FunctionType.new(*args))
+    raise "Unknown type Type.#{type} (#{type.inspect})" unless
+      Type::KNOWN_TYPES.has_key?(type)
+
+    if type.to_s =~ /(.*)_list$/ then
+      TYPES[type] = self.new($1.intern, true) unless TYPES.has_key?(type)
+      return TYPES[type]
     else
-      if type.to_s =~ /(.*)_list$/ then
-        TYPES[type] = self.new($1.intern, true) unless TYPES.has_key?(type)
-        return TYPES[type]
-      else
-        TYPES[type] = self.new(type) unless TYPES.has_key?(type)
-        return TYPES[type]
-      end
+      TYPES[type] = self.new(type) unless TYPES.has_key?(type)
+      return TYPES[type]
     end
   end
 

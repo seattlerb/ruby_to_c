@@ -133,10 +133,11 @@ class TypeChecker < SexpProcessor
     @genv.add :$stdout, Type.file
     @genv.add :$stderr, Type.file
 
-    ObjectSpace.each_object(Class) do |klass|
-      next if klass.name =~ /::/ # only 2 classes is core, but many others
-      @genv.add klass.name.intern, Type.fucked
-    end
+# HACK: this doesn't seem necessary and adds up to 10% of our test time
+#     ObjectSpace.each_object(Class) do |klass|
+#       next if klass.name =~ /::/ # only 2 classes is core, but many others
+#       @genv.add klass.name.intern, Type.fucked
+#     end
 
     $bootstrap.each do |name,signatures|
       # FIX: Using Type.send because it must go through method_missing, not new

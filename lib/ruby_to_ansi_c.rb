@@ -15,7 +15,7 @@ require 'environment'
 # HACK: only here for bootstrapping
 class Sexp # Lets us play with the big boys
   def sexp_type # sort=skip
-    return Type.value
+    return Type.new(:value)
   end
 end
 
