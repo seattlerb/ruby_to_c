@@ -1169,6 +1169,13 @@ class R2CTestCase < ParseTreeTestCase
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
+  add_tests("dstr_gross",
+            "Rewriter"    => :same,
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
+
   add_tests("dstr_heredoc_expand",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
@@ -1544,7 +1551,7 @@ class R2CTestCase < ParseTreeTestCase
             #   static_temp_4 = arrays;
             #   return Qnil;
             #   }"]]
-)
+            )
 
   add_tests("iteration3",
             "Rewriter"    => :same,
