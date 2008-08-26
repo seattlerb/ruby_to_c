@@ -143,6 +143,20 @@ class R2CTestCase < ParseTreeTestCase
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
+  add_tests("begin_rescue_twice_mri_verbose_flag",
+            "Rewriter"    => :same,
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
+
+  add_tests("block_attrasgn",
+            "Rewriter"    => :same,
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
+
   add_tests("block_lasgn",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
@@ -220,6 +234,13 @@ class R2CTestCase < ParseTreeTestCase
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
+  add_tests("block_pass_super",
+            "Rewriter"    => :same,
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
+
   add_tests("block_pass_thingy",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
@@ -234,6 +255,13 @@ class R2CTestCase < ParseTreeTestCase
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
+  add_tests("block_stmt_after_mri_verbose_flag",
+            "Rewriter"    => :same,
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
+
   add_tests("block_stmt_before",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
@@ -241,7 +269,21 @@ class R2CTestCase < ParseTreeTestCase
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
+  add_tests("block_stmt_before_mri_verbose_flag",
+            "Rewriter"    => :same,
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
+
   add_tests("block_stmt_both",
+            "Rewriter"    => :same,
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
+
+  add_tests("block_stmt_both_mri_verbose_flag",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
             "CRewriter"   => :skip,
@@ -1013,6 +1055,13 @@ class R2CTestCase < ParseTreeTestCase
             "RubyToRubyC" => "static VALUE\nrrc_c_or(VALUE self, VALUE o) {\nQnil;\n}")
 
   add_tests("defn_rescue",
+            "Rewriter"    => :same,
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
+
+  add_tests("defn_rescue_mri_verbose_flag",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
             "CRewriter"   => :skip,
@@ -1886,6 +1935,13 @@ var[1] = "bar"')
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
+  add_tests("masgn_attrasgn_idx",
+            "Rewriter"    => :same,
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
+
   add_tests("masgn_iasgn",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
@@ -2553,6 +2609,13 @@ return \"foo\";
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
+  add_tests("while_post2",
+            "Rewriter"    => :same,
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
+
   add_tests("while_post_not",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
@@ -2651,21 +2714,21 @@ return \"foo\";
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
-  add_tests("yield",
+  add_tests("yield_0",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
             "CRewriter"   => :skip,
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
-  add_tests("yield_arg",
+  add_tests("yield_1",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
             "CRewriter"   => :skip,
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
-  add_tests("yield_args",
+  add_tests("yield_n",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
             "CRewriter"   => :skip,
