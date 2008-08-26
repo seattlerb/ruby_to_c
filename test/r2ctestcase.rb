@@ -70,6 +70,16 @@ class R2CTestCase < ParseTreeTestCase
 
   add_tests("array_pct_W",
             "Rewriter"    => :same,
+            "TypeChecker" => t(:array,
+                               t(:str, "a", Type.str),
+                               t(:str, "b", Type.str),
+                               t(:str, "c", Type.str)),
+            "CRewriter"   => :same,
+            "RubyToAnsiC" => "\"a\", \"b\", \"c\"",
+            "RubyToRubyC" => "rb_str_new2(\"a\"), rb_str_new2(\"b\"), rb_str_new2(\"c\")")
+
+  add_tests("array_pct_W_dstr",
+            "Rewriter"    => :same,
             "TypeChecker" => :skip,
             "CRewriter"   => :skip,
             "RubyToAnsiC" => :skip,
@@ -84,17 +94,29 @@ class R2CTestCase < ParseTreeTestCase
 
   add_tests("attrasgn_index_equals",
             "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
+            "TypeChecker" => t(:attrasgn,
+                               t(:call, nil, :a, t(:arglist), Type.unknown),
+                               :[]=,
+                               t(:arglist,
+                                 t(:lit, 42, Type.long),
+                                 t(:lit, 24, Type.long))),
+            "CRewriter"   => :same,
             "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
+            "RubyToRubyC" => :skip) # TODO: rubyc should be ok with this
 
   add_tests("attrasgn_index_equals_space",
             "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
+            "TypeChecker" => t(:block,
+                                t(:lasgn, :a, t(:array), Type.unknown_list),
+                               t(:attrasgn,
+                                 t(:lvar, :a, Type.unknown_list),
+                                 :[]=,
+                                 t(:arglist,
+                                   t(:lit, 42, Type.long),
+                                   t(:lit, 24, Type.long))), Type.unknown),
+            "CRewriter"   => :same,
             "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
+            "RubyToRubyC" => :skip) # TODO: rubyc should be ok with this
 
   add_tests("attrset",
             "Rewriter"    => s(:defn, :writer=,
@@ -103,10 +125,20 @@ class R2CTestCase < ParseTreeTestCase
                                  s(:block,
                                    s(:return,
                                      s(:iasgn, :@writer, s(:lvar, :arg)))))),
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
+            "TypeChecker" => t(:defn, :writer=,
+                               t(:args, t(:arg, Type.unknown)),
+                               t(:scope,
+                                 t(:block,
+                                   t(:return,
+                                     t(:iasgn, :@writer,
+                                       t(:lvar, :arg, Type.unknown),
+                                       Type.unknown),
+                                     Type.void), Type.unknown), Type.void),
+                               Type.function(Type.unknown,
+                                             [Type.unknown], Type.unknown)),
+            "CRewriter"   => :same,
+            "RubyToAnsiC" => "void *\nwriter=(void * arg) {\nreturn self->writer = arg;\n}",
+            "RubyToRubyC" => "static VALUE\nrrc_c_writer_equals(VALUE self, VALUE arg) {\nreturn self->writer = arg;\n}")
 
   add_tests("back_ref",
             "Rewriter"    => :same,
