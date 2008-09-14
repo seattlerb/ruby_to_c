@@ -1432,6 +1432,13 @@ class R2CTestCase < ParseTreeTestCase
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
+  add_tests("call_arglist_space",
+            "Rewriter"    => :same,
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
+
   add_tests("fcall_block",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
@@ -1838,6 +1845,13 @@ argl = rb_funcall(argl, rb_intern("-"), 1, LONG2NUM(1));
             "RubyToRubyC" => :skip)
 
   add_tests("iterationA",
+            "Rewriter"    => :same,
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
+
+  add_tests("iteration_call_arglist_space",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
             "CRewriter"   => :skip,
