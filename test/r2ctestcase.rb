@@ -1134,13 +1134,6 @@ class R2CTestCase < ParseTreeTestCase
             "RubyToAnsiC" => "void\nis_something() {\nNULL;\n}",
             "RubyToRubyC" => "static VALUE\nrrc_c_is_something(VALUE self) {\nQnil;\n}")
 
-  add_tests("defn_lvar_boundary",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
   add_tests("defn_optargs",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
