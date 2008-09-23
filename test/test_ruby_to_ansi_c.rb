@@ -8,6 +8,10 @@ require 'r2ctestcase'
 
 class TestRubyToAnsiC < R2CTestCase
 
+  unless defined? Mini then
+    alias :refute_nil :assert_not_nil
+  end
+
   def setup
     @ruby_to_c = RubyToAnsiC.new
     @ruby_to_c.env.extend
@@ -55,7 +59,7 @@ class TestRubyToAnsiC < R2CTestCase
   end
 
   def test_env
-    assert_not_nil @ruby_to_c.env
+    refute_nil @ruby_to_c.env
     assert_kind_of Environment, @ruby_to_c.env
   end
 

@@ -6,6 +6,10 @@ require 'typed_sexp'
 
 class TestTypedSexp < TestSexp
 
+  unless defined? Mini then
+    alias :refute_equal :assert_not_equal
+  end
+
   def setup
     super
     @sexp.sexp_type = Type.str
@@ -21,28 +25,28 @@ class TestTypedSexp < TestSexp
     sexp2 = s(1, 2, 3)
     sexp3 = t(1, 2, 3, Type.str)
     assert_equal(@sexp, sexp3)
-    assert_not_equal(@sexp, sexp2)
+    refute_equal(@sexp, sexp2)
   end
 
   def test_equals_array_typed
     # can't use assert_equals because it uses array as receiver
-    assert_not_equal(@sexp, [1, 2, 3, Type.str],
-                     "Sexp must not be equal to equivalent array")
+    refute_equal(@sexp, [1, 2, 3, Type.str],
+                 "Sexp must not be equal to equivalent array")
     # both directions just in case
-    assert_not_equal([1, 2, 3, Type.str], @sexp,
-                     "Sexp must not be equal to equivalent array")
+    refute_equal([1, 2, 3, Type.str], @sexp,
+                 "Sexp must not be equal to equivalent array")
   end
 
   def test_equals_not_body_typed
     sexp2 = t(1, 2, 5)
     sexp2.sexp_type = Type.str
-    assert_not_equal(@sexp, sexp2)
+    refute_equal(@sexp, sexp2)
   end
 
   def test_equals_not_type
     sexp2 = t(1, 2, 3)
     sexp2.sexp_type = Type.long
-    assert_not_equal(@sexp, sexp2)
+    refute_equal(@sexp, sexp2)
   end
 
   def test_equals_sexp

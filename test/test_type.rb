@@ -8,6 +8,11 @@ require 'sexp_processor' # for deep clone FIX ?
 
 class TestType < Test::Unit::TestCase
 
+  unless defined? Mini then
+    alias :refute_equal :assert_not_equal
+    alias :refute_same  :assert_not_same
+  end
+
   def setup
     @unknown = Type.unknown
     @unknown_list = Type.unknown_list
@@ -73,9 +78,8 @@ class TestType < Test::Unit::TestCase
   end
 
   def test_function
-    assert_nothing_raised do
-      Type.function([Type.unknown], Type.unknown)
-    end
+    # TODO: actually TEST something here
+    Type.function([Type.unknown], Type.unknown)
   end
 
   def test_list_type
@@ -84,9 +88,9 @@ class TestType < Test::Unit::TestCase
 
   def test_equals
     type = Type.long
-    assert_not_equal @unknown, type
+    refute_equal @unknown, type
     assert_equal @long, type
-    assert_not_equal @long_list, type
+    refute_equal @long_list, type
   end
 
   def test_hash
@@ -109,8 +113,8 @@ class TestType < Test::Unit::TestCase
 
   def test_list_equal
     type = Type.new(:long, true)
-    assert_not_equal @unknown, type
-    assert_not_equal @long, type
+    refute_equal @unknown, type
+    refute_equal @long, type
     assert_equal @long_list, type
   end
 
@@ -121,12 +125,12 @@ class TestType < Test::Unit::TestCase
 
   def test_unknown?
     assert_equal Type.unknown, Type.unknown
-    assert_not_same Type.unknown, Type.unknown
+    refute_same Type.unknown, Type.unknown
   end
 
   def test_unknown_list
     assert_equal @unknown_list, Type.unknown_list
-    assert_not_same Type.unknown_list, Type.unknown_list
+    refute_same Type.unknown_list, Type.unknown_list
     assert @unknown_list.list?
   end
 

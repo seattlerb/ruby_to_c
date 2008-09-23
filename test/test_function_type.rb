@@ -9,6 +9,10 @@ require 'type'
 
 class TestFunctionType < Test::Unit::TestCase
 
+  unless defined? Mini then
+    alias :refute_equal :assert_not_equal
+  end
+
   def setup
     @function_type = FunctionType.new Type.void, [Type.long, Type.str], Type.value
   end
@@ -57,7 +61,7 @@ class TestFunctionType < Test::Unit::TestCase
         if i == j then
           assert_equal fun1, fun2
         else
-          assert_not_equal fun1, fun2
+          refute_equal fun1, fun2
         end
       end
     end

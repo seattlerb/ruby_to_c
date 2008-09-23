@@ -3,7 +3,7 @@
 require 'autotest/restart'
 
 Autotest.add_hook :initialize do |at|
-  at.libs << ":../../ParseTree/dev/lib:../../ParseTree/dev/test:../../RubyInline/dev"
+  at.libs << ":../../ParseTree/dev/lib:../../ParseTree/dev/test:../../RubyInline/dev/lib:../../sexp_processor/dev/lib:../../sexp_processor/dev/test"
   at.extra_files << "../../ParseTree/dev/test/pt_testcase.rb"
 
   at.add_mapping(/(pt_|r2c)testcase/) do |f, _|
