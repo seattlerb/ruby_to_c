@@ -7,6 +7,7 @@ Hoe.add_include_dirs("../../ParseTree/dev/lib",
                      "../../ParseTree/dev/test",
                      "../../RubyInline/dev/lib",
                      "../../ruby_parser/dev/lib",
+                     "../../ZenTest/dev/lib",
                      "../../sexp_processor/dev/lib",
                      "../../sexp_processor/dev/test",
                      "lib")
