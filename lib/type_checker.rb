@@ -110,8 +110,8 @@ class TypeChecker < SexpProcessor
 
   def initialize # :nodoc:
     super
-    @env = Environment.new
-    @genv = Environment.new
+    @env = ::Environment.new
+    @genv = ::Environment.new
     @functions = FunctionTable.new
     self.auto_shift_type = true
 #    self.strict = true

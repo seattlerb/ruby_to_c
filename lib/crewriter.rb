@@ -31,7 +31,7 @@ class CRewriter < SexpProcessor
     super
     self.auto_shift_type = true
     self.expected = TypedSexp
-    @env = Environment.new
+    @env = ::Environment.new
     @extra_methods = []
   end
 
