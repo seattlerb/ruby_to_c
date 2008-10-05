@@ -85,6 +85,23 @@ class R2CTestCase < ParseTreeTestCase
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
+  add_tests("array_pct_w",
+            "Rewriter"    => :same,
+            "TypeChecker" => t(:array,
+                               t(:str, "a", Type.str),
+                               t(:str, "b", Type.str),
+                               t(:str, "c", Type.str)),
+            "CRewriter"   => :same,
+            "RubyToAnsiC" => "\"a\", \"b\", \"c\"",
+            "RubyToRubyC" => "rb_str_new2(\"a\"), rb_str_new2(\"b\"), rb_str_new2(\"c\")")
+
+  add_tests("array_pct_w_dstr",
+            "Rewriter"    => :same,
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
+
   add_tests("attrasgn",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
