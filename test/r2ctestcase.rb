@@ -2298,6 +2298,13 @@ return \"foo\";
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
+  add_tests("rescue_block_body_ivar",
+            "Rewriter"    => :same,
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
+
   add_tests("rescue_block_body_3",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
@@ -2334,6 +2341,13 @@ return \"foo\";
             "RubyToRubyC" => :skip)
 
   add_tests("rescue_lasgn_var_empty",
+            "Rewriter"    => :same,
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
+
+  add_tests("rescue_iasgn_var_empty",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
             "CRewriter"   => :skip,
