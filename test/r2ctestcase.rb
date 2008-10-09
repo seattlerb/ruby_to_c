@@ -2816,6 +2816,13 @@ return \"foo\";
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
+  add_tests("yield_array",
+            "Rewriter"    => :same,
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
+
   add_tests("zarray",
             "Rewriter"    => :same,
             "TypeChecker" => t(:lasgn, :a, t(:array), Type.unknown_list),
