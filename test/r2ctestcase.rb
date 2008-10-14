@@ -2487,7 +2487,28 @@ return \"foo\";
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
-  add_tests("super",
+  add_tests("super_0",
+            "Rewriter"    => :same,
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
+
+  add_tests("super_1",
+            "Rewriter"    => :same,
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
+
+  add_tests("super_1_array",
+            "Rewriter"    => :same,
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
+
+  add_tests("super_n",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
             "CRewriter"   => :skip,
