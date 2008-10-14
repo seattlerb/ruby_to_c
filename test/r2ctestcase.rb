@@ -2529,13 +2529,6 @@ return \"foo\";
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
-  add_tests("super_multi",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
   add_tests("svalue",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
@@ -2838,6 +2831,13 @@ return \"foo\";
             "RubyToRubyC" => :skip)
 
   add_tests("yield_array",
+            "Rewriter"    => :same,
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
+
+  add_tests("yield_zarray",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
             "CRewriter"   => :skip,
