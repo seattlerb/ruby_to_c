@@ -1041,6 +1041,13 @@ class R2CTestCase < ParseTreeTestCase
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
+  add_tests("defs_expr_wtf",
+            "Rewriter"    => :same,
+            "TypeChecker" => :skip,
+            "CRewriter"   => :skip,
+            "RubyToAnsiC" => :skip,
+            "RubyToRubyC" => :skip)
+
   add_tests("dmethod",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
