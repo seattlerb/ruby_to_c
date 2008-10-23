@@ -290,13 +290,6 @@ class R2CTestCase < ParseTreeTestCase
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
-  add_tests("block_pass_super",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
   add_tests("block_pass_thingy",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
