@@ -9,6 +9,17 @@ require 'unique'
 
 class R2CTestCase < ParseTreeTestCase
 
+  def self.add_skipped_tests *names
+    names.each do |name|
+      add_tests(name,
+                "Rewriter"    => :same,
+                "TypeChecker" => :skip,
+                "CRewriter"   => :skip,
+                "RubyToAnsiC" => :skip,
+                "RubyToRubyC" => :skip)
+    end
+  end
+
   testcase_order.push(*%w(Ruby ParseTree Rewriter TypeChecker
                           CRewriter RubyToAnsiC RubyToRubyC))
 
@@ -2375,6 +2386,8 @@ return \"foo\";
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
+  add_skipped_tests "return_1_splatted"
+
   add_tests("return_n",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
@@ -2396,12 +2409,24 @@ return \"foo\";
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
-  add_tests("splat",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
+  add_skipped_tests("splat",
+                    "splat_array",
+                    "splat_break",
+                    "splat_break_array",
+                    "splat_fcall",
+                    "splat_fcall_array",
+                    "splat_lasgn",
+                    "splat_lasgn_array",
+                    "splat_lit_1",
+                    "splat_lit_n",
+                    "splat_next",
+                    "splat_next_array",
+                    "splat_return",
+                    "splat_return_array",
+                    "splat_super",
+                    "splat_super_array",
+                    "splat_yield",
+                    "splat_yield_array")
 
   add_tests("str",
             "Rewriter"    => :same,
@@ -2830,19 +2855,9 @@ return \"foo\";
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
-  add_tests("yield_array",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("yield_zarray",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
+  add_skipped_tests("yield_array_0")
+  add_skipped_tests("yield_array_1")
+  add_skipped_tests("yield_array_n")
 
   add_tests("zarray",
             "Rewriter"    => :same,
