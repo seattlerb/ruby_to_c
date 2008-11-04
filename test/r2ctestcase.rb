@@ -2848,13 +2848,6 @@ return \"foo\";
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
-  add_tests("yield_splat",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
   add_skipped_tests("yield_array_0")
   add_skipped_tests("yield_array_1")
   add_skipped_tests("yield_array_n")
