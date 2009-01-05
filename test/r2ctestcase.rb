@@ -1971,12 +1971,10 @@ var[1] = "bar"')
             "RubyToAnsiC" => :skip,
             "RubyToRubyC" => :skip)
 
-  add_tests("masgn_splat",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
+  add_skipped_tests("masgn_splat_lhs",
+                    "masgn_splat_rhs_1",
+                    "masgn_splat_rhs_n",
+                    "str_heredoc_empty") 
 
   add_tests("masgn_splat_no_name_to_ary",
             "Rewriter"    => :same,
