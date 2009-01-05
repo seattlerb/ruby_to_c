@@ -23,19 +23,7 @@ class R2CTestCase < ParseTreeTestCase
   testcase_order.push(*%w(Ruby ParseTree Rewriter TypeChecker
                           CRewriter RubyToAnsiC RubyToRubyC))
 
-  add_tests("alias",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("alias_ugh",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
+  # NOTE: all skipped tests are at the end of the file
 
   add_tests("and",
             "Rewriter"    => :same,
@@ -46,27 +34,6 @@ class R2CTestCase < ParseTreeTestCase
             "CRewriter"   => :same,
             "RubyToAnsiC" => "a() && b()",
             "RubyToRubyC" => 'rb_funcall(self, rb_intern("a"), 0) && rb_funcall(self, rb_intern("b"), 0)')
-
-  add_tests("argscat_inside",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("argscat_svalue",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("argspush",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
 
   add_tests("array",
             "Rewriter"    => :same,
@@ -89,13 +56,6 @@ class R2CTestCase < ParseTreeTestCase
             "RubyToAnsiC" => "\"a\", \"b\", \"c\"",
             "RubyToRubyC" => "rb_str_new2(\"a\"), rb_str_new2(\"b\"), rb_str_new2(\"c\")")
 
-  add_tests("array_pct_W_dstr",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
   add_tests("array_pct_w",
             "Rewriter"    => :same,
             "TypeChecker" => t(:array,
@@ -105,20 +65,6 @@ class R2CTestCase < ParseTreeTestCase
             "CRewriter"   => :same,
             "RubyToAnsiC" => "\"a\", \"b\", \"c\"",
             "RubyToRubyC" => "rb_str_new2(\"a\"), rb_str_new2(\"b\"), rb_str_new2(\"c\")")
-
-  add_tests("array_pct_w_dstr",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("attrasgn",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
 
   add_tests("attrasgn_index_equals",
             "Rewriter"    => :same,
@@ -168,209 +114,6 @@ class R2CTestCase < ParseTreeTestCase
             "RubyToAnsiC" => "void *\nwriter=(void * arg) {\nreturn self->writer = arg;\n}",
             "RubyToRubyC" => "static VALUE\nrrc_c_writer_equals(VALUE self, VALUE arg) {\nreturn self->writer = arg;\n}")
 
-  add_tests("back_ref",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("begin",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("begin_def",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("begin_rescue_ensure",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("begin_rescue_ensure_all_empty",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("begin_rescue_twice",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("begin_rescue_twice_mri_verbose_flag",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("block_attrasgn",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("block_lasgn",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("block_mystery_block",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("block_pass_args_and_splat",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("block_pass_call_0",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("block_pass_call_1",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("block_pass_call_n",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("block_pass_fcall_0",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("block_pass_fcall_1",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("block_pass_fcall_n",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("block_pass_omgwtf",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("block_pass_splat",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("block_pass_thingy",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("block_stmt_after",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("block_stmt_after_mri_verbose_flag",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("block_stmt_before",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("block_stmt_before_mri_verbose_flag",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("block_stmt_both",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("block_stmt_both_mri_verbose_flag",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("bmethod",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("bmethod_noargs",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("bmethod_splat",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
   add_tests("bools", # NOTE: not in pttc
             "Rewriter"    => :skip,
             # TODO: why does return false have type void?
@@ -398,139 +141,6 @@ class R2CTestCase < ParseTreeTestCase
             "CRewriter"   => :same,
             "RubyToAnsiC" => "bool\nbools(void * arg1) {\nif (arg1) {\nreturn 0;\n} else {\nreturn 1;\n}\n}",
             "RubyToRubyC" => "static VALUE\nrrc_c_bools(VALUE self, VALUE arg1) {\nif (NIL_P(arg1)) {\nreturn Qfalse;\n} else {\nreturn Qtrue;\n}\n}")
-
-  add_tests("break",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("break_arg",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("call",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("call_arglist",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("call_arglist_hash",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("call_arglist_norm_hash",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("call_arglist_norm_hash_splat",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("call_arglist_space",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("call_command",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("call_expr",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("call_index",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("call_index_no_args",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("call_index_space",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("call_unary_neg",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("case",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("case_nested",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("case_nested_inner_no_expr",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("case_no_expr",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("case_splat",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
 
   add_tests("case_stmt", # TODO: not in pttc
             "Rewriter"    => :skip,
@@ -635,251 +245,6 @@ class R2CTestCase < ParseTreeTestCase
             "RubyToAnsiC" => "str\ncase_stmt() {\nstr result;\nlong var;\nvar = 2;\nresult = \"\";\nif (case_equal_long(var, 1)) {\nputs(\"something\");\nresult = \"red\";\n} else {\nif (case_equal_long(var, 2) || case_equal_long(var, 3)) {\nresult = \"yellow\";\n} else {\nif (case_equal_long(var, 4)) {\n;\n} else {\nresult = \"green\";\n}\n}\n};\nif (case_equal_str(result, \"red\")) {\nvar = 1;\n} else {\nif (case_equal_str(result, \"yellow\")) {\nvar = 2;\n} else {\nif (case_equal_str(result, \"green\")) {\nvar = 3;\n}\n}\n};\nreturn result;\n}",
             "RubyToRubyC" => "static VALUE\nrrc_c_case_stmt(VALUE self) {\nVALUE result;\nVALUE var;\nvar = LONG2NUM(2);\nresult = rb_str_new2(\"\");\nif (rb_funcall(var, rb_intern(\"===\"), 1, LONG2NUM(1))) {\nrb_funcall(self, rb_intern(\"puts\"), 1, rb_str_new2(\"something\"));\nresult = rb_str_new2(\"red\");\n} else {\nif (rb_funcall(var, rb_intern(\"===\"), 1, LONG2NUM(2)) || rb_funcall(var, rb_intern(\"===\"), 1, LONG2NUM(3))) {\nresult = rb_str_new2(\"yellow\");\n} else {\nif (rb_funcall(var, rb_intern(\"===\"), 1, LONG2NUM(4))) {\n;\n} else {\nresult = rb_str_new2(\"green\");\n}\n}\n};\nif (rb_funcall(result, rb_intern(\"===\"), 1, rb_str_new2(\"red\"))) {\nvar = LONG2NUM(1);\n} else {\nif (rb_funcall(result, rb_intern(\"===\"), 1, rb_str_new2(\"yellow\"))) {\nvar = LONG2NUM(2);\n} else {\nif (rb_funcall(result, rb_intern(\"===\"), 1, rb_str_new2(\"green\"))) {\nvar = LONG2NUM(3);\n}\n}\n};\nreturn result;\n}")
 
-  add_tests("cdecl",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("class_plain",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("class_scoped",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("class_scoped3",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("class_super_array",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("class_super_expr",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("class_super_object",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("colon2",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("colon3",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("const",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("constX",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("constY",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("constZ",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("cvar",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("cvasgn",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("cvasgn_cls_method",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("cvdecl",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dasgn_0",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dasgn_1",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dasgn_2",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dasgn_curr",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dasgn_icky",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dasgn_mixed",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defined",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defn_args_block",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defn_args_mand",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defn_args_mand_block",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defn_args_mand_opt",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defn_args_mand_opt_block",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defn_args_mand_opt_splat",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defn_args_mand_opt_splat_block",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defn_args_mand_opt_splat_no_name",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defn_args_mand_splat",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defn_args_mand_splat_block",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defn_args_mand_splat_no_name",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
   add_tests("defn_args_none",
             "Rewriter"    => :same,
             "TypeChecker" => t(:defn, :empty,
@@ -893,62 +258,6 @@ class R2CTestCase < ParseTreeTestCase
             "CRewriter"   => :same,
             "RubyToAnsiC" => "void\nempty() {\nNULL;\n}",
             "RubyToRubyC" => "static VALUE\nrrc_c_empty(VALUE self) {\nQnil;\n}")
-
-  add_tests("defn_args_opt",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defn_args_opt_block",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defn_args_opt_splat",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defn_args_opt_splat_block",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defn_args_opt_splat_no_name",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defn_args_splat",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defn_args_splat_no_name",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defn_fbody", # TODO: not in pttc
-            "Rewriter"    => :skip,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
 
   add_tests("defn_is_something", # TODO: not in pttc
             "Rewriter"    => :skip,
@@ -979,34 +288,6 @@ class R2CTestCase < ParseTreeTestCase
             "RubyToAnsiC" => "void\nor(void * o) {\nNULL;\n}",
             "RubyToRubyC" => "static VALUE\nrrc_c_or(VALUE self, VALUE o) {\nQnil;\n}")
 
-  add_tests("defn_rescue",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defn_rescue_mri_verbose_flag",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defn_something_eh",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defn_splat_no_name",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
   add_tests("defn_zarray",
             "Rewriter"    => :same,
             "TypeChecker" => t(:defn,
@@ -1023,195 +304,6 @@ class R2CTestCase < ParseTreeTestCase
             "CRewriter"   => :same,
             "RubyToAnsiC" => "void *\nzarray() {\nvoid * a;\na = (void *) malloc(sizeof(void *) * 0);\nreturn a;\n}",
             "RubyToRubyC" => "static VALUE\nrrc_c_zarray(VALUE self) {\nVALUE a;\na = rb_ary_new2(0);\nreturn a;\n}")
-
-  add_tests("defs",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defs_empty",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defs_empty_args",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("defs_expr_wtf",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dmethod",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dmethod_added", # TODO: not in pttc
-            "Rewriter"    => :skip,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dot2",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dot3",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dregx",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dregx_interp",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dregx_interp_empty",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dregx_n",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dregx_once",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dregx_once_n_interp",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dstr",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dstr_2",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dstr_3",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dstr_concat",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dstr_gross",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dstr_heredoc_expand",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dstr_heredoc_windoze_sucks",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dstr_heredoc_yet_again",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dstr_nest",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dstr_str_lit_start",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dstr_the_revenge",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dsym",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("dxstr",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
 
   add_tests("ensure",
             "Rewriter"    => :skip,
@@ -1247,111 +339,6 @@ class R2CTestCase < ParseTreeTestCase
             "RubyToAnsiC" => :unsupported,
             "RubyToRubyC" => :unsupported)
 
-  add_tests("false",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("fbody",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("fcall_arglist",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("fcall_arglist_hash",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("fcall_arglist_norm_hash",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("fcall_arglist_norm_hash_splat",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("fcall_block",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("fcall_index_space",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("fcall_keyword",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("flip2",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("flip2_method",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("flip3",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("for",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("for_no_body",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("gasgn",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
   add_tests("global",
             "Rewriter"    => :same,
             "TypeChecker" => :skip,
@@ -1360,97 +347,6 @@ class R2CTestCase < ParseTreeTestCase
             "CRewriter"   => :same,
             "RubyToAnsiC" => "stderr",
             "RubyToRubyC" => "rb_gv_get(\"$stderr\")")
-
-  add_tests("gvar",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("gvar_underscore",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("gvar_underscore_blah",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("hash",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("hash_rescue",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("iasgn",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("if_block_condition",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("if_lasgn_short",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("if_nested",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("if_post",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("if_post_not",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("if_pre",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("if_pre_not",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
 
   add_tests("interpolated", # TODO: not in pttc
             "Rewriter"    => :skip,
@@ -1484,20 +380,6 @@ class R2CTestCase < ParseTreeTestCase
             #                      t(:scope, t(:block, nil)), Type.void)]],
             "RubyToAnsiC" => "",
             "RubyToRubyC" => "")
-
-  add_tests("iter_call_arglist_space",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("iter_dasgn_curr_dasgn_madness",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
 
   add_tests("iter_downto",
             "Rewriter"    => :same,
@@ -1680,62 +562,6 @@ rb_funcall(self, rb_intern("puts"), 1, rb_str_new2("hello"));
 argl = rb_funcall(argl, rb_intern("-"), 1, LONG2NUM(1));
 }')
 
-  add_tests("iter_loop_empty",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("iter_masgn_2",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("iter_masgn_args_splat",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("iter_masgn_args_splat_no_name",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("iter_masgn_splat",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("iter_masgn_splat_no_name",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("iter_shadowed_var",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("iter_upto",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
   add_tests("iter_while",
             "Rewriter"    => :same,
             "TypeChecker" => t(:block,
@@ -1908,144 +734,6 @@ var[1] = "bar"')
             "RubyToAnsiC" => '"*args"',
             "RubyToRubyC" => 'ID2SYM(rb_intern("*args"))')
 
-  add_tests("lvar_def_boundary",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("masgn",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("masgn_argscat",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("masgn_attrasgn",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("masgn_attrasgn_array_rhs",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("masgn_attrasgn_idx",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("masgn_cdecl",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("masgn_iasgn",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("masgn_masgn",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_skipped_tests("masgn_splat_lhs",
-                    "masgn_splat_rhs_1",
-                    "masgn_splat_rhs_n",
-                    "str_heredoc_empty") 
-
-  add_tests("masgn_splat_no_name_to_ary",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("masgn_splat_no_name_trailing",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("masgn_splat_to_ary",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("masgn_splat_to_ary2",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("match",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("match2",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("match3",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("module",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("module_scoped",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("module_scoped3",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
   add_tests("multi_args", # TODO: not in pttc
             "Ruby"        => "def multi_args(arg1, arg2)
                                 arg3 = arg1 * arg2 * 7
@@ -2122,103 +810,12 @@ puts(to_s(arg3));
 return \"foo\";
 }")
 
-  add_tests("next",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("next_arg",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
   add_tests("not",
             "Rewriter"    => :same,
             "TypeChecker" => t(:not, t(:true, Type.bool), Type.bool),
             "CRewriter"   => :same,
             "RubyToAnsiC" => "!(1)",
             "RubyToRubyC" => "!(Qtrue)")
-
-  add_tests("nth_ref",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("op_asgn1",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("op_asgn1_ivar",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("op_asgn2",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("op_asgn2_self",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("op_asgn_and",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("op_asgn_and_ivar2",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("op_asgn_or",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("op_asgn_or_block",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("op_asgn_or_ivar",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("op_asgn_or_ivar2",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
 
   add_tests("or",
             "Rewriter"    => :same,
@@ -2230,544 +827,12 @@ return \"foo\";
             "RubyToAnsiC" => 'a() || b()',
             "RubyToRubyC" => 'rb_funcall(self, rb_intern("a"), 0) || rb_funcall(self, rb_intern("b"), 0)')
 
-  add_tests("or_big",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("or_big2",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("parse_floats_as_args",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("postexe",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("proc_args_0",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("proc_args_1",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("proc_args_2",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("proc_args_no",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("redo",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("rescue",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("rescue_block_body",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("rescue_block_body_ivar",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("rescue_block_body_3",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("rescue_block_nada",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("rescue_exceptions",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("rescue_lasgn",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("rescue_lasgn_var",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("rescue_lasgn_var_empty",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("rescue_iasgn_var_empty",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("retry",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("return_0",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("return_1",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_skipped_tests "return_1_splatted"
-
-  add_tests("return_n",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("sclass",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("sclass_trailing_class",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_skipped_tests("splat",
-                    "splat_array",
-                    "splat_break",
-                    "splat_break_array",
-                    "splat_fcall",
-                    "splat_fcall_array",
-                    "splat_lasgn",
-                    "splat_lasgn_array",
-                    "splat_lit_1",
-                    "splat_lit_n",
-                    "splat_next",
-                    "splat_next_array",
-                    "splat_return",
-                    "splat_return_array",
-                    "splat_super",
-                    "splat_super_array",
-                    "splat_yield",
-                    "splat_yield_array")
-
-  add_tests("str",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("str_concat_newline",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("str_concat_space",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("str_heredoc",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("str_heredoc_call",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("str_heredoc_double",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("str_heredoc_indent",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("str_interp_file",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("structure_extra_block_for_dvar_scoping",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("structure_remove_begin_1",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("structure_remove_begin_2",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("structure_unused_literal_wwtt",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("super_0",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("super_1",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("super_1_array",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("super_n",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("super_block_pass",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("super_block_splat",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("svalue",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("to_ary",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("true",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("undef",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("undef_2",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("undef_3",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("undef_block_1",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("undef_block_2",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("undef_block_3",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("undef_block_3_post",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("undef_block_wtf",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("unless_post",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("unless_post_not",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("unless_pre",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("unless_pre_not",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("until_post",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("until_post_not",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("until_pre",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("until_pre_mod",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("until_pre_not",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("until_pre_not_mod",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("valias",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
   add_tests("vcall",
             "Rewriter"    => :same,
             "TypeChecker" => t(:call, nil, :method, t(:arglist), Type.unknown),
             "CRewriter"   => :same,
             "RubyToAnsiC" => "method()",
             "RubyToRubyC" => "rb_funcall(self, rb_intern(\"method\"), 0)")
-
-  add_tests("while_post",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("while_post2",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("while_post_not",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("while_pre",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("while_pre_mod",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("while_pre_nil",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("while_pre_not",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("while_pre_not_mod",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
 
   add_tests("whiles", # TODO: not in pttc
             "Ruby"        => "def whiles
@@ -2818,38 +883,6 @@ return \"foo\";
             "RubyToAnsiC" => "void\nwhiles() {\nwhile (0) {\nputs(\"false\");\n};\n{\nputs(\"true\");\n} while (0);\n}",
             "RubyToRubyC" => "static VALUE\nrrc_c_whiles(VALUE self) {\nwhile (Qfalse) {\nrb_funcall(self, rb_intern(\"puts\"), 1, rb_str_new2(\"false\"));\n};\n{\nrb_funcall(self, rb_intern(\"puts\"), 1, rb_str_new2(\"true\"));\n} while (Qfalse);\n}")
 
-  add_tests("xstr",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("yield_0",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("yield_1",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_tests("yield_n",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
-
-  add_skipped_tests("yield_array_0")
-  add_skipped_tests("yield_array_1")
-  add_skipped_tests("yield_array_n")
-
   add_tests("zarray",
             "Rewriter"    => :same,
             "TypeChecker" => t(:lasgn, :a, t(:array), Type.unknown_list),
@@ -2858,10 +891,307 @@ return \"foo\";
             "RubyToAnsiC" => "a = (void *) malloc(sizeof(void *) * 0)",
             "RubyToRubyC" => "a = rb_ary_new2(0)")
 
-  add_tests("zsuper",
-            "Rewriter"    => :same,
-            "TypeChecker" => :skip,
-            "CRewriter"   => :skip,
-            "RubyToAnsiC" => :skip,
-            "RubyToRubyC" => :skip)
+
+  add_skipped_tests("alias",
+                    "alias_ugh",
+                    "argscat_inside",
+                    "argscat_svalue",
+                    "argspush",
+                    "array_pct_W_dstr",
+                    "array_pct_w_dstr",
+                    "attrasgn",
+                    "back_ref",
+                    "begin",
+                    "begin_def",
+                    "begin_rescue_ensure",
+                    "begin_rescue_ensure_all_empty",
+                    "begin_rescue_twice",
+                    "begin_rescue_twice_mri_verbose_flag",
+                    "block_attrasgn",
+                    "block_lasgn",
+                    "block_mystery_block",
+                    "block_pass_args_and_splat",
+                    "block_pass_call_0",
+                    "block_pass_call_1",
+                    "block_pass_call_n",
+                    "block_pass_fcall_0",
+                    "block_pass_fcall_1",
+                    "block_pass_fcall_n",
+                    "block_pass_omgwtf",
+                    "block_pass_splat",
+                    "block_pass_thingy",
+                    "block_stmt_after",
+                    "block_stmt_after_mri_verbose_flag",
+                    "block_stmt_before",
+                    "block_stmt_before_mri_verbose_flag",
+                    "block_stmt_both",
+                    "block_stmt_both_mri_verbose_flag",
+                    "bmethod",
+                    "bmethod_noargs",
+                    "bmethod_splat",
+                    "break",
+                    "break_arg",
+                    "call",
+                    "call_arglist",
+                    "call_arglist_hash",
+                    "call_arglist_norm_hash",
+                    "call_arglist_norm_hash_splat",
+                    "call_arglist_space",
+                    "call_command",
+                    "call_expr",
+                    "call_index",
+                    "call_index_no_args",
+                    "call_index_space",
+                    "call_unary_neg",
+                    "case",
+                    "case_nested",
+                    "case_nested_inner_no_expr",
+                    "case_no_expr",
+                    "case_splat",
+                    "cdecl",
+                    "class_plain",
+                    "class_scoped",
+                    "class_scoped3",
+                    "class_super_array",
+                    "class_super_expr",
+                    "class_super_object",
+                    "colon2",
+                    "colon3",
+                    "const",
+                    "constX",
+                    "constY",
+                    "constZ",
+                    "cvar",
+                    "cvasgn",
+                    "cvasgn_cls_method",
+                    "cvdecl",
+                    "dasgn_0",
+                    "dasgn_1",
+                    "dasgn_2",
+                    "dasgn_curr",
+                    "dasgn_icky",
+                    "dasgn_mixed",
+                    "defined",
+                    "defn_args_block",
+                    "defn_args_mand",
+                    "defn_args_mand_block",
+                    "defn_args_mand_opt",
+                    "defn_args_mand_opt_block",
+                    "defn_args_mand_opt_splat",
+                    "defn_args_mand_opt_splat_block",
+                    "defn_args_mand_opt_splat_no_name",
+                    "defn_args_mand_splat",
+                    "defn_args_mand_splat_block",
+                    "defn_args_mand_splat_no_name",
+                    "defn_args_opt",
+                    "defn_args_opt_block",
+                    "defn_args_opt_splat",
+                    "defn_args_opt_splat_block",
+                    "defn_args_opt_splat_no_name",
+                    "defn_args_splat",
+                    "defn_args_splat_no_name",
+                    "defn_rescue",
+                    "defn_rescue_mri_verbose_flag",
+                    "defn_something_eh",
+                    "defn_splat_no_name",
+                    "defs",
+                    "defs_empty",
+                    "defs_empty_args",
+                    "defs_expr_wtf",
+                    "dmethod",
+                    "dot2",
+                    "dot3",
+                    "dregx",
+                    "dregx_interp",
+                    "dregx_interp_empty",
+                    "dregx_n",
+                    "dregx_once",
+                    "dregx_once_n_interp",
+                    "dstr",
+                    "dstr_2",
+                    "dstr_3",
+                    "dstr_concat",
+                    "dstr_gross",
+                    "dstr_heredoc_expand",
+                    "dstr_heredoc_windoze_sucks",
+                    "dstr_heredoc_yet_again",
+                    "dstr_nest",
+                    "dstr_str_lit_start",
+                    "dstr_the_revenge",
+                    "dsym",
+                    "dxstr",
+                    "false",
+                    "fbody",
+                    "fcall_arglist",
+                    "fcall_arglist_hash",
+                    "fcall_arglist_norm_hash",
+                    "fcall_arglist_norm_hash_splat",
+                    "fcall_block",
+                    "fcall_index_space",
+                    "fcall_keyword",
+                    "flip2",
+                    "flip2_method",
+                    "flip3",
+                    "for",
+                    "for_no_body",
+                    "gasgn",
+                    "gvar",
+                    "gvar_underscore",
+                    "gvar_underscore_blah",
+                    "hash",
+                    "hash_rescue",
+                    "iasgn",
+                    "if_block_condition",
+                    "if_lasgn_short",
+                    "if_nested",
+                    "if_post",
+                    "if_post_not",
+                    "if_pre",
+                    "if_pre_not",
+                    "iter_call_arglist_space",
+                    "iter_dasgn_curr_dasgn_madness",
+                    "iter_loop_empty",
+                    "iter_masgn_2",
+                    "iter_masgn_args_splat",
+                    "iter_masgn_args_splat_no_name",
+                    "iter_masgn_splat",
+                    "iter_masgn_splat_no_name",
+                    "iter_shadowed_var",
+                    "iter_upto",
+                    "lvar_def_boundary",
+                    "masgn",
+                    "masgn_argscat",
+                    "masgn_attrasgn",
+                    "masgn_attrasgn_array_rhs",
+                    "masgn_attrasgn_idx",
+                    "masgn_cdecl",
+                    "masgn_iasgn",
+                    "masgn_masgn",
+                    "masgn_splat_lhs",
+                    "masgn_splat_no_name_to_ary",
+                    "masgn_splat_no_name_trailing",
+                    "masgn_splat_rhs_1",
+                    "masgn_splat_rhs_n",
+                    "masgn_splat_to_ary",
+                    "masgn_splat_to_ary2",
+                    "match",
+                    "match2",
+                    "match3",
+                    "module",
+                    "module_scoped",
+                    "module_scoped3",
+                    "next",
+                    "next_arg",
+                    "nth_ref",
+                    "op_asgn1",
+                    "op_asgn1_ivar",
+                    "op_asgn2",
+                    "op_asgn2_self",
+                    "op_asgn_and",
+                    "op_asgn_and_ivar2",
+                    "op_asgn_or",
+                    "op_asgn_or_block",
+                    "op_asgn_or_ivar",
+                    "op_asgn_or_ivar2",
+                    "or_big",
+                    "or_big2",
+                    "parse_floats_as_args",
+                    "postexe",
+                    "proc_args_0",
+                    "proc_args_1",
+                    "proc_args_2",
+                    "proc_args_no",
+                    "redo",
+                    "rescue",
+                    "rescue_block_body",
+                    "rescue_block_body_3",
+                    "rescue_block_body_ivar",
+                    "rescue_block_nada",
+                    "rescue_exceptions",
+                    "rescue_iasgn_var_empty",
+                    "rescue_lasgn",
+                    "rescue_lasgn_var",
+                    "rescue_lasgn_var_empty",
+                    "retry",
+                    "return_0",
+                    "return_1",
+                    "return_1_splatted",
+                    "return_n",
+                    "sclass",
+                    "sclass_trailing_class",
+                    "splat",
+                    "splat_array",
+                    "splat_break",
+                    "splat_break_array",
+                    "splat_fcall",
+                    "splat_fcall_array",
+                    "splat_lasgn",
+                    "splat_lasgn_array",
+                    "splat_lit_1",
+                    "splat_lit_n",
+                    "splat_next",
+                    "splat_next_array",
+                    "splat_return",
+                    "splat_return_array",
+                    "splat_super",
+                    "splat_super_array",
+                    "splat_yield",
+                    "splat_yield_array",
+                    "str",
+                    "str_concat_newline",
+                    "str_concat_space",
+                    "str_heredoc",
+                    "str_heredoc_call",
+                    "str_heredoc_double",
+                    "str_heredoc_empty",
+                    "str_heredoc_indent",
+                    "str_interp_file",
+                    "structure_extra_block_for_dvar_scoping",
+                    "structure_remove_begin_1",
+                    "structure_remove_begin_2",
+                    "structure_unused_literal_wwtt",
+                    "super_0",
+                    "super_1",
+                    "super_1_array",
+                    "super_block_pass",
+                    "super_block_splat",
+                    "super_n",
+                    "svalue",
+                    "to_ary",
+                    "true",
+                    "undef",
+                    "undef_2",
+                    "undef_3",
+                    "undef_block_1",
+                    "undef_block_2",
+                    "undef_block_3",
+                    "undef_block_3_post",
+                    "undef_block_wtf",
+                    "unless_post",
+                    "unless_post_not",
+                    "unless_pre",
+                    "unless_pre_not",
+                    "until_post",
+                    "until_post_not",
+                    "until_pre",
+                    "until_pre_mod",
+                    "until_pre_not",
+                    "until_pre_not_mod",
+                    "valias",
+                    "while_post",
+                    "while_post2",
+                    "while_post_not",
+                    "while_pre",
+                    "while_pre_mod",
+                    "while_pre_nil",
+                    "while_pre_not",
+                    "while_pre_not_mod",
+                    "xstr",
+                    "yield_0",
+                    "yield_1",
+                    "yield_array_0",
+                    "yield_array_1",
+                    "yield_array_n",
+                    "yield_n",
+                    "zsuper")
 end
