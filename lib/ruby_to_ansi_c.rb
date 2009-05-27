@@ -12,13 +12,6 @@ require 'rewriter'
 require 'crewriter'
 require 'environment'
 
-# HACK: only here for bootstrapping
-class Sexp # Lets us play with the big boys
-  def sexp_type # sort=skip
-    return Type.new(:value)
-  end
-end
-
 ##
 # The whole point of this project! RubyToC is an actually very simple
 # SexpProcessor that does the final conversion from Sexp to C code.
