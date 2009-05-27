@@ -5,11 +5,6 @@ require 'test_sexp'
 require 'typed_sexp'
 
 class TestTypedSexp < TestSexp
-
-  unless defined? Mini then
-    alias :refute_equal :assert_not_equal
-  end
-
   def setup
     super
     @sexp.sexp_type = Type.str

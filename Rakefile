@@ -25,6 +25,8 @@ Hoe.new("RubyToC", RubyToAnsiC::VERSION.sub(/-beta-/, '.')) do |r2c|
   r2c.clean_globs.push(*demo_files.map { |f| f + ".c" })
 
   r2c.extra_deps << "ParseTree"
+
+  r2c.testlib = :minitest
 end
 
 task :test => :clean
