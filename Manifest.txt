@@ -3,9 +3,6 @@ History.txt
 Manifest.txt
 README.txt
 Rakefile
-bin/ruby_to_c_show
-bin/ruby_to_c_translate
-bin/ruby_to_c_validate
 demo/char.rb
 demo/factorial.rb
 demo/hello.rb

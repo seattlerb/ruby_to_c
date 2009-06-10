@@ -44,12 +44,11 @@ and the following tools:
 
 == REQUIREMENTS:
 
-* ParseTree - http://rubyforge.org/projects/parsetree/
-* RubyInline - http://rubyforge.org/projects/rubyinline/
+* ruby_parser - http://rubyforge.org/projects/parsetree/
 
 == INSTALL:
 
-* Um. Please don't install this crap yet...
+* sudo gem install RubyToC
 
 == LICENSE:
 

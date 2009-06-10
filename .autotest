@@ -3,7 +3,7 @@
 require 'autotest/restart'
 
 Autotest.add_hook :initialize do |at|
-  l = %w(ParseTree RubyInline sexp_processor minitest)
+  l = %w(ruby_parser RubyInline sexp_processor minitest)
   t = %w(ParseTree sexp_processor)
 
   at.libs << ':' << l.map { |d| "../../#{d}/dev/lib"  }.join(":")
