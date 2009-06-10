@@ -3,7 +3,7 @@
 begin require 'rubygems'; rescue LoadError; end
 require 'type'
 require 'sexp_processor'
-require 'environment'
+require 'r2cenvironment'
 
 ##
 # CRewriter (should probably move this out to its own file) does
@@ -31,7 +31,7 @@ class CRewriter < SexpProcessor
     super
     self.auto_shift_type = true
     self.expected = TypedSexp
-    @env = ::Environment.new
+    @env = ::R2CEnvironment.new
     @extra_methods = []
   end
 

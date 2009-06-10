@@ -4,13 +4,13 @@ $TESTING = true
 
 require 'test/unit' if $0 == __FILE__
 require 'test/unit/testcase'
-require 'environment'
+require 'r2cenvironment'
 require 'type'
 
-class TestEnvironment < Test::Unit::TestCase
+class TestR2CEnvironment < Test::Unit::TestCase
 
   def setup
-    @env = Environment.new
+    @env = R2CEnvironment.new
   end
 
   def test_add

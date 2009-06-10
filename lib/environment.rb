@@ -1,4 +1,7 @@
-class Environment # now inherited from ruby_parser. Extends with the following:
+# HACK: brought in via ruby_parser_extras.rb. implied... mostly
+# require 'environment'
+
+class R2CEnvironment < Environment
 
   TYPE = 0
   VALUE = 1
@@ -10,11 +13,17 @@ class Environment # now inherited from ruby_parser. Extends with the following:
       Symbol === id
     raise ArgumentError, "type must be a valid Type instance" unless
       Type === type
+
     @env[depth][id.to_s.sub(/^\*/, '').intern][TYPE] = type
   end
 
   def depth
     @env.length
+  end
+
+  alias :old_extend :extend
+  def extend # override
+    @env.unshift(Hash.new { |h,k| h[k] = [] })
   end
 
   def get_val(name)

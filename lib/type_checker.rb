@@ -5,7 +5,7 @@ require 'ruby_parser'
 require 'sexp_processor'
 require 'rewriter'
 require 'function_table'
-require 'environment'
+require 'r2cenvironment'
 require 'type'
 require 'typed_sexp'
 
@@ -78,8 +78,8 @@ class TypeChecker < SexpProcessor
 
   def initialize # :nodoc:
     super
-    @env = ::Environment.new
-    @genv = ::Environment.new
+    @env = ::R2CEnvironment.new
+    @genv = ::R2CEnvironment.new
     @functions = FunctionTable.new
     self.auto_shift_type = true
     self.expected = TypedSexp
@@ -105,9 +105,9 @@ class TypeChecker < SexpProcessor
   # for lower level types (in C) comes from.
 
   def bootstrap
-    @genv.add :$stdin, Type.file
-    @genv.add :$stdout, Type.file
-    @genv.add :$stderr, Type.file
+    # @genv.add :$stdin, Type.file
+    # @genv.add :$stdout, Type.file
+    # @genv.add :$stderr, Type.file
 
     $bootstrap.each do |name,signatures|
       # FIX: Using Type.send because it must go through method_missing, not new

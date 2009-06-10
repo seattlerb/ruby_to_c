@@ -10,7 +10,7 @@ require 'composite_sexp_processor'
 require 'type_checker'
 require 'rewriter'
 require 'crewriter'
-require 'environment'
+require 'r2cenvironment'
 
 ##
 # The whole point of this project! RubyToC is an actually very simple
@@ -123,7 +123,7 @@ typedef char * str;
 
   def initialize # :nodoc:
     super
-    @env = ::Environment.new
+    @env = ::R2CEnvironment.new
     self.auto_shift_type = true
     self.unsupported = [:alias, :alloca, :argscat, :argspush, :attrasgn, :attrset, :back_ref, :begin, :block_arg, :block_pass, :bmethod, :break, :case, :cdecl, :cfunc, :colon2, :colon3, :cref, :cvasgn, :cvdecl, :dasgn, :defined, :defs, :dmethod, :dot2, :dot3, :dregx, :dregx_once, :dstr, :dsym, :dxstr, :ensure, :evstr, :fbody, :fcall, :flip2, :flip3, :for, :gasgn, :hash, :ifunc, :last, :masgn, :match, :match2, :match3, :memo, :method, :module, :newline, :next, :nth_ref, :op_asgn_or, :op_asgn1, :op_asgn2, :op_asgn_and, :opt_n, :postexe, :redo, :resbody, :rescue, :retry, :sclass, :self, :splat, :super, :svalue, :to_ary, :undef, :until, :valias, :vcall, :when, :xstr, :yield, :zarray, :zsuper]
 
