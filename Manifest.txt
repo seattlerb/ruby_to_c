@@ -10,10 +10,10 @@ demo/misc.rb
 demo/newarray.rb
 demo/strcat.rb
 lib/crewriter.rb
-lib/environment.rb
 lib/function_table.rb
 lib/function_type.rb
 lib/handle.rb
+lib/r2cenvironment.rb
 lib/rewriter.rb
 lib/ruby_to_ansi_c.rb
 lib/ruby_to_ruby_c.rb
@@ -22,11 +22,11 @@ lib/type_checker.rb
 lib/typed_sexp.rb
 test/r2ctestcase.rb
 test/test_crewriter.rb
-test/test_environment.rb
 test/test_extras.rb
 test/test_function_table.rb
 test/test_function_type.rb
 test/test_handle.rb
+test/test_r2cenvironment.rb
 test/test_rewriter.rb
 test/test_ruby_to_ansi_c.rb
 test/test_ruby_to_ruby_c.rb
