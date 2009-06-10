@@ -916,13 +916,5 @@ class TypeChecker < SexpProcessor
     end
     return result
   end
-
-  def translate(klass, method = nil)
-    @@parser = ParseTree.new(false) unless defined? @@parser
-    @@rewriter = Rewriter.new unless defined? @@rewriter
-    sexp = @@parser.parse_tree_for_method klass, method
-    sexp = @@rewriter.process sexp
-    self.process sexp
-  end
 end
 

@@ -784,18 +784,6 @@ class TestTypeChecker < R2CTestCase
     assert_equal expected, @type_checker.process(input)
   end
 
-#   def test_translate
-#     result = @type_checker.translate DumbClass, :empty
-#     expect = t(:defn,
-#                :empty,
-#                t(:args),
-#                t(:scope,
-#                  t(:block,
-#                    t(:nil, Type.value), Type.unknown), Type.void),
-#                Type.function(Type.unknown, [], Type.void))
-#     assert_equal(expect, result)
-#   end
-
   def add_fake_function(name, reciever_type, return_type, *arg_types)
     @type_checker.functions.add_function(name,
                                          Type.function(reciever_type, arg_types, return_type))
@@ -809,81 +797,5 @@ class TestTypeChecker < R2CTestCase
   def add_fake_gvar(name, type)
     @type_checker.genv.add name, type
   end
-
-    # HACK: this needs to be set up w/ determine args in test_type_checker
-#     "unknown_args" => {
-#       "ParseTree"   => [:defn, :unknown_args,
-#         [:scope, [:block, [:args, :arg1, :arg2], [:return, [:lvar, :arg1]]]]],
-#       "Rewriter" => s(:defn, :unknown_args,
-#                       s(:args, :arg1, :arg2),
-#                       s(:scope,
-#                         s(:block,
-#                           s(:return, s(:lvar, :arg1))))),
-#       "TypeChecker" => t(:defn, :unknown_args,
-#                      t(:args,
-#                        t(:arg1, Type.long),
-#                        t(:arg2, Type.str)),
-#                      t(:scope,
-#                        t(:block,
-#                          t(:return,
-#                            t(:lvar,
-#                              :arg1,
-#                              Type.long),
-#                            Type.void),
-#                          Type.unknown),
-#                        Type.void),
-#                      Type.function(Type.unknown, [Type.long, Type.str], Type.long)),
-#       "R2CRewriter" => :same,
-#       "RubyToC"     => "long
-# unknown_args(long arg1, str arg2) {
-# return arg1;
-# }",
-#     },
-
-#     "determine_args" => {
-#       "ParseTree"   => [:defn, :determine_args,
-#         [:scope, [:block,
-#             [:args],
-#             [:call, [:lit, 5], :==,
-#               [:array,
-#                 [:fcall, :unknown_args,
-#                   [:array, [:lit, 4], [:str, "known"]]]]]]]],
-#       "Rewriter" => s(:defn, :determine_args,
-#                       s(:args),
-#                       s(:scope,
-#                         s(:block,
-#                           s(:call,
-#                             s(:lit, 5), :==,
-#                             s(:arglist, s(:call, nil,
-#                                           :unknown_args,
-#                                           s(:arglist,
-#                                             s(:lit, 4),
-#                                             s(:str, "known")))))))),
-#       "TypeChecker" => t(:defn, :determine_args,
-#                          t(:args),
-#                          t(:scope,
-#                            t(:block,
-#                              t(:call,
-#                                t(:lit,
-#                                  5,
-#                                  Type.long),
-#                                :==,
-#                                t(:arglist,
-#                                  t(:call,
-#                                    nil,
-#                                    :unknown_args,
-#                                    t(:arglist,
-#                                      t(:lit, 4, Type.long),
-#                                      t(:str, "known", Type.str)),
-#                                    Type.long)),
-#                                Type.bool),
-#                              Type.unknown),
-#                            Type.void),
-#                          Type.function(Type.unknown, [], Type.void)),
-#       "R2CRewriter" => :same,
-#       "RubyToC"     => "void\ndetermine_args() {\n5 == unknown_args(4, \"known\");\n}",
-#     },
-
-
 end
 
