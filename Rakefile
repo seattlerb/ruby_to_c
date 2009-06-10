@@ -14,19 +14,19 @@ Hoe.add_include_dirs("../../ParseTree/dev/lib",
 
 require 'ruby_to_ansi_c'
 
-Hoe.new("RubyToC", RubyToAnsiC::VERSION.sub(/-beta-/, '.')) do |r2c|
-  r2c.developer('Ryan Davis', 'ryand-ruby@zenspider.com')
-  r2c.developer('Eric Hodel', 'drbrain@segment7.net')
+Hoe.spec "RubyToC" do
+  developer 'Ryan Davis', 'ryand-ruby@zenspider.com'
+  developer 'Eric Hodel', 'drbrain@segment7.net'
 
   demo_files = Dir["demo/*.rb"].map { |f| File.basename(f, ".rb") }
 
-  r2c.clean_globs << File.expand_path("~/.ruby_inline")
-  r2c.clean_globs.push(*demo_files)
-  r2c.clean_globs.push(*demo_files.map { |f| f + ".c" })
+  clean_globs << File.expand_path("~/.ruby_inline")
+  clean_globs.push(*demo_files)
+  clean_globs.push(*demo_files.map { |f| f + ".c" })
 
-  r2c.extra_deps << "ParseTree"
+  extra_deps << "ruby_parser"
 
-  r2c.testlib = :minitest
+  self.testlib = :minitest
 end
 
 task :test => :clean
