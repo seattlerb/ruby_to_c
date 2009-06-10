@@ -1,5 +1,4 @@
-# HACK: brought in via ruby_parser_extras.rb. implied... mostly
-# require 'environment'
+require 'ruby_parser_extras' # TODO: split out to environment.rb?
 
 class R2CEnvironment < Environment
 
