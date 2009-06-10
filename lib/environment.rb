@@ -1,35 +1,20 @@
-class Environment
+class Environment # now inherited from ruby_parser. Extends with the following:
 
   TYPE = 0
   VALUE = 1
 
   attr_reader :env
 
-  def initialize
-    @env = []
-    self.extend
-  end
-
   def add(id, type, depth = 0)
-    raise "Adding illegal identifier #{id.inspect}" unless Symbol === id
-    raise ArgumentError, "type must be a valid Type instance" unless Type === type
+    raise "Adding illegal identifier #{id.inspect}" unless
+      Symbol === id
+    raise ArgumentError, "type must be a valid Type instance" unless
+      Type === type
     @env[depth][id.to_s.sub(/^\*/, '').intern][TYPE] = type
-  end
-
-  def all
-    @env.reverse.inject { |env, scope| env.merge scope }
-  end
-
-  def current
-    @env.first
   end
 
   def depth
     @env.length
-  end
-
-  def extend
-    @env.unshift(Hash.new { |h,k| h[k] = [] })
   end
 
   def get_val(name)
@@ -54,11 +39,6 @@ class Environment
     ensure
       self.unextend
     end
-  end
-
-  def unextend
-    @env.shift
-    raise "You went too far unextending env" if @env.empty?
   end
 
   def _get(name)

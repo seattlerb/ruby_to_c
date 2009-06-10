@@ -336,22 +336,22 @@ class RubyToRubyC < RubyToAnsiC
   # is true.
 
   def check_args(args, add_self = true)
-      c_args = process args
+    c_args = process args
 
-      c_args.each do |arg|
-        raise UnsupportedNodeError,
-          "'#{arg}' is not a supported variable type" if arg.to_s =~ /^\*/
+    c_args.each do |arg|
+      raise UnsupportedNodeError,
+      "'#{arg}' is not a supported variable type" if arg.to_s =~ /^\*/
+    end
+
+    if add_self then
+      if c_args == '()' then
+        c_args = '(VALUE self)'
+      else
+        c_args.sub! '(', '(VALUE self, '
       end
+    end
 
-      if add_self then
-        if c_args == '()' then
-          c_args = '(VALUE self)'
-        else
-          c_args.sub! '(', '(VALUE self, '
-        end
-      end
-
-      return c_args
+    return c_args
   end
 
   ##

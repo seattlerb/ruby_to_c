@@ -3,7 +3,7 @@ $TESTING = false unless defined? $TESTING
 
 require 'pp'
 begin require 'rubygems'; rescue LoadError; end
-require 'parse_tree'
+require 'ruby_parser'
 require 'sexp_processor'
 require 'composite_sexp_processor'
 
@@ -21,7 +21,7 @@ require 'environment'
 
 class RubyToAnsiC < SexpProcessor
 
-  VERSION = '1.0.0-beta-5'
+  VERSION = '1.0.0.beta.6'
 
   # TODO: remove me
   def no(exp) # :nodoc:
@@ -119,47 +119,6 @@ typedef char * str;
       end
     end
     @translator
-  end
-
-  ##
-  # Front-end utility method for translating an entire class or a
-  # specific method from that class.
-
-  def self.translate(klass, method=nil)
-    # REFACTOR: rename to self.process
-    unless method.nil? then
-      self.translator.process(ParseTree.new(false).parse_tree_for_method(klass, method))
-    else
-      ParseTree.new.parse_tree(klass).map do |k|
-        self.translator.process(ParseTree.new.parse_tree(klass))
-      end
-    end
-  end
-
-  ##
-  # (Primary) Front-end utility method for translating an entire
-  # class. Has special error handlers that convert errors into C++
-  # comments (//...).
-
-  def self.translate_all_of(klass)
-    result = []
-
-    # HACK: make CompositeSexpProcessor have a registered error handler
-    klass.instance_methods(false).sort.each do |method|
-      result << 
-        begin
-          self.translate(klass, method)
-        rescue UnsupportedNodeError => err
-          "// NOTE: #{err} in #{klass}##{method}"
-        rescue UnknownNodeError => err
-          "// ERROR: #{err} in #{klass}##{method}: #{ParseTree.new.parse_tree_for_method(klass, method).inspect}"
-        rescue Exception => err
-          "// ERROR: #{err} in #{klass}##{method}: #{ParseTree.new.parse_tree_for_method(klass, method).inspect} #{err.backtrace.join(', ')}"
-        end
-    end
-
-    prototypes =  self.translator.processors[-1].prototypes
-    "#{prototypes.join('')}\n\n#{result.join("\n\n")}"
   end
 
   def initialize # :nodoc:

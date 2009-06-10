@@ -1,7 +1,7 @@
 
 require 'pp'
 begin require 'rubygems'; rescue LoadError; end
-require 'parse_tree'
+require 'ruby_parser'
 require 'sexp_processor'
 require 'rewriter'
 require 'function_table'
@@ -76,48 +76,24 @@ class TypeChecker < SexpProcessor
 
   attr_reader :functions
 
-  ##
-  # Utility method that translates a class and optional method name to
-  # a type checked sexp. Mostly used for testing.
-
-  ##
-  # Utility method that translates a class and optional method name to
-  # a type checked sexp. Mostly used for testing.
-
-  def self.translate(klass, method = nil)
-    self.new.translate(klass, method)
-  end
-
-  ##
-  # Yet another utility method - this time the official one, although
-  # we don't like the implementation at this stage.
-
-  def self.process(klass, method=nil)
-    processor = self.new
-    rewriter = Rewriter.new
-    sexp = ParseTree.new.parse_tree(klass, method)
-    sexp = [sexp] unless Array === sexp.first
-
-    result = []
-    sexp.each do |exp|
-      # TODO: we need a composite processor to chain these cleanly
-      sexp = rewriter.process(exp)
-      result << processor.process(sexp)
-    end
-
-    result
-  end
-
   def initialize # :nodoc:
     super
     @env = ::Environment.new
     @genv = ::Environment.new
     @functions = FunctionTable.new
     self.auto_shift_type = true
-#    self.strict = true
     self.expected = TypedSexp
 
-    self.unsupported = [:alias, :alloca, :argscat, :argspush, :attrset, :back_ref, :bmethod, :break, :case, :cdecl, :cfunc, :cref, :cvdecl, :dasgn, :defs, :dmethod, :dot2, :dot3, :dregx, :dregx_once, :dsym, :dxstr, :evstr, :fbody, :fcall, :flip2, :flip3, :for, :ifunc, :last, :match, :match2, :match3, :memo, :method, :module, :newline, :next, :nth_ref, :op_asgn1, :op_asgn2, :op_asgn_and, :opt_n, :postexe, :redo, :retry, :sclass, :svalue, :undef, :until, :valias, :vcall, :when, :xstr, :zarray, :zsuper]
+    self.unsupported = [:alias, :alloca, :argscat, :argspush, :attrset,
+                        :back_ref, :bmethod, :break, :case, :cdecl, :cfunc,
+                        :cref, :cvdecl, :dasgn, :defs, :dmethod, :dot2, :dot3,
+                        :dregx, :dregx_once, :dsym, :dxstr, :evstr, :fbody,
+                        :fcall, :flip2, :flip3, :for, :ifunc, :last, :match,
+                        :match2, :match3, :memo, :method, :module, :newline,
+                        :next, :nth_ref, :op_asgn1, :op_asgn2, :op_asgn_and,
+                        :opt_n, :postexe, :redo, :retry, :sclass, :svalue,
+                        :undef, :until, :valias, :vcall, :when, :xstr, :zarray,
+                        :zsuper]
 
     bootstrap
   end
@@ -132,12 +108,6 @@ class TypeChecker < SexpProcessor
     @genv.add :$stdin, Type.file
     @genv.add :$stdout, Type.file
     @genv.add :$stderr, Type.file
-
-# HACK: this doesn't seem necessary and adds up to 10% of our test time
-#     ObjectSpace.each_object(Class) do |klass|
-#       next if klass.name =~ /::/ # only 2 classes is core, but many others
-#       @genv.add klass.name.intern, Type.fucked
-#     end
 
     $bootstrap.each do |name,signatures|
       # FIX: Using Type.send because it must go through method_missing, not new
