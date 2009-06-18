@@ -2,9 +2,9 @@
 
 $TESTING = true
 
+require 'minitest/autorun' if $0 == __FILE__
+require 'minitest/unit'
 require 'type_checker'
-require 'test/unit' if $0 == __FILE__
-require 'test/unit/testcase'
 
 class RandomCode # ZenTest SKIP
   def specific_method(x)
@@ -26,10 +26,9 @@ class RandomCode # ZenTest SKIP
 
 end
 
-class TestExtraTypeChecker < Test::Unit::TestCase # ZenTest SKIP
+class TestExtraTypeChecker < MiniTest::Unit::TestCase # ZenTest SKIP
 
   def setup
-    @parser = ParseTree.new
     @rewriter = Rewriter.new
     @type_checker = TypeChecker.new
   end

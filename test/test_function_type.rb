@@ -2,17 +2,12 @@
 
 $TESTING = true
 
-require 'test/unit' if $0 == __FILE__
-require 'test/unit/testcase'
+require 'minitest/autorun' if $0 == __FILE__
+require 'minitest/unit'
 require 'function_type'
 require 'type'
 
-class TestFunctionType < Test::Unit::TestCase
-
-  unless defined? Mini then
-    alias :refute_equal :assert_not_equal
-  end
-
+class TestFunctionType < MiniTest::Unit::TestCase
   def setup
     @function_type = FunctionType.new Type.void, [Type.long, Type.str], Type.value
   end

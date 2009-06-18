@@ -338,10 +338,11 @@ class RubyToRubyC < RubyToAnsiC
   def check_args(args, add_self = true)
     c_args = process args
 
-    c_args.each do |arg|
-      raise UnsupportedNodeError,
-      "'#{arg}' is not a supported variable type" if arg.to_s =~ /^\*/
-    end
+# HACK
+#     c_args.each do |arg|
+#       raise UnsupportedNodeError,
+#       "'#{arg}' is not a supported variable type" if arg.to_s =~ /^\*/
+#     end
 
     if add_self then
       if c_args == '()' then

@@ -1,6 +1,6 @@
 #!/usr/local/bin/ruby -w
 
-require 'test/unit' if $0 == __FILE__
+require 'minitest/autorun' if $0 == __FILE__
 require 'test_sexp'
 require 'typed_sexp'
 

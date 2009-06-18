@@ -2,12 +2,12 @@
 
 $TESTING = true
 
-require 'test/unit' if $0 == __FILE__
-require 'test/unit/testcase'
+require 'minitest/autorun' if $0 == __FILE__
+require 'minitest/unit'
 require 'function_table'
 require 'type'
 
-class TestFunctionTable < Test::Unit::TestCase
+class TestFunctionTable < MiniTest::Unit::TestCase
 
   def setup
     @function_table = FunctionTable.new

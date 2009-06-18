@@ -2,12 +2,12 @@
 
 $TESTING = true
 
-require 'test/unit' if $0 == __FILE__
-require 'test/unit/testcase'
+require 'minitest/autorun' if $0 == __FILE__
+require 'minitest/unit'
 require 'r2cenvironment'
 require 'type'
 
-class TestR2CEnvironment < Test::Unit::TestCase
+class TestR2CEnvironment < MiniTest::Unit::TestCase
 
   def setup
     @env = R2CEnvironment.new

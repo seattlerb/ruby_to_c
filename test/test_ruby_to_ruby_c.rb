@@ -2,7 +2,7 @@
 
 $TESTING = true
 
-require 'test/unit' if $0 == __FILE__
+require 'minitest/autorun' if $0 == __FILE__
 require 'ruby_to_ruby_c'
 require 'r2ctestcase'
 require 'unique'

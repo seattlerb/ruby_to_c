@@ -2,7 +2,7 @@
 
 $TESTING = true
 
-require 'test/unit' if $0 == __FILE__
+require 'minitest/autorun' if $0 == __FILE__
 require 'rewriter'
 require 'r2ctestcase'
 

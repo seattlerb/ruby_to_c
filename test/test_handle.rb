@@ -2,11 +2,11 @@
 
 $TESTING = true
 
-require 'test/unit' if $0 == __FILE__
-require 'test/unit/testcase'
+require 'minitest/autorun' if $0 == __FILE__
+require 'minitest/unit'
 require 'handle'
 
-class TestHandle < Test::Unit::TestCase
+class TestHandle < MiniTest::Unit::TestCase
 
   def setup
     @handle = Handle.new("text")

@@ -2,17 +2,12 @@
 
 $TESTING = true
 
-require 'test/unit' if $0 == __FILE__
+require 'minitest/autorun' if $0 == __FILE__
+require 'minitest/unit'
 require 'type'
 require 'sexp_processor' # for deep clone FIX ?
 
-class TestType < Test::Unit::TestCase
-
-  unless defined? Mini then
-    alias :refute_equal :assert_not_equal
-    alias :refute_same  :assert_not_same
-  end
-
+class TestType < MiniTest::Unit::TestCase
   def setup
     @unknown = Type.unknown
     @unknown_list = Type.unknown_list

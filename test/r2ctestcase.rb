@@ -1,4 +1,3 @@
-require 'test/unit/testcase'
 require 'sexp_processor' # for deep_clone FIX
 require 'typed_sexp'
 require 'pt_testcase'
