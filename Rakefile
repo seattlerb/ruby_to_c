@@ -11,11 +11,9 @@ Hoe.add_include_dirs("../../ParseTree/dev/test",
 
 Hoe.plugin :seattlerb
 
-Hoe.spec "RubyToC" do
+Hoe.spec "ruby2c" do
   developer 'Ryan Davis', 'ryand-ruby@zenspider.com'
   developer 'Eric Hodel', 'drbrain@segment7.net'
-
-  self.rubyforge_name = 'ruby2c'
 
   extra_deps  << "ruby_parser"
 end
