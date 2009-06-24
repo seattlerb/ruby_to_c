@@ -9,7 +9,7 @@ Hoe.add_include_dirs("../../ParseTree/dev/test",
                      "../../sexp_processor/dev/test",
                      "lib")
 
-Hoe.plugin :minitest
+Hoe.plugin :seattlerb
 
 Hoe.spec "RubyToC" do
   developer 'Ryan Davis', 'ryand-ruby@zenspider.com'

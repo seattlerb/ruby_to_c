@@ -1,11 +1,11 @@
-=== 1.0.0.beta.6 / ????-??-??
+=== 1.0.0.6 / 2009-06-23
 
 1 major enhancement:
 
   * Switched from ParseTree to ruby_parser for 1.9 compatibility. woo.
     * All translate/process methods are gone since we can't reflect at runtime.
 
-42 minor enhancements:
+43 minor enhancements:
 
   * Added IterRewriter for finding free variables in iter nodes.
   * Added dxstr.
@@ -39,6 +39,7 @@
   * Removed dead test
   * Removed redundant defn_lvar_boundary, but added call to lvar_def_boundary.
   * Renamed blocks to extra_methods in ruby_to_ruby_c.
+  * Renamed environment.rb to r2cenvironment.rb (incl tests)
   * Renamed iter_functions to extra_methods in crewriter.
   * Reordered so RubyToRubyC was always after RubyToAnsiC.
   * Some optimizations cleaning up Type#method_missing. Drops test time ~30%.
@@ -50,17 +51,20 @@
   * Track and trigger changes on pt_testcase.rb and r2ctestcase.rb
   * Used Hoe#add_include_dirs to clean up rakefile.
 
-* 9 bug fixes:
+* 12 bug fixes:
 
   * Fix types in iter rewriting.
   * Fix yield([42, 24])
+  * Fixed 1.9-isms.
   * Fixed all rubygems loaders.
   * Fixed dependencies on all tests.
   * Fixed for new (incompatible?) Environment supplied by SexpProcessor
   * Fixed incompatibility with new inline changes.
+  * Fixed requires on ruby_parser
   * Fixed ruby2c to work with autotest.
   * Fixed tests in r2ctestcase for all layers except the C layers.
   * Fixed zentest dependency in rakefile
+  * Fixes for RAD, mostly renaming environment.rb to r2cenvironment.rb at this stage.
 
 === 1.0.0-beta-5 / 2006-05-12
 
