@@ -15,6 +15,8 @@ Hoe.spec "RubyToC" do
   developer 'Ryan Davis', 'ryand-ruby@zenspider.com'
   developer 'Eric Hodel', 'drbrain@segment7.net'
 
+  self.rubyforge_name = 'ruby2c'
+
   extra_deps  << "ruby_parser"
 end
 
