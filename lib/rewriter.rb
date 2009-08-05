@@ -3,7 +3,6 @@ begin require 'rubygems'; rescue LoadError; end
 require 'sexp'
 require 'sexp_processor'
 require 'unique'
-require 'unified_ruby'
 
 class Sexp
   # add arglist because we introduce the new array type in this file
