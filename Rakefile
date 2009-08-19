@@ -15,7 +15,7 @@ Hoe.spec "ruby2c" do
   developer 'Ryan Davis', 'ryand-ruby@zenspider.com'
   developer 'Eric Hodel', 'drbrain@segment7.net'
 
-  extra_deps  << "ruby_parser"
+  extra_deps  << ["ruby_parser", "~> 2.0"]
 end
 
 # vim: syntax=ruby

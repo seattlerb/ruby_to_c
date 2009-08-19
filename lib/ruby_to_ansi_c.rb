@@ -21,7 +21,7 @@ require 'r2cenvironment'
 
 class RubyToAnsiC < SexpProcessor
 
-  VERSION = '1.0.0.6' # HACK version should be 1.0.0.beta.6, but rubygems sucks
+  VERSION = '1.0.0.7' # HACK version should be 1.0.0.beta.7, but rubygems sucks
 
   # TODO: remove me
   def no(exp) # :nodoc:
