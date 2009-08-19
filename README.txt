@@ -21,26 +21,21 @@ RubyToC has the following modules:
 * RubyToRubyC   - converts a ruby (subset) sexp to ruby interals C.
 * RubyToAnsiC   - converts a ruby (subset) sexp to ANSI C.
 
-and the following tools:
-
-* translate.rb  - Translates a given file to C.
-
 == FEATURES/PROBLEMS:
   
 * This is a preview release! BETA BETA BETA! Do NOT use this!
-* Please contact me or Eric (drbrain of segment7 dot net) if you:
-  *  have any feedback!
-  * have any changes!
-  * want to work on this!
 
 == SYNOPSYS:
 
-  ./translate.rb blah.rb > blah.c; gcc -c -I /rubylib/1.8/platform blah.c
+  require 'ruby_parser'
+  require 'ruby_to_ruby_c'
+  
+  sexp = RubyParser.new.parse '1 + 1'
+  c    = RubyToRubyC.new.process sexp
 
 == TODO:
 
 * Numerous, but we are trying to get them in here... sorry...
-* Want to move to a gem directory structure (lib/ test/ bin/ etc)
 
 == REQUIREMENTS:
 
@@ -48,13 +43,13 @@ and the following tools:
 
 == INSTALL:
 
-* sudo gem install RubyToC
+* sudo gem install ruby2c
 
 == LICENSE:
 
 (The MIT License)
 
-Copyright (c) 2001-2008 Ryan Davis, Zen Spider Software
+Copyright (c) Ryan Davis, Eric Hodel, Seattle.rb
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
