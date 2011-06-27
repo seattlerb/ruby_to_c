@@ -1,8 +1,7 @@
 = RubyToC
 
-* http://rubyforge.org/projects/ruby2c/
-* ryand-ruby@zenspider.com
-* ruby2c@zenspider.com - mailing list
+home :: https://github.com/seattlerb/ruby_to_c
+rdoc :: http://ruby2c.rubyforge.org/ruby2c
 
 == DESCRIPTION:
 
@@ -49,7 +48,7 @@ RubyToC has the following modules:
 
 (The MIT License)
 
-Copyright (c) Ryan Davis, Eric Hodel, Seattle.rb
+Copyright (c) Ryan Davis, Eric Hodel, seattle.rb
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
