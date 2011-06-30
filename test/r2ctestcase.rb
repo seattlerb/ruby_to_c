@@ -890,6 +890,26 @@ return \"foo\";
             "RubyToAnsiC" => "a = (void *) malloc(sizeof(void *) * 0)",
             "RubyToRubyC" => "a = rb_ary_new2(0)")
 
+  add_tests("str_question_control__18",
+            "Rewriter"    => :same,
+            "TypeChecker" => t(:lit, 129, Type.long),
+            "CRewriter"   => :same,
+            "RubyToAnsiC" => "129",
+            "RubyToRubyC" => "LONG2NUM(129)")
+
+  add_tests("str_question_escape__18",
+            "Rewriter"    => :same,
+            "TypeChecker" => t(:lit, 10, Type.long),
+            "CRewriter"   => :same,
+            "RubyToAnsiC" => "10",
+            "RubyToRubyC" => "LONG2NUM(10)")
+
+  add_tests("str_question_literal__18",
+            "Rewriter"    => :same,
+            "TypeChecker" => t(:lit, 97, Type.long),
+            "CRewriter"   => :same,
+            "RubyToAnsiC" => "97",
+            "RubyToRubyC" => "LONG2NUM(97)")
 
   add_skipped_tests("alias",
                     "alias_ugh",
@@ -1047,10 +1067,12 @@ return \"foo\";
                     "if_post_not",
                     "if_pre",
                     "if_pre_not",
+                    "iter_args_ivar__18",
                     "iter_call_arglist_space",
                     "iter_dasgn_curr_dasgn_madness",
                     "iter_loop_empty",
                     "iter_masgn_2",
+                    "iter_masgn_args_ivar__18",
                     "iter_masgn_args_splat",
                     "iter_masgn_args_splat_no_name",
                     "iter_masgn_splat",
