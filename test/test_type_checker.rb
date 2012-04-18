@@ -215,8 +215,8 @@ class TestTypeChecker < R2CTestCase
   end
 
   def test_process_call_undefined
-    input  = t(:call, nil, :name, nil)
-    output = t(:call, nil, :name, nil, Type.unknown)
+    input  = t(:call, nil, :name)
+    output = t(:call, nil, :name, t(:arglist), Type.unknown)
 
     assert_equal output, @type_checker.process(input)
     # FIX returns unknown in s()
@@ -523,7 +523,7 @@ class TestTypeChecker < R2CTestCase
                t(:call,
                  t(:lvar, :array, var_type),
                  :each,
-                 nil,
+                 t(:arglist),
                  Type.unknown),
                t(:dasgn_curr, :x, Type.long),
                t(:call,
@@ -533,7 +533,7 @@ class TestTypeChecker < R2CTestCase
                    t(:call,
                      t(:dvar, :x, Type.long),
                      :to_s,
-                     nil,
+                     t(:arglist),
                      Type.str)),
                  Type.void),
                Type.void)
@@ -782,7 +782,7 @@ class TestTypeChecker < R2CTestCase
     input    = t(:while, t(:true), t(:call, t(:lit, 1), :to_s, nil), true)
     expected = t(:while,
                  t(:true, Type.bool),
-                 t(:call, t(:lit, 1, Type.long), :to_s, nil,
+                 t(:call, t(:lit, 1, Type.long), :to_s, t(:arglist),
                    Type.str), true)
 
     assert_equal expected, @type_checker.process(input)

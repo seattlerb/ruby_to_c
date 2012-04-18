@@ -161,7 +161,6 @@ class TypeChecker < SexpProcessor
   def process_arglist(exp)
     args = process_array exp
     args[0] = :arglist
-
     args
   end
 
@@ -177,6 +176,12 @@ class TypeChecker < SexpProcessor
       types << var.sexp_type
     end
     vars
+  end
+
+  def rewrite_attrasgn exp
+    t, lhs, name, *rhs = exp
+
+    s(t, lhs, name, s(:arglist, *rhs))
   end
 
   ##
@@ -237,6 +242,19 @@ class TypeChecker < SexpProcessor
     block = process exp.shift
     call  = process exp.shift
     t(:block_pass, block, call)
+  end
+
+  def rewrite_call(exp)
+    t, recv, meth, *args = exp
+
+    args = args.compact
+    args = [s(:arglist)] if args == []
+
+    unless args.first and args.first.first == :arglist then
+      args = [s(:arglist, *args)]
+    end
+
+    s(t, recv, meth, *args)
   end
 
   ##
@@ -401,6 +419,15 @@ class TypeChecker < SexpProcessor
   def process_defined(exp)
     thing = process exp.shift
     return t(:defined, thing, Type.bool)
+  end
+
+  def rewrite_defn(exp)
+    t, name, args, *body = exp
+
+    body = [s(:scope, s(:block, *body))] unless
+      body and body.first.first == :scope
+
+    s(t, name, args, *body)
   end
 
   ##
