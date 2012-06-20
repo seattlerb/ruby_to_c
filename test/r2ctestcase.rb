@@ -1115,6 +1115,7 @@ return \"foo\";
                     "match2",
                     "match3",
                     "module",
+                    "module2",
                     "module_scoped",
                     "module_scoped3",
                     "next",
