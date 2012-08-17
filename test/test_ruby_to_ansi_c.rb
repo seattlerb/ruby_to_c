@@ -55,7 +55,7 @@ class TestRubyToAnsiC < R2CTestCase
 
   def test_env
     refute_nil @ruby_to_c.env
-    assert_kind_of RubyParser::Environment, @ruby_to_c.env
+    assert_kind_of RubyParserStuff::Environment, @ruby_to_c.env
   end
 
   def test_process_and

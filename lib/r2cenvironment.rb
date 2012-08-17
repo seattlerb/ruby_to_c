@@ -1,6 +1,6 @@
 require 'ruby_parser_extras' # TODO: split out to environment.rb?
 
-class R2CEnvironment < RubyParser::Environment
+class R2CEnvironment < RubyParserStuff::Environment
 
   TYPE = 0
   VALUE = 1
