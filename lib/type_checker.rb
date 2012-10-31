@@ -616,13 +616,33 @@ class TypeChecker < SexpProcessor
     return t(:if, cond_exp, then_exp, else_exp, type)
   end
 
+  def process_arglist_plain(exp)
+    vars = t(:args)
+    until exp.empty? do
+      var = exp.shift
+      case var
+      when Symbol then
+        vars << process(s(:lasgn, var))
+      when Sexp then
+        vars << process(var)
+      else
+        raise "Unknown arglist type: #{var.inspect}"
+      end
+    end
+    vars
+  end
+
   ##
   # Iter unifies the dynamic variables against the call args (dynamic
   # variables are used in the iter body) and returns a void-typed sexp.
 
   def process_iter(exp)
     call_exp = process exp.shift
-    dargs_exp = process exp.shift
+
+    dargs_exp = exp.shift
+    dargs_exp[0] = :arglist_plain
+    dargs_exp = process dargs_exp
+
     body_exp = process exp.shift
 
     lhs = call_exp[1] # FIX
@@ -631,7 +651,10 @@ class TypeChecker < SexpProcessor
       return t(:iter, call_exp, dargs_exp, body_exp, call_exp.sexp_type)
     else
       Type.unknown_list.unify lhs.sexp_type # force a list type, lhs must be Enum
-      Type.new(lhs.sexp_type.list_type).unify dargs_exp.sexp_type # pull out type
+
+      dargs_exp.sexp_body.each do |subexp|
+        Type.new(lhs.sexp_type.list_type).unify subexp.sexp_type
+      end
 
       return t(:iter, call_exp, dargs_exp, body_exp, Type.void)
     end
