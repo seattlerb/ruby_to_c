@@ -1,3 +1,20 @@
+=== 1.0.0.8 / 2012-11-09
+
+* 5 minor enhancements:
+
+  * Added TypeChecker methods: rewrite_attrasgn, rewrite_call, rewrite_defn to reverse structural changes in ruby_parser 3.x.
+  * Added new 1.9 tests from PTTC to skip list
+  * Added new test case data for new 1.8 based tests
+  * Added process_arglist_plain and hooked it up with process_iter to deal with new block sexps.
+  * Renames for ruby_parser namespace changes
+
+* 4 bug fixes:
+
+  * Environment moved in ruby_parser. Got tests running again.
+  * Fixed all tests broken by 1.8/1.9 split in pt_testcase.rb.
+  * Removed unused variables listed in 1.9 warnings
+  * Spastic monkey is spastic
+
 === 1.0.0.7 / 2009-08-18
 
 * 1 bug fix:
