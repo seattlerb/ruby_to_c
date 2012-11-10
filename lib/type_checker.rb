@@ -604,7 +604,7 @@ class TypeChecker < SexpProcessor
     cond_exp.sexp_type.unify Type.bool
     begin
       then_exp.sexp_type.unify else_exp.sexp_type unless then_exp.nil? or else_exp.nil?
-    rescue TypeError => err
+    rescue TypeError
       puts "Error unifying #{then_exp.inspect} with #{else_exp.inspect}"
       raise
     end

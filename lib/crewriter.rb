@@ -41,8 +41,8 @@ class CRewriter < SexpProcessor
 
     env = @env.all
 
-    free = env.select { |k, (t, v)| bound_in_parent.include? k or not v }
-    vars = free.map { |k, (t, v)| [k, t] }
+    free = env.select { |k, (_, v)| bound_in_parent.include? k or not v }
+    vars = free.map { |k, (t, _)| [k, t] }
     return vars
   end
 

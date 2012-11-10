@@ -116,6 +116,9 @@ class TestFunctionType < MiniTest::Unit::TestCase
 
     fun9 = FunctionType.new(Type.long, [], Type.str)
     funa = FunctionType.new(Type.str, [], Type.unknown)
+
+    fun9, funa = funa, fun9 # get rid of unused warnings but keep them rooted
+
     assert_raises(TypeError) do
       fun7.unify_components fun8
     end

@@ -407,9 +407,7 @@ typedef char * str;
 
     result = "if (#{cond_part})"
 
-    then_block = ! exp.first.nil? && exp.first.first == :block
     then_part  = process exp.shift
-    else_block = ! exp.first.nil? && exp.first.first == :block
     else_part  = process exp.shift
 
     then_part = "" if then_part.nil?
@@ -448,9 +446,7 @@ typedef char * str;
     @env.scope do
       enum = exp[0][1][1] # HACK ugly t(:iter, t(:call, lhs <-- get lhs
 
-      p exp
-
-      call = process exp.shift
+      _ = process exp.shift
       var  = process(exp.shift).intern # semi-HACK-y
       body = process exp.shift
       index = "index_#{var}"
@@ -493,7 +489,6 @@ typedef char * str;
 
     exp_type = exp.sexp_type
     @env.add var.to_sym, exp_type
-    var_type = self.class.c_type exp_type
 
     if exp_type.list? then
       assert_type args, :array

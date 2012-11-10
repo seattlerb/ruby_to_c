@@ -133,36 +133,6 @@ class RubyToRubyC < RubyToAnsiC
   # Iterators for loops. After rewriter nearly all iter nodes
   # should be able to be interpreted as a for loop. If not, then you
   # are doing something not supported by C in the first place.
-
-  def process_OLD_iter(exp) # TODO/REFACTOR: audit against obfuscator
-    out = []
-    # Only support enums in C-land
-    raise UnsupportedNodeError if exp[0][1].nil? # HACK ugly
-    @env.scope do
-      enum = exp[0][1][1] # HACK ugly t(:iter, t(:call, lhs <-- get lhs
-      call = process exp.shift
-      var  = process(exp.shift).intern # semi-HACK-y
-      body = process exp.shift
-      index = "index_#{var}"
-
-      body += ";" unless body =~ /[;}]\Z/
-      body.gsub!(/\n\n+/, "\n")
-
-      out << "unsigned long #{index};"
-      out << "unsigned long arrays_max = FIX2LONG(rb_funcall(arrays, rb_intern(\"size\"), 0));"
-      out << "for (#{index} = 0; #{index} < arrays_max; ++#{index}) {"
-      out << "VALUE x = rb_funcall(arrays, rb_intern(\"at\"), 1, LONG2FIX(index_x));"
-      out << body
-      out << "}"
-    end
-
-    return out.join("\n")
-  end
-
-  ##
-  # Iterators for loops. After rewriter nearly all iter nodes
-  # should be able to be interpreted as a for loop. If not, then you
-  # are doing something not supported by C in the first place.
   #--
   # TODO have CRewriter handle generating lasgns for statics
 
@@ -214,7 +184,6 @@ class RubyToRubyC < RubyToAnsiC
 
     exp_type = exp.sexp_type
     @env.add var.to_sym, exp_type
-    var_type = self.class.c_type exp_type
 
     if exp_type.list? then
       assert_type args, :array
