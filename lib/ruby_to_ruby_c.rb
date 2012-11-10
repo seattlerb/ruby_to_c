@@ -1,4 +1,3 @@
-
 $TESTING = false unless defined? $TESTING
 
 begin require 'rubygems'; rescue LoadError; end

@@ -1,4 +1,3 @@
-
 $TESTING = false unless defined? $TESTING
 
 require 'pp'
@@ -21,7 +20,7 @@ require 'r2cenvironment'
 
 class RubyToAnsiC < SexpProcessor
 
-  VERSION = '1.0.0.8'
+  VERSION = '1.0.0.9'
 
   # TODO: remove me
   def no(exp) # :nodoc:

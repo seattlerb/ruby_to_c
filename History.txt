@@ -1,3 +1,9 @@
+=== 1.0.0.9 / 2012-11-09
+
+* 1 bug fix:
+
+  * I'm an idiot. Fixed the dependencies to use RP 3.x and SP 4.x
+
 === 1.0.0.8 / 2012-11-09
 
 * 5 minor enhancements:
