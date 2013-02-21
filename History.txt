@@ -29,12 +29,12 @@
 
 === 1.0.0.6 / 2009-06-23
 
-1 major enhancement:
+* 1 major enhancement:
 
   * Switched from ParseTree to ruby_parser for 1.9 compatibility. woo.
     * All translate/process methods are gone since we can't reflect at runtime.
 
-43 minor enhancements:
+* 43 minor enhancements:
 
   * Added IterRewriter for finding free variables in iter nodes.
   * Added dxstr.
@@ -99,104 +99,104 @@
 
 * 6 minor enhancements:
 
-    * Split RubyToC to RubyToRubyC and RubyToAnsiC.
-    * Extended Environment to be more flexible for various situations.
-    * Removed propaganda (bloat) from release.
-    * Gemified and reorganized things. Support still needs splitting up.
-    * Flipped a lot of internal naming to use Unique.
-    * Added ruby_to_c_show (like parse_tree_show).
+  * Split RubyToC to RubyToRubyC and RubyToAnsiC.
+  * Extended Environment to be more flexible for various situations.
+  * Removed propaganda (bloat) from release.
+  * Gemified and reorganized things. Support still needs splitting up.
+  * Flipped a lot of internal naming to use Unique.
+  * Added ruby_to_c_show (like parse_tree_show).
 
-* 4(ish) bug fixes:
+* 4 bug fixes:
 
-    * Use ivars instead of cvars so inheritance won't bugger the translator.
-    * Corrected unsupported node lists in pipeline.
-    * Fixed bugs for splat args, iters, optional args, method name map.
-    * Fixed many other bugs.
+  * Use ivars instead of cvars so inheritance won't bugger the translator.
+  * Corrected unsupported node lists in pipeline.
+  * Fixed bugs for splat args, iters, optional args, method name map.
+  * Fixed many other bugs.
 
 === 1.0.0-beta-4 / 2005-07-13
 
 * 1 minor enhancements:
 
-    * Added gemspec (hastily).
+  * Added gemspec (hastily).
 
 * 2 bug fixes:
 
-    * Translates bool type to VALUE since we were using Qtrue/Qfalse.
-    * Fixed rubygems for non-gem systems.
+  * Translates bool type to VALUE since we were using Qtrue/Qfalse.
+  * Fixed rubygems for non-gem systems.
 
 === 1.0.0-beta-3 / 2005-06-08
 
 * 16 minor enhancements:
 
-    * Added ivar and iasgn support. Needs more work.
-    * Added limited support for self.
-    * Added pipeline tests for bools, call_arglist, call_attrasgn, fbody.
-    * Added process_not to RubyToC.
-    * Added support for float and symbol literals.
-    * Added support for gasgn, cvasgn, const (class consts, not classes).
-    * Improved error handling/reporting, esp in RubyToC.
-    * In TypeChecker.boostrap, pre-registered all base classes.
-    * Modified process_class test to include a class const.
-    * Processing :class now adds class constants to the local var scope.
-    * Processing :const checks both genv and env now.
-    * Rearchitected all tests into a pipeline test class.
-    * Rewrite attrasgn into regular calls.
-    * Rewrite fbody into a regular defn.
-    * Rewrote :array inside call to :arglist.
-    * Rewrote :or nodes in process_case to correctly be binary.
+  * Added ivar and iasgn support. Needs more work.
+  * Added limited support for self.
+  * Added pipeline tests for bools, call_arglist, call_attrasgn, fbody.
+  * Added process_not to RubyToC.
+  * Added support for float and symbol literals.
+  * Added support for gasgn, cvasgn, const (class consts, not classes).
+  * Improved error handling/reporting, esp in RubyToC.
+  * In TypeChecker.boostrap, pre-registered all base classes.
+  * Modified process_class test to include a class const.
+  * Processing :class now adds class constants to the local var scope.
+  * Processing :const checks both genv and env now.
+  * Rearchitected all tests into a pipeline test class.
+  * Rewrite attrasgn into regular calls.
+  * Rewrite fbody into a regular defn.
+  * Rewrote :array inside call to :arglist.
+  * Rewrote :or nodes in process_case to correctly be binary.
 
 * 1 bug fix:
 
-    * Fixed a bug where single line while bodies were missing a semicolon.
+  * Fixed a bug where single line while bodies were missing a semicolon.
 
 === 1.0.0-beta-2 / 2005-02-15
 
 * 1 minor enhancement:
 
-    * Added post-condition while/until support and tests.
+  * Added post-condition while/until support and tests.
 
 * 4 bug fixes:
 
-    * Fixed bug:1422: Escape newlines to prevent multi-line strings in C.
-    * Fixed bug:1429: Arrays of strings are not being properly.
-    * Fixed bug:1447/1448: Readme file's website and added ParseTree dependency.
+  * Fixed bug:1422: Escape newlines to prevent multi-line strings in C.
+  * Fixed bug:1429: Arrays of strings are not being properly.
+  * Fixed bug:1447/1448: Readme file's website and added ParseTree dependency.
 
 === 1.0.0-beta-1 / 2005-02-01
 
 * 1 major enhancements:
 
-    * Hit 80% non-error conversion threshold for public beta release.
+  * Hit 80% non-error conversion threshold for public beta release.
 
 * 3 minor enhancements:
 
-    * (Mostly) Filled out functionality in Rewriter and TypeChecker.
-    * Flushed out what we don't do in RubyToC.
-    * Wrote a ton of rdoc
+  * (Mostly) Filled out functionality in Rewriter and TypeChecker.
+  * Flushed out what we don't do in RubyToC.
+  * Wrote a ton of rdoc
 
 === 1.0.0-a2 / 2004-12-31
 
 * 7 major enhancements:
 
-    * Alpha 2 released to private group for critique.
-    * Refactored and split out ParseTree package.
-    * Gemified dependency on ParseTree.
-    * Added iter rewriting
-    * Added post type inference rewriting specific to C library.
-    * Massive increase to the base we can translate.
-    * We have stabilized the architecture but still have a ways to go.
+  * Alpha 2 released to private group for critique.
+  * Refactored and split out ParseTree package.
+  * Gemified dependency on ParseTree.
+  * Added iter rewriting
+  * Added post type inference rewriting specific to C library.
+  * Massive increase to the base we can translate.
+  * We have stabilized the architecture but still have a ways to go.
 
 * 2 minor enhancements:
 
-    * Added propaganda (presentations).
-    * Much better test coverage, now with ZenTest compliant naming.
+  * Added propaganda (presentations).
+  * Much better test coverage, now with ZenTest compliant naming.
 
 * 2 bug fixes:
 
-    * Gem-proofed makefile.
-    * Tons of little fixes we didn't bother to track.
+  * Gem-proofed makefile.
+  * Tons of little fixes we didn't bother to track.
 
 === 1.0.0-a1 / 2004-09-24
 
 * 1 major enhancement:
 
-    * Birthday! Alpha 1 released to private group for critique.
+  * Birthday! Alpha 1 released to private group for critique.
