@@ -24,7 +24,7 @@ RubyToC has the following modules:
   
 * This is a preview release! BETA BETA BETA! Do NOT use this!
 
-== SYNOPSYS:
+== SYNOPSIS:
 
   require 'ruby_parser'
   require 'ruby_to_ruby_c'
