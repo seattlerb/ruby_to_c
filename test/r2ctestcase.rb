@@ -1187,7 +1187,6 @@ return \"foo\";
                     "structure_extra_block_for_dvar_scoping",
                     "structure_remove_begin_1",
                     "structure_remove_begin_2",
-                    "structure_unused_literal_wwtt",
                     "super_0",
                     "super_1",
                     "super_1_array",
