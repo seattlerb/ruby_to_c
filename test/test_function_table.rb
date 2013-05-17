@@ -7,7 +7,7 @@ require 'minitest/unit'
 require 'function_table'
 require 'type'
 
-class TestFunctionTable < MiniTest::Unit::TestCase
+class TestFunctionTable < Minitest::Test
 
   def setup
     @function_table = FunctionTable.new

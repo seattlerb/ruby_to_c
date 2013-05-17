@@ -7,7 +7,7 @@ require 'minitest/unit'
 require 'r2cenvironment'
 require 'type'
 
-class TestR2CEnvironment < MiniTest::Unit::TestCase
+class TestR2CEnvironment < Minitest::Test
 
   def setup
     @env = R2CEnvironment.new

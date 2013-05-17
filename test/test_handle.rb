@@ -6,7 +6,7 @@ require 'minitest/autorun' if $0 == __FILE__
 require 'minitest/unit'
 require 'handle'
 
-class TestHandle < MiniTest::Unit::TestCase
+class TestHandle < Minitest::Test
 
   def setup
     @handle = Handle.new("text")

@@ -7,7 +7,7 @@ require 'minitest/unit'
 require 'type'
 require 'sexp_processor' # for deep clone FIX ?
 
-class TestType < MiniTest::Unit::TestCase
+class TestType < Minitest::Test
   def setup
     @unknown = Type.unknown
     @unknown_list = Type.unknown_list

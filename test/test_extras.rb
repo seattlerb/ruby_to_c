@@ -26,7 +26,7 @@ class RandomCode # ZenTest SKIP
 
 end
 
-class TestExtraTypeChecker < MiniTest::Unit::TestCase # ZenTest SKIP
+class TestExtraTypeChecker < Minitest::Test # ZenTest SKIP
 
   def setup
     @rewriter = Rewriter.new

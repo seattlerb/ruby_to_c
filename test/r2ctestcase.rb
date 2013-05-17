@@ -1156,6 +1156,7 @@ return \"foo\";
                     "return_1_splatted",
                     "return_n",
                     "sclass",
+                    "sclass_multiple",
                     "sclass_trailing_class",
                     "splat",
                     "splat_array",

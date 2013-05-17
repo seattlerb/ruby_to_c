@@ -7,7 +7,7 @@ require 'minitest/unit'
 require 'function_type'
 require 'type'
 
-class TestFunctionType < MiniTest::Unit::TestCase
+class TestFunctionType < Minitest::Test
   def setup
     @function_type = FunctionType.new Type.void, [Type.long, Type.str], Type.value
   end
