@@ -73,7 +73,7 @@ class TestType < Minitest::Test
   end
 
   def test_function
-    # TODO: actually TEST something here
+    skip "actually TEST something here"
     Type.function([Type.unknown], Type.unknown)
   end
 

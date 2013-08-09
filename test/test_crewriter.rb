@@ -304,14 +304,15 @@ class TestCRewriter < R2CTestCase
     e.add :arr, Type.value
     e.set_val :arr, true
 
-# HACK this is a real bug, but not a priority for me right now
-#     expected = {:arr=>[Type.value, true], :sum=>[Type.value, true]}
-#     assert_equal expected, e.all
-# 
-#     expected = [{:arr=>[Type.value, true]}, {:sum=>[Type.value, true]}]
-#     assert_equal expected, e.env
-# 
-#     assert_equal [[:arr, Type.value]], @rewrite.free
+    skip "this is a real bug, but not a priority for me right now"
+
+    expected = {:arr=>[Type.value, true], :sum=>[Type.value, true]}
+    assert_equal expected, e.all
+
+    expected = [{:arr=>[Type.value, true]}, {:sum=>[Type.value, true]}]
+    assert_equal expected, e.env
+
+    assert_equal [[:arr, Type.value]], @rewrite.free
   end
 
   def test_var_names_in
