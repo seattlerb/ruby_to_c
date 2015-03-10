@@ -19,4 +19,6 @@ Hoe.spec "ruby2c" do
   dependency "sexp_processor", "~> 4.1"
 end
 
+ENV["MT_NO_EXPECTATIONS"] = "1"
+
 # vim: syntax=ruby
