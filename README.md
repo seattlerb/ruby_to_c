@@ -1,9 +1,11 @@
-= RubyToC
+RubyToC
+=======
 
 home :: https://github.com/seattlerb/ruby_to_c
 rdoc :: http://ruby2c.rubyforge.org/ruby2c
 
-== DESCRIPTION:
+DESCRIPTION:
+------------
 
 ruby_to_c translates a static ruby subset to C. Hopefully it works.
 
@@ -20,11 +22,13 @@ RubyToC has the following modules:
 * RubyToRubyC   - converts a ruby (subset) sexp to ruby interals C.
 * RubyToAnsiC   - converts a ruby (subset) sexp to ANSI C.
 
-== FEATURES/PROBLEMS:
+FEATURES/PROBLEMS:
+------------------
   
 * This is a preview release! BETA BETA BETA! Do NOT use this!
 
-== SYNOPSIS:
+SYNOPSIS:
+---------
 
   require 'ruby_parser'
   require 'ruby_to_ruby_c'
@@ -32,19 +36,23 @@ RubyToC has the following modules:
   sexp = RubyParser.new.parse '1 + 1'
   c    = RubyToRubyC.new.process sexp
 
-== TODO:
+TODO:
+-----
 
 * Numerous, but we are trying to get them in here... sorry...
 
-== REQUIREMENTS:
+REQUIREMENTS:
+-------------
 
 * ruby_parser - http://rubyforge.org/projects/parsetree/
 
-== INSTALL:
+INSTALL:
+--------
 
 * sudo gem install ruby2c
 
-== LICENSE:
+LICENSE:
+--------
 
 (The MIT License)
 
