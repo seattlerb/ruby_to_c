@@ -18,10 +18,10 @@ ruby_to_c translates a static ruby subset to C. Hopefully it works.
 
 RubyToC has the following modules:
 
-* Rewriter      - massages the sexp into a more consistent form.
-* TypeChecker   - type inferencer for the above sexps.
-* RubyToRubyC   - converts a ruby (subset) sexp to ruby interals C.
-* RubyToAnsiC   - converts a ruby (subset) sexp to ANSI C.
+* Rewriter - massages the sexp into a more consistent form.
+* TypeChecker - type inferencer for the above sexps.
+* RubyToRubyC - converts a ruby (subset) sexp to ruby interals C.
+* RubyToAnsiC - converts a ruby (subset) sexp to ANSI C.
 
 FEATURES/PROBLEMS:
 ------------------
@@ -47,7 +47,7 @@ TODO:
 REQUIREMENTS:
 -------------
 
-* ruby_parser - http://rubyforge.org/projects/parsetree/
+* <a href="http://rubyforge.org/projects/parsetree/">ruby_parser - http://rubyforge.org/projects/parsetree</a>
 
 INSTALL:
 --------
