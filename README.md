@@ -1,51 +1,65 @@
-= RubyToC
+RubyToC
+=======
 
-home :: https://github.com/seattlerb/ruby_to_c
-rdoc :: http://ruby2c.rubyforge.org/ruby2c
+[home: https://github.com/seattlerb/ruby_to_c](https://github.com/seattlerb/ruby_to_c)
+<br>
+[rdoc: http://ruby2c.rubyforge.org/ruby2c](http://ruby2c.rubyforge.org/ruby2c)
 
-== DESCRIPTION:
+DESCRIPTION:
+------------
 
 ruby_to_c translates a static ruby subset to C. Hopefully it works.
 
   NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE
   
-                     THIS IS BETA SOFTWARE!
+  THIS IS BETA SOFTWARE! THIS IS BETA SOFTWARE! THIS IS BETA SOFTWARE!
   
   NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE ! NOTE
 
 RubyToC has the following modules:
 
-* Rewriter      - massages the sexp into a more consistent form.
-* TypeChecker   - type inferencer for the above sexps.
-* RubyToRubyC   - converts a ruby (subset) sexp to ruby interals C.
-* RubyToAnsiC   - converts a ruby (subset) sexp to ANSI C.
+* Rewriter - massages the sexp into a more consistent form.
+* TypeChecker - type inferencer for the above sexps.
+* RubyToRubyC - converts a ruby (subset) sexp to ruby interals C.
+* RubyToAnsiC - converts a ruby (subset) sexp to ANSI C.
 
-== FEATURES/PROBLEMS:
+FEATURES/PROBLEMS:
+------------------
   
 * This is a preview release! BETA BETA BETA! Do NOT use this!
 
-== SYNOPSIS:
+SYNOPSIS:
+---------
 
-  require 'ruby_parser'
-  require 'ruby_to_ruby_c'
-  
-  sexp = RubyParser.new.parse '1 + 1'
-  c    = RubyToRubyC.new.process sexp
+```ruby
+require 'ruby_parser'
+require 'ruby_to_ruby_c'
 
-== TODO:
+sexp = RubyParser.new.parse '1 + 1'
+c    = RubyToRubyC.new.process sexp
+```
+
+TODO:
+-----
 
 * Numerous, but we are trying to get them in here... sorry...
 
-== REQUIREMENTS:
+REQUIREMENTS:
+-------------
 
-* ruby_parser - http://rubyforge.org/projects/parsetree/
+* <a href="http://rubyforge.org/projects/parsetree/">ruby_parser - http://rubyforge.org/projects/parsetree</a>
 
-== INSTALL:
+INSTALL:
+--------
 
-* sudo gem install ruby2c
+```bash
+sudo gem install ruby2c
+```
 
-== LICENSE:
+LICENSE:
+--------
 
+```
 (The MIT License)
 
 Copyright (c) Ryan Davis, Eric Hodel, seattle.rb
@@ -68,3 +82,4 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+```
