@@ -3,7 +3,7 @@
 $TESTING = true
 
 require 'minitest/autorun' if $0 == __FILE__
-require 'minitest/unit'
+require 'minitest/test'
 require 'function_table'
 require 'type'
 
