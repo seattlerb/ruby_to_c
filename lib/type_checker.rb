@@ -325,7 +325,7 @@ class TypeChecker < SexpProcessor
       klass = eval(name.to_s) # HACK do proper lookup - ugh
       klass.constants.each do |c|
         const_type = case klass.const_get(c)
-                     when Fixnum then
+                     when Integer then
                        Type.long
                      when String then
                        Type.str
@@ -729,7 +729,7 @@ class TypeChecker < SexpProcessor
     type = nil
 
     case value
-    when Fixnum then
+    when Integer then
       type = Type.long
     when Float then
       type = Type.float

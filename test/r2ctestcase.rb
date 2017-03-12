@@ -20,7 +20,7 @@ class R2CTestCase < ParseTreeTestCase
   end
 
   def self.add_skipped_tests19 *names
-    add_skipped_tests names.map { |s| "#{s}__19_20_21_22_23" }
+    add_skipped_tests names.map { |s| "#{s}__19_20_21_22_23_24" }
   end
 
   testcase_order.push(*%w(Ruby ParseTree Rewriter TypeChecker
@@ -344,7 +344,6 @@ class R2CTestCase < ParseTreeTestCase
 
   add_tests("global",
             "Rewriter"    => :same,
-            "TypeChecker" => :skip,
             # TODO: test s(:gvar, :$stderr) != t(:gvar, $stderr, Type.file)
             "TypeChecker" => t(:gvar, :$stderr, Type.file),
             "CRewriter"   => :same,
