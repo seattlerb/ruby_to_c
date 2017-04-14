@@ -57,7 +57,8 @@ class TypedSexp < Sexp
   end
 
   def sexp_type=(o)
-    raise "You shouldn't call this on an #{first}" if array_type?
+    # HACK raise "You shouldn't call this on an #{first}" if array_type?
+    # sexp_type is different in ruby2c than from sexp_processor. need renames
     raise "You shouldn't call this a second time, ever" unless
       @sexp_type.nil? or @sexp_type == Type.unknown
     _set_sexp_type(o)
