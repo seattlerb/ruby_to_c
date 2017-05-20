@@ -16,10 +16,10 @@ class CRewriter < SexpProcessor
   # generating the appropriate sexp for that rewriting.
 
   REWRITES = {
-    [Type.str, :+, Type.str] => proc { |l,n,r|
-      t(:call, nil, :strcat, r.unshift(r.shift, l), Type.str)
+    [CType.str, :+, CType.str] => proc { |l,n,r|
+      t(:call, nil, :strcat, r.unshift(r.shift, l), CType.str)
     },
-    [Type.file, :puts, Type.str] => proc { |l,n,r|
+    [CType.file, :puts, CType.str] => proc { |l,n,r|
       t(:call, nil, :fputs, r.push(l))
     },
   }
@@ -34,6 +34,18 @@ class CRewriter < SexpProcessor
     @env = ::R2CEnvironment.new
     @extra_methods = []
   end
+
+  # def rewrite exp
+  #   result = super
+  #   result.c_type ||= exp.c_type if Sexp === exp and exp.c_type
+  #   result
+  # end
+
+  # def process exp
+  #   result = super
+  #   result.c_type ||= exp.c_type if Sexp === exp and exp.c_type
+  #   result
+  # end
 
   def free # REFACTOR: this is a violation of responsibility, should be in Env
     parent = @env.env[0..-2]
@@ -57,14 +69,14 @@ class CRewriter < SexpProcessor
     name = exp.shift
     rhs = process exp.shift
 
-    lhs_type = lhs.sexp_type rescue nil
+    lhs_type = lhs.c_type rescue nil
     type_signature = [lhs_type, name]
-    type_signature += rhs[1..-1].map { |sexp| sexp.sexp_type } unless rhs.nil?
+    type_signature += rhs[1..-1].map { |sexp| sexp.c_type } unless rhs.nil?
 
     result = if REWRITES.has_key? type_signature then
                REWRITES[type_signature].call(lhs, name, rhs)
              else
-               t(:call, lhs, name, rhs, exp.sexp_type)
+               t(:call, lhs, name, rhs, exp.c_type)
              end
 
     return result
@@ -83,7 +95,7 @@ class CRewriter < SexpProcessor
     @extra_methods.reverse_each do |defx| methods.unshift defx end
     @extra_methods.clear
 
-    result = t(:class, klassname, superklassname, Type.zclass)
+    result = t(:class, klassname, superklassname, CType.zclass)
     result.push(*methods)
 
     return result
@@ -96,7 +108,7 @@ class CRewriter < SexpProcessor
     iter_method_name = Unique.next
 
     value_var_name = Unique.next
-    value_var_type = Type.unknown
+    value_var_type = CType.unknown
 
     memo_var_name = Unique.next
 
@@ -111,8 +123,8 @@ class CRewriter < SexpProcessor
 
     var_names = var_names_in vars
 
-    frees = t(:array, Type.void)
-    statics = t(:array, Type.void)
+    frees = t(:array, CType.void)
+    statics = t(:array, CType.void)
     defx_body_block = t(:block)
 
     # set statics first so block vars can update statics
@@ -132,7 +144,7 @@ class CRewriter < SexpProcessor
                            var_names.first.last)
 
     else # expand block args to masgn
-      value_var_type = Type.value
+      value_var_type = CType.value
       dyn_vars = t(:array)
 
       var_names.each do |name, type|
@@ -141,29 +153,29 @@ class CRewriter < SexpProcessor
 
       defx_body_block << t(:masgn,
                            dyn_vars,
-                           t(:to_ary, t(:lvar, value_var_name, Type.value)))
+                           t(:to_ary, t(:lvar, value_var_name, CType.value)))
     end
 
     defx_body_block << body
 
     free_vars.each do |name, static_name, type|
       defx_body_block << t(:lasgn, static_name, t(:lvar, name, type), type)
-      @extra_methods << t(:static, "static VALUE #{static_name};", Type.fucked)
+      @extra_methods << t(:static, "static VALUE #{static_name};", CType.fucked)
     end
 
-    defx_body_block << t(:return, t(:nil, Type.value))
+    defx_body_block << t(:return, t(:nil, CType.value))
 
     defx = t(:defx,
              iter_method_name,
              t(:args,
                t(value_var_name, value_var_type),
-               t(memo_var_name, Type.value)),
+               t(memo_var_name, CType.value)),
              t(:scope, defx_body_block),
-             Type.void)
+             CType.void)
 
     @extra_methods << defx
 
-    args = t(:args, frees, statics, Type.void)
+    args = t(:args, frees, statics, CType.void)
 
     return t(:iter, call, args, iter_method_name)
   end
@@ -172,27 +184,27 @@ class CRewriter < SexpProcessor
     name = exp.shift
     value = process(exp.shift)
 
-    @env.add name, exp.sexp_type
+    @env.add name, exp.c_type
     @env.set_val name, true
 
-    return t(:lasgn, name, value, exp.sexp_type)
+    return t(:lasgn, name, value, exp.c_type)
   end
 
   def process_lvar(exp)
     name = exp.shift
 
-    @env.add name, Type.value
+    @env.add name, CType.value
     @env.lookup name rescue @env.set_val name, false
 
-    return t(:lvar, name, exp.sexp_type)
+    return t(:lvar, name, exp.c_type)
   end
 
   def var_names_in(exp)
-    return [[exp.last, exp.sexp_type]] if exp.length == 2 and not Sexp === exp.last
+    return [[exp.last, exp.c_type]] if exp.length == 2 and not Sexp === exp.last
 
     var_names = []
     exp.each_of_type :dasgn_curr do |sexp|
-      var_names << [sexp.sexp_body.first, sexp.sexp_type]
+      var_names << [sexp.sexp_body.first, sexp.c_type]
     end
     return var_names
   end

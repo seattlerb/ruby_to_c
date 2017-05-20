@@ -1,4 +1,3 @@
-
 require 'pp'
 begin require 'rubygems'; rescue LoadError; end
 require 'ruby_parser'
@@ -9,7 +8,7 @@ require 'r2cenvironment'
 require 'type'
 require 'typed_sexp'
 
-# TODO: calls to sexp_type should probably be replaced w/ better Sexp API
+# TODO: calls to c_type should probably be replaced w/ better Sexp API
 
 ##
 # TypeChecker bootstrap table.
@@ -105,17 +104,17 @@ class TypeChecker < SexpProcessor
   # for lower level types (in C) comes from.
 
   def bootstrap
-    # @genv.add :$stdin, Type.file
-    # @genv.add :$stdout, Type.file
-    # @genv.add :$stderr, Type.file
+    # @genv.add :$stdin, CType.file
+    # @genv.add :$stdout, CType.file
+    # @genv.add :$stderr, CType.file
 
     $bootstrap.each do |name,signatures|
-      # FIX: Using Type.send because it must go through method_missing, not new
+      # FIX: Using CType.send because it must go through method_missing, not new
       signatures.each do |signature|
-        lhs_type = Type.send(signature[0])
-        return_type = Type.send(signature[-1])
-        arg_types = signature[1..-2].map { |t| Type.send(t) }
-        @functions.add_function(name, Type.function(lhs_type, arg_types, return_type))
+        lhs_type = CType.send(signature[0])
+        return_type = CType.send(signature[-1])
+        arg_types = signature[1..-2].map { |t| CType.send(t) }
+        @functions.add_function(name, CType.function(lhs_type, arg_types, return_type))
       end
     end
   end
@@ -127,13 +126,13 @@ class TypeChecker < SexpProcessor
     rhs = process exp.shift
     lhs = process exp.shift
 
-    rhs_type = rhs.sexp_type
-    lhs_type = lhs.sexp_type
+    rhs_type = rhs.c_type
+    lhs_type = lhs.c_type
 
     rhs_type.unify lhs_type
-    rhs_type.unify Type.bool
+    rhs_type.unify CType.bool
 
-    return t(:and, rhs, lhs, Type.bool)
+    return t(:and, rhs, lhs, CType.bool)
   end
 
   ##
@@ -146,7 +145,7 @@ class TypeChecker < SexpProcessor
 
     until exp.empty? do
       arg = exp.shift
-      type = Type.unknown
+      type = CType.unknown
       @env.add arg, type
       formals << t(arg, type)
       types << type
@@ -173,7 +172,7 @@ class TypeChecker < SexpProcessor
     until exp.empty? do
       var = process exp.shift
       vars << var
-      types << var.sexp_type
+      types << var.c_type
     end
     vars
   end
@@ -214,7 +213,7 @@ class TypeChecker < SexpProcessor
   # sexp.
 
   def process_block(exp)
-    nodes = t(:block, Type.unknown)
+    nodes = t(:block, CType.unknown)
     until exp.empty? do
       nodes << process(exp.shift)
     end
@@ -228,7 +227,7 @@ class TypeChecker < SexpProcessor
   # TODO do something more sensible
 
   def process_block_arg(exp)
-    t(:block_arg, exp.shift, Type.fucked)
+    t(:block_arg, exp.shift, CType.fucked)
   end
 
   ##
@@ -275,9 +274,9 @@ class TypeChecker < SexpProcessor
                   []
                 else
                   if args.first == :arglist then
-                    args.sexp_types
+                    args.c_types
                   elsif args.first == :splat then
-                    [args.sexp_type]
+                    [args.c_type]
                   else
                     raise "That's not a Ruby Sexp you handed me, I'm freaking out on: #{args.inspect}"
                   end
@@ -288,15 +287,15 @@ class TypeChecker < SexpProcessor
       raise "lhs of === may not be nil" if lhs.nil?
       raise "rhs of === may not be nil" if rhs.nil?
       raise "Help! I can't figure out what kind of #=== comparison to use" if
-        lhs.sexp_type.unknown? and rhs.sexp_type.unknown?
-      equal_type = lhs.sexp_type.unknown? ? rhs.sexp_type : lhs.sexp_type
+        lhs.c_type.unknown? and rhs.c_type.unknown?
+      equal_type = lhs.c_type.unknown? ? rhs.c_type : lhs.c_type
       name = "case_equal_#{equal_type.list_type}".intern
     end
 
-    return_type = Type.unknown
-    lhs_type = lhs.nil? ? Type.unknown : lhs.sexp_type # TODO: maybe void instead of unknown
+    return_type = CType.unknown
+    lhs_type = lhs.nil? ? CType.unknown : lhs.c_type # TODO: maybe void instead of unknown
 
-    function_type = Type.function(lhs_type, arg_types, return_type)
+    function_type = CType.function(lhs_type, arg_types, return_type)
     @functions.unify(name, function_type) do
       @functions.add_function(name, function_type)
       $stderr.puts "\nWARNING: function #{name} called w/o being defined. Registering #{function_type.inspect}" if $DEBUG
@@ -314,9 +313,9 @@ class TypeChecker < SexpProcessor
     name = exp.shift
     superclass = exp.shift
 
-    @genv.add name, Type.zclass
+    @genv.add name, CType.zclass
 
-    result = t(:class, Type.zclass)
+    result = t(:class, CType.zclass)
     result << name
     result << superclass
       
@@ -326,11 +325,11 @@ class TypeChecker < SexpProcessor
       klass.constants.each do |c|
         const_type = case klass.const_get(c)
                      when Integer then
-                       Type.long
+                       CType.long
                      when String then
-                       Type.str
+                       CType.str
                      else
-                       Type.unknown
+                       CType.unknown
                      end
         @env.add c.intern, const_type
       end
@@ -348,7 +347,7 @@ class TypeChecker < SexpProcessor
 
   def process_colon2(exp) # (Module::Class/Module)
     name = process(exp.shift)
-    return t(:colon2, name, exp.shift, Type.zclass)
+    return t(:colon2, name, exp.shift, CType.zclass)
   end
 
   ##
@@ -356,7 +355,7 @@ class TypeChecker < SexpProcessor
 
   def process_colon3(exp) # (::OUTER_CONST)
     name = exp.shift
-    return t(:colon3, name, Type.const)
+    return t(:colon3, name, CType.const)
   end
 
   ##
@@ -387,7 +386,7 @@ class TypeChecker < SexpProcessor
   def process_cvar(exp)
     # TODO: we should treat these as globals and have them in the top scope
     name = exp.shift
-    return t(:cvar, name, Type.unknown)
+    return t(:cvar, name, CType.unknown)
   end
 
   ##
@@ -398,7 +397,7 @@ class TypeChecker < SexpProcessor
   def process_cvasgn(exp)
     name = exp.shift
     val = process exp.shift
-    return t(:cvasgn, name, val, Type.unknown)
+    return t(:cvasgn, name, val, CType.unknown)
   end
 
   ##
@@ -407,7 +406,7 @@ class TypeChecker < SexpProcessor
 
   def process_dasgn_curr(exp)
     name = exp.shift
-    type = Type.unknown
+    type = CType.unknown
     @env.add name, type # HACK lookup before adding like lasgn
 
     return t(:dasgn_curr, name, type)
@@ -418,7 +417,7 @@ class TypeChecker < SexpProcessor
 
   def process_defined(exp)
     thing = process exp.shift
-    return t(:defined, thing, Type.bool)
+    return t(:defined, thing, CType.bool)
   end
 
   def rewrite_defn(exp)
@@ -448,7 +447,7 @@ class TypeChecker < SexpProcessor
 
       # Function might already have been defined by a :call node.
       # TODO: figure out the receiver type? Is that possible at this stage?
-      function_type = Type.function Type.unknown, args.sexp_types, Type.unknown
+      function_type = CType.function CType.unknown, args.c_types, CType.unknown
       @functions.unify(name, function_type) do
         @functions.add_function(name, function_type)
         $stderr.puts "\nWARNING: Registering function #{name}: #{function_type.inspect}" if $DEBUG
@@ -465,15 +464,15 @@ class TypeChecker < SexpProcessor
 
     return_count = 0
     body.each_of_type(:return) do |sub_exp|
-      return_type.unify sub_exp[1].sexp_type
+      return_type.unify sub_exp[1].c_type
       return_count += 1
     end
-    return_type.unify Type.void if return_count == 0
+    return_type.unify CType.void if return_count == 0
 
     # TODO: bad API, clean
     raise "wrong" if
-      args.sexp_types.size != function_type.list_type.formal_types.size
-    args.sexp_types.each_with_index do |type, i|
+      args.c_types.size != function_type.list_type.formal_types.size
+    args.c_types.each_with_index do |type, i|
       type.unify function_type.list_type.formal_types[i]
     end
 
@@ -485,7 +484,7 @@ class TypeChecker < SexpProcessor
   # string-typed sexp.
 
   def process_dstr(exp)
-    out = t(:dstr, exp.shift, Type.str)
+    out = t(:dstr, exp.shift, CType.str)
     until exp.empty? do
       result = process exp.shift
       out << result
@@ -524,7 +523,7 @@ class TypeChecker < SexpProcessor
   # False returns a bool-typed sexp.
 
   def process_false(exp)
-    return t(:false, Type.bool)
+    return t(:false, CType.bool)
   end
 
   ##
@@ -536,12 +535,12 @@ class TypeChecker < SexpProcessor
 
     var_type = @genv.lookup var rescue nil
     if var_type.nil? then
-      @genv.add var, val.sexp_type
+      @genv.add var, val.c_type
     else
-      val.sexp_type.unify var_type
+      val.c_type.unify var_type
     end
 
-    return t(:gasgn, var, val, val.sexp_type)
+    return t(:gasgn, var, val, val.c_type)
   end
 
   ##
@@ -553,7 +552,7 @@ class TypeChecker < SexpProcessor
     name = exp.shift
     type = @genv.lookup name rescue nil
     if type.nil? then
-      type = Type.unknown
+      type = CType.unknown
       @genv.add name, type
     end
     return t(:gvar, name, type)
@@ -566,7 +565,7 @@ class TypeChecker < SexpProcessor
   # TODO support inline hashes
 
   def process_hash(exp)
-    result = t(:hash, Type.fucked)
+    result = t(:hash, CType.fucked)
     until exp.empty? do
       result << process(exp.shift)
     end
@@ -583,12 +582,12 @@ class TypeChecker < SexpProcessor
 
     var_type = @env.lookup var rescue nil
     if var_type.nil? then
-      @env.add var, val.sexp_type
+      @env.add var, val.c_type
     else
-      val.sexp_type.unify var_type
+      val.c_type.unify var_type
     end
 
-    return t(:iasgn, var, val, val.sexp_type)
+    return t(:iasgn, var, val, val.c_type)
   end
 
   ##
@@ -601,17 +600,17 @@ class TypeChecker < SexpProcessor
     then_exp = process exp.shift
     else_exp = process exp.shift rescue nil # might be empty
 
-    cond_exp.sexp_type.unify Type.bool
+    cond_exp.c_type.unify CType.bool
     begin
-      then_exp.sexp_type.unify else_exp.sexp_type unless then_exp.nil? or else_exp.nil?
+      then_exp.c_type.unify else_exp.c_type unless then_exp.nil? or else_exp.nil?
     rescue TypeError
       puts "Error unifying #{then_exp.inspect} with #{else_exp.inspect}"
       raise
     end
 
     # FIX: at least document this
-    type = then_exp.sexp_type unless then_exp.nil?
-    type = else_exp.sexp_type unless else_exp.nil?
+    type = then_exp.c_type unless then_exp.nil?
+    type = else_exp.c_type unless else_exp.nil?
 
     return t(:if, cond_exp, then_exp, else_exp, type)
   end
@@ -648,15 +647,15 @@ class TypeChecker < SexpProcessor
     lhs = call_exp[1] # FIX
     if lhs.nil? then
       # We're an fcall getting passed a block.
-      return t(:iter, call_exp, dargs_exp, body_exp, call_exp.sexp_type)
+      return t(:iter, call_exp, dargs_exp, body_exp, call_exp.c_type)
     else
-      Type.unknown_list.unify lhs.sexp_type # force a list type, lhs must be Enum
+      CType.unknown_list.unify lhs.c_type # force a list type, lhs must be Enum
 
       dargs_exp.sexp_body.each do |subexp|
-        Type.new(lhs.sexp_type.list_type).unify subexp.sexp_type
+        CType.new(lhs.c_type.list_type).unify subexp.c_type
       end
 
-      return t(:iter, call_exp, dargs_exp, body_exp, Type.void)
+      return t(:iter, call_exp, dargs_exp, body_exp, CType.void)
     end
   end
 
@@ -671,7 +670,7 @@ class TypeChecker < SexpProcessor
 
     var_type = @env.lookup name rescue nil
     if var_type.nil? then
-      var_type = Type.unknown
+      var_type = CType.unknown
       @env.add name, var_type
     end
 
@@ -690,7 +689,7 @@ class TypeChecker < SexpProcessor
   def process_lasgn(exp)
     name = exp.shift
     arg_exp = nil
-    arg_type = Type.unknown
+    arg_type = CType.unknown
     var_type = @env.lookup name rescue nil
 
     unless exp.empty? then
@@ -700,14 +699,14 @@ class TypeChecker < SexpProcessor
 
       # if we've got an array in there, unify everything in it.
       if sub_exp_type == :array then
-        arg_type = arg_exp.sexp_types
-        arg_type = arg_type.inject(Type.unknown) do |t1, t2|
+        arg_type = arg_exp.c_types
+        arg_type = arg_type.inject(CType.unknown) do |t1, t2|
           t1.unify t2
         end
         arg_type = arg_type.dup # singleton type
         arg_type.list = true
       else
-        arg_type = arg_exp.sexp_type
+        arg_type = arg_exp.c_type
       end
     end
 
@@ -730,17 +729,17 @@ class TypeChecker < SexpProcessor
 
     case value
     when Integer then
-      type = Type.long
+      type = CType.long
     when Float then
-      type = Type.float
+      type = CType.float
     when Symbol then
-      type = Type.symbol
+      type = CType.symbol
     when Regexp then
-      type = Type.regexp
+      type = CType.regexp
     when Range then
-      type = Type.range
+      type = CType.range
     when Const then
-      type = Type.const
+      type = CType.const
     else
       raise "Bug! no: Unknown literal #{value}:#{value.class}"
     end
@@ -770,15 +769,15 @@ class TypeChecker < SexpProcessor
 
     mlhs_values.zip(mrhs_values) do |lasgn, value|
       if value.nil? then
-        lasgn.sexp_type.unify Type.value # nil
+        lasgn.c_type.unify CType.value # nil
       else
-        lasgn.sexp_type.unify value.sexp_type
+        lasgn.c_type.unify value.c_type
       end
     end
 
     if mlhs_values.length < mrhs_values.length then
       last_lasgn = mlhs_values.last
-      last_lasgn.sexp_type.list = true
+      last_lasgn.c_type.list = true
     end
 
     return t(:masgn, mlhs, mrhs)
@@ -790,7 +789,7 @@ class TypeChecker < SexpProcessor
   def process_nil(exp)
     # don't do a fucking thing until... we have something to do
     # HACK: wtf to do here? (what type is nil?!?!)
-    return t(:nil, Type.value)
+    return t(:nil, CType.value)
   end
 
   ##
@@ -799,8 +798,8 @@ class TypeChecker < SexpProcessor
 
   def process_not(exp)
     thing = process exp.shift
-    thing.sexp_type.unify Type.bool
-    return t(:not, thing, Type.bool)
+    thing.c_type.unify CType.bool
+    return t(:not, thing, CType.bool)
   end
 
   ##
@@ -821,13 +820,13 @@ class TypeChecker < SexpProcessor
     rhs = process exp.shift
     lhs = process exp.shift
 
-    rhs_type = rhs.sexp_type
-    lhs_type = lhs.sexp_type
+    rhs_type = rhs.c_type
+    lhs_type = lhs.c_type
 
     rhs_type.unify lhs_type
-    rhs_type.unify Type.bool
+    rhs_type.unify CType.bool
 
-    return t(:or, rhs, lhs, Type.bool)
+    return t(:or, rhs, lhs, CType.bool)
   end
 
   ##
@@ -838,7 +837,7 @@ class TypeChecker < SexpProcessor
     o2 = exp.empty? ? nil : process(exp.shift)
     o3 = exp.empty? ? nil : process(exp.shift)
 
-    result = t(:resbody, Type.unknown) # void?
+    result = t(:resbody, CType.unknown) # void?
     result << o1
     result << o2 unless o2.nil?
     result << o3 unless o3.nil?
@@ -855,9 +854,9 @@ class TypeChecker < SexpProcessor
     rescue_block = process exp.shift
     els = exp.empty? ? nil : process(exp.shift)
 
-    try_type = try_block.sexp_type
-    rescue_type = rescue_block.sexp_type
-#    ensure_type = els.sexp_type # HACK/FIX: not sure if I should unify
+    try_type = try_block.c_type
+    rescue_type = rescue_block.c_type
+#    ensure_type = els.c_type # HACK/FIX: not sure if I should unify
 
     try_type.unify rescue_type
 #    try_type.unify ensure_type 
@@ -869,7 +868,7 @@ class TypeChecker < SexpProcessor
   # Return returns a void typed sexp.
 
   def process_return(exp)
-    result = t(:return, Type.void) # TODO why void - cuz this is a keyword
+    result = t(:return, CType.void) # TODO why void - cuz this is a keyword
     result << process(exp.shift) unless exp.empty?
     return result
   end
@@ -878,11 +877,11 @@ class TypeChecker < SexpProcessor
   # Scope returns a void-typed sexp.
 
   def process_scope(exp)
-    return t(:scope, Type.void) if exp.empty?
+    return t(:scope, CType.void) if exp.empty?
 
     body = process exp.shift
 
-    return t(:scope, body, Type.void)
+    return t(:scope, body, CType.void)
   end
 
   ##
@@ -891,7 +890,7 @@ class TypeChecker < SexpProcessor
   # TODO support self
 
   def process_self(exp)
-    return t(:self, Type.unknown)
+    return t(:self, CType.unknown)
   end
 
   ##
@@ -901,14 +900,14 @@ class TypeChecker < SexpProcessor
 
   def process_splat(exp)
     value = process exp.shift
-    return t(:splat, value, Type.unknown) # TODO: probably value_list?
+    return t(:splat, value, CType.unknown) # TODO: probably value_list?
   end
 
   ##
   # String literal returns a string-typed sexp.
 
   def process_str(exp)
-    return t(:str, exp.shift, Type.str)
+    return t(:str, exp.shift, CType.str)
   end
 
   ##
@@ -919,7 +918,7 @@ class TypeChecker < SexpProcessor
   def process_super(exp)
     args = process exp.shift
     # TODO try to look up the method in our superclass?
-    return t(:super, args, Type.unknown)
+    return t(:super, args, CType.unknown)
   end
 
   ##
@@ -932,8 +931,8 @@ class TypeChecker < SexpProcessor
       to_ary << process(exp.shift)
     end
 
-    to_ary.sexp_type = to_ary[1].sexp_type.dup
-    to_ary.sexp_type.list = true
+    to_ary.c_type = to_ary[1].c_type.dup
+    to_ary.c_type.list = true
 
     return to_ary
   end
@@ -942,7 +941,7 @@ class TypeChecker < SexpProcessor
   # True returns a bool-typed sexp.
 
   def process_true(exp)
-    return t(:true, Type.bool)
+    return t(:true, CType.bool)
   end
 
   ##
@@ -952,7 +951,7 @@ class TypeChecker < SexpProcessor
     cond = process exp.shift
     body = process exp.shift
     is_precondition = exp.shift
-    Type.bool.unify cond.sexp_type
+    CType.bool.unify cond.c_type
     return t(:while, cond, body, is_precondition)
   end
 
@@ -960,11 +959,10 @@ class TypeChecker < SexpProcessor
   # Yield is currently unsupported.  Returns a unmentionably-typed sexp.
 
   def process_yield(exp)
-    result = t(:yield, Type.fucked)
+    result = t(:yield, CType.fucked)
     until exp.empty? do
       result << process(exp.shift)
     end
     return result
   end
 end
-

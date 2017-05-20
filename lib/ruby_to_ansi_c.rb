@@ -160,7 +160,7 @@ typedef char * str;
     until exp.empty? do
       arg = exp.shift
       name = arg.first.to_s.sub(/^\*/, '').intern
-      type = arg.sexp_type
+      type = arg.c_type
       @env.add name, type
       args << "#{self.class.c_type(type)} #{name}"
     end
@@ -212,9 +212,9 @@ typedef char * str;
     receiver = exp.shift
     name = exp.shift
 
-    receiver_type = Type.unknown
+    receiver_type = CType.unknown
     unless receiver.nil? then
-      receiver_type = receiver.sexp_type
+      receiver_type = receiver.c_type
     end
     receiver = process receiver
 
@@ -304,7 +304,7 @@ typedef char * str;
 
   def process_dasgn_curr(exp) # TODO: audit against obfuscator
     var = exp.shift
-    @env.add var.to_sym, exp.sexp_type
+    @env.add var.to_sym, exp.c_type
     return var.to_s
   end
 
@@ -323,7 +323,7 @@ typedef char * str;
     name = name.to_s.sub(/(.*)\?$/, 'is_\1').intern
     args = process exp.shift
     body = process exp.shift
-    function_type = exp.sexp_type
+    function_type = exp.c_type
 
     ret_type = self.class.c_type function_type.list_type.return_type
 
@@ -351,7 +351,7 @@ typedef char * str;
 
   def process_dvar(exp)
     var = exp.shift
-    @env.add var.to_sym, exp.sexp_type
+    @env.add var.to_sym, exp.c_type
     return var.to_s
   end
 
@@ -378,7 +378,7 @@ typedef char * str;
 
   def process_gvar(exp)
     name = exp.shift
-    type = exp.sexp_type
+    type = exp.c_type
     case name
     when :$stderr then
       "stderr"
@@ -486,17 +486,17 @@ typedef char * str;
     arg_count = value.length - 1 if value.first == :array
     args = value
 
-    exp_type = exp.sexp_type
+    exp_type = exp.c_type
     @env.add var.to_sym, exp_type
 
     if exp_type.list? then
       assert_type args, :array
 
-      raise "array must be of one type" unless args.sexp_type == Type.homo
+      raise "array must be of one type" unless args.c_type == CType.homo
 
       # HACK: until we figure out properly what to do w/ zarray
       # before we know what its type is, we will default to long.
-      array_type = args.sexp_types.empty? ? 'void *' : self.class.c_type(args.sexp_types.first)
+      array_type = args.c_types.empty? ? 'void *' : self.class.c_type(args.c_types.first)
 
       args.shift # :arglist
 # TODO: look into alloca
@@ -522,11 +522,11 @@ typedef char * str;
     # TODO what about floats and big numbers?
 
     value = exp.shift
-    sexp_type = exp.sexp_type
-    case sexp_type
-    when Type.long, Type.float then
+    c_type = exp.c_type
+    case c_type
+    when CType.long, CType.float then
       return value.to_s
-    when Type.symbol then
+    when CType.symbol then
       return value.to_s.inspect # HACK wrong! write test!
     else
       raise "Bug! no: Unknown literal #{value}:#{value.class}"

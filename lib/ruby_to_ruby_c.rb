@@ -181,13 +181,13 @@ class RubyToRubyC < RubyToAnsiC
     arg_count = value.length - 1 if value.first == :array
     args = value
 
-    exp_type = exp.sexp_type
+    exp_type = exp.c_type
     @env.add var.to_sym, exp_type
 
     if exp_type.list? then
       assert_type args, :array
 
-      raise "array must be of one type" unless args.sexp_type == Type.homo
+      raise "array must be of one type" unless args.c_type == CType.homo
 
       args.shift # :arglist
       # REFACTOR: this (here down) is the only diff w/ super

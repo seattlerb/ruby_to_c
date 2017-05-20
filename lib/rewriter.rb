@@ -1,4 +1,3 @@
-
 begin require 'rubygems'; rescue LoadError; end
 require 'sexp'
 require 'sexp_processor'
@@ -31,4 +30,3 @@ class Rewriter < SexpProcessor
     exp
   end
 end
-

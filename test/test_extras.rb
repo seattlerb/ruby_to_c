@@ -58,8 +58,8 @@ class TestExtraTypeChecker < Minitest::Test # ZenTest SKIP
   end
 
   def util_unify_function
-    a = Type.function(Type.unknown, [ Type.unknown ], Type.unknown)
-    b = Type.function(Type.long, [ Type.str ], Type.void)
+    a = CType.function(CType.unknown, [ CType.unknown ], CType.unknown)
+    b = CType.function(CType.long, [ CType.str ], CType.void)
     a.unify b
     act = a.list_type
     bct = b.list_type

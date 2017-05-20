@@ -10,8 +10,8 @@ class R2CEnvironment < RubyParserStuff::Environment
   def add(id, type, depth = 0)
     raise "Adding illegal identifier #{id.inspect}" unless
       Symbol === id
-    raise ArgumentError, "type must be a valid Type instance" unless
-      Type === type
+    raise ArgumentError, "type must be a valid Type instance: #{type.inspect}" unless
+      CType === type
 
     @env[depth][id.to_s.sub(/^\*/, '').intern][TYPE] = type
   end
@@ -31,7 +31,7 @@ class R2CEnvironment < RubyParserStuff::Environment
 
   def lookup(name)
     # HACK: if name is :self, cheat for now until we have full defn remapping
-    return Type.fucked if name == :self
+    return CType.fucked if name == :self
 
     return self._get(name)[TYPE]
   end

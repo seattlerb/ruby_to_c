@@ -2,7 +2,7 @@
 require 'handle'
 require 'function_type'
 
-class Type
+class CType
 
   # REFACTOR: nuke this
   KNOWN_TYPES = {
@@ -40,7 +40,7 @@ class Type
       # TODO: gross, maybe go back to the *args version from method_missing
       return_type = arg_types
       arg_types = lhs_type
-      lhs_type = Type.unknown
+      lhs_type = CType.unknown
     end
 
     self.new FunctionType.new(lhs_type, arg_types, return_type)
@@ -52,7 +52,7 @@ class Type
 
   def self.method_missing(type, *args)
     raise "Unknown type Type.#{type} (#{type.inspect})" unless
-      Type::KNOWN_TYPES.has_key?(type)
+      KNOWN_TYPES.has_key?(type)
 
     if type.to_s =~ /(.*)_list$/ then
       TYPES[type] = self.new($1.intern, true) unless TYPES.has_key?(type)

@@ -9,10 +9,10 @@ require 'sexp_processor' # for deep clone FIX ?
 
 class TestType < Minitest::Test
   def setup
-    @unknown = Type.unknown
-    @unknown_list = Type.unknown_list
-    @long = Type.long
-    @long_list = Type.new(:long, true)
+    @unknown = CType.unknown
+    @unknown_list = CType.unknown_list
+    @long = CType.long
+    @long_list = CType.new(:long, true)
   end
 
   def test_function?
@@ -20,7 +20,7 @@ class TestType < Minitest::Test
     assert ! @long_list.function?
     assert ! @unknown.function?
     assert ! @unknown_list.function?
-    assert Type.function(Type.str, [Type.str], Type.str).function?
+    assert CType.function(CType.str, [CType.str], CType.str).function?
   end
 
   def test_list
@@ -29,8 +29,8 @@ class TestType < Minitest::Test
   end
 
   def test_list=
-    long = Type.long.deep_clone
-    long_list = Type.long_list.deep_clone
+    long = CType.long.deep_clone
+    long_list = CType.long_list.deep_clone
 
     long.list = true
     long_list.list = false
@@ -45,36 +45,36 @@ class TestType < Minitest::Test
   end
 
   def test_type_good
-    file = Type.file
-    assert_kind_of Type, file
+    file = CType.file
+    assert_kind_of CType, file
     assert_equal :file, file.type.contents
   end
 
   def test_type_bad
     assert_raises(RuntimeError) do
-      Type.blahblah
+      CType.blahblah
     end
   end
 
   def test_type=
-    long = Type.long.deep_clone
+    long = CType.long.deep_clone
     long.type = "something"
     assert_equal "something", long.type
   end
 
   def test_unknown_types
     assert_raises(RuntimeError) do
-      Type.new(:some_made_up_type)
+      CType.new(:some_made_up_type)
     end
 
     assert_raises(RuntimeError) do
-      Type.some_made_up_type
+      CType.some_made_up_type
     end
   end
 
   def test_function
     skip "actually TEST something here"
-    Type.function([Type.unknown], Type.unknown)
+    CType.function([CType.unknown], CType.unknown)
   end
 
   def test_list_type
@@ -82,20 +82,20 @@ class TestType < Minitest::Test
   end
 
   def test_equals
-    type = Type.long
+    type = CType.long
     refute_equal @unknown, type
     assert_equal @long, type
     refute_equal @long_list, type
   end
 
   def test_hash
-    long1 = Type.long
-    long2 = Type.long
+    long1 = CType.long
+    long2 = CType.long
 
-    a = Type.unknown
+    a = CType.unknown
     a.unify long1
 
-    b = Type.unknown
+    b = CType.unknown
     b.unify long2
 
     assert a == b, "=="
@@ -107,7 +107,7 @@ class TestType < Minitest::Test
   end
 
   def test_list_equal
-    type = Type.new(:long, true)
+    type = CType.new(:long, true)
     refute_equal @unknown, type
     refute_equal @long, type
     assert_equal @long_list, type
@@ -119,20 +119,20 @@ class TestType < Minitest::Test
   end
 
   def test_unknown?
-    assert_equal Type.unknown, Type.unknown
-    refute_same Type.unknown, Type.unknown
+    assert_equal CType.unknown, CType.unknown
+    refute_same CType.unknown, CType.unknown
   end
 
   def test_unknown_list
-    assert_equal @unknown_list, Type.unknown_list
-    refute_same Type.unknown_list, Type.unknown_list
+    assert_equal @unknown_list, CType.unknown_list
+    refute_same CType.unknown_list, CType.unknown_list
     assert @unknown_list.list?
   end
 
   def test_unify_fail
-    long = Type.new(:long)
-    string = Type.new(:str)
-    long_list = Type.new(:long, true)
+    long = CType.new(:long)
+    string = CType.new(:str)
+    long_list = CType.new(:long, true)
 
     assert_raises(TypeError) do
       long.unify string
@@ -144,8 +144,8 @@ class TestType < Minitest::Test
   end
 
   def test_unify_simple
-    long = Type.new(:long)
-    unknown = Type.unknown
+    long = CType.new(:long)
+    unknown = CType.unknown
 
     assert_equal @long, long
 
@@ -157,8 +157,8 @@ class TestType < Minitest::Test
   end
 
   def test_unify_list
-    long_list = Type.new(:long, true)
-    unknown = Type.unknown
+    long_list = CType.new(:long, true)
+    unknown = CType.unknown
 
     assert_equal @long_list, long_list
 
@@ -170,9 +170,9 @@ class TestType < Minitest::Test
   end
 
   def test_unify_link
-    unknown1 = Type.unknown
-    unknown2 = Type.unknown
-    long = Type.new(:long)
+    unknown1 = CType.unknown
+    unknown2 = CType.unknown
+    long = CType.new(:long)
 
     unknown1.unify unknown2
     assert_same(unknown1.type, unknown2.type,
@@ -185,7 +185,7 @@ class TestType < Minitest::Test
   end
 
   def test_unify_function
-    fun = Type.function [Type.unknown], Type.unknown
+    fun = CType.function [CType.unknown], CType.unknown
     @unknown.unify fun
     assert_equal fun, @unknown
   end
