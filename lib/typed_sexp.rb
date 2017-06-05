@@ -28,17 +28,32 @@ class TypedSexp < Sexp
   def inspect
     sexp_str = self.map {|x|x.inspect}.join(', ')
     c_type_str = (sexp_str.empty? ? "" : ", ") + "#{array_type? ? c_types.inspect : c_type}" unless c_type.nil?
-    return "t(#{sexp_str}#{c_type_str})"
+    nnd = ")"
+    nnd << ".line(#{line})" if line && ENV["VERBOSE"]
+    "t(#{sexp_str}#{c_type_str}#{nnd}"
   end
 
   def pretty_print(q)
-    q.group(1, 't(', ')') do
+    nnd = ")"
+    nnd << ".line(#{line})" if line && ENV["VERBOSE"]
+
+    q.group(1, 't(', nnd) do
       q.seplist(self) {|v| q.pp v }
       unless @c_type.nil? then
         q.text ", " unless self.empty?
         q.pp @c_type
       end
     end
+  end
+
+  @@array_types = [ :array, :args ]
+
+  ##
+  # Returns true if the node_type is +array+ or +args+.
+
+  def array_type?
+    type = self.sexp_type
+    @@array_types.include? type
   end
 
   def c_type

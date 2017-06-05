@@ -1,7 +1,7 @@
 #!/usr/local/bin/ruby -w
 
 require 'minitest/autorun' if $0 == __FILE__
-require 'test_sexp'
+require 'test_sexp' # from sexp_processor for TestSexp
 require 'typed_sexp'
 
 class TestTypedSexp < TestSexp
