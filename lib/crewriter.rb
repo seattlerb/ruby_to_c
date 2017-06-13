@@ -41,11 +41,11 @@ class CRewriter < SexpProcessor
   #   result
   # end
 
-  # def process exp
-  #   result = super
-  #   result.c_type ||= exp.c_type if Sexp === exp and exp.c_type
-  #   result
-  # end
+  def process exp
+    result = super
+    result.c_type ||= exp.c_type if Sexp === exp and exp.c_type
+    result
+  end
 
   def free # REFACTOR: this is a violation of responsibility, should be in Env
     parent = @env.env[0..-2]
@@ -71,7 +71,7 @@ class CRewriter < SexpProcessor
 
     lhs_type = lhs.c_type rescue nil
     type_signature = [lhs_type, name]
-    type_signature += rhs[1..-1].map { |sexp| sexp.c_type } unless rhs.nil?
+    type_signature += rhs[1..-1].map { |sexp| sexp.c_type }.to_a unless rhs.nil?
 
     result = if REWRITES.has_key? type_signature then
                REWRITES[type_signature].call(lhs, name, rhs)

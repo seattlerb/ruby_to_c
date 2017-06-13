@@ -201,7 +201,7 @@ class TestCRewriter < R2CTestCase
                    t(:array, t(:lvar, :sum, CType.long), CType.void),
                    t(:array, t(:lvar, :static_temp_4, CType.long), CType.void),
                    CType.void),
-                 :temp_1),
+                 :temp_1, CType.void),
                CType.void)
 
     assert_equal expect, @rewrite.process(input)

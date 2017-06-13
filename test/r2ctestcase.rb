@@ -424,7 +424,7 @@ class R2CTestCase < ParseTreeTestCase
                                    t(:array, t(:lvar, :x, CType.value), CType.void),
                                    t(:array, t(:lvar, :static_temp_4, CType.value), CType.void),
                                    CType.void),
-                                 :temp_1),
+                                 :temp_1, CType.void),
                                CType.unknown),
                             [t(:static, "static VALUE static_temp_4;", CType.fucked),
                              t(:defx,

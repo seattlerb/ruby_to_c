@@ -15,6 +15,12 @@ class TypedSexp < Sexp
     end
   end
 
+  def new(*stuff)
+    r = super
+    r.c_type = self.c_type if self.c_type
+    r
+  end
+
   def _set_c_type(o)
     @c_type = o
   end
@@ -58,7 +64,7 @@ class TypedSexp < Sexp
 
   def c_type
     unless array_type? then
-      @c_type
+      defined?(@c_type) && @c_type
     else
       types = self.c_types.flatten.uniq
 
