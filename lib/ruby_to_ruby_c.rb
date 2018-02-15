@@ -191,7 +191,7 @@ class RubyToRubyC < RubyToAnsiC
 
       args.shift # :arglist
       # REFACTOR: this (here down) is the only diff w/ super
-      out << "#{var} = rb_ary_new2(#{args.length});\n"
+      out << "#{var} = rb_ary_new2(#{arg_count});\n"
       args.each_with_index do |o,i|
         out << "rb_ary_store(#{var}, #{i}, #{process o});\n"
       end

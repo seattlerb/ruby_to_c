@@ -51,7 +51,7 @@ class TestTypeChecker < R2CTestCase
     add_fake_function :specific, CType.unknown, CType.unknown, CType.unknown
 
     # now in specific, unify with a long
-    s = @type_checker.process(s(:defn, :specific,
+    _ = @type_checker.process(s(:defn, :specific,
                                 s(:args, :x),
                                 s(:scope,
                                   s(:block,

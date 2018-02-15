@@ -212,10 +212,6 @@ typedef char * str;
     receiver = exp.shift
     name = exp.shift
 
-    receiver_type = CType.unknown
-    unless receiver.nil? then
-      receiver_type = receiver.c_type
-    end
     receiver = process receiver
 
     case name
@@ -500,7 +496,7 @@ typedef char * str;
 
       args.shift # :arglist
 # TODO: look into alloca
-      out << "#{var} = (#{array_type}) malloc(sizeof(#{array_type}) * #{args.length});\n"
+      out << "#{var} = (#{array_type}) malloc(sizeof(#{array_type}) * #{arg_count});\n"
       args.each_with_index do |o,i|
         out << "#{var}[#{i}] = #{process o};\n"
       end
