@@ -114,6 +114,14 @@ class TestTypedSexp < TestSexp
     assert_equal([CType.long, CType.str], @sexp.c_types)
   end
 
+  def test_sexp_body # override from TestSexp
+    assert_equal t(2, 3, CType.str), @sexp.sexp_body
+    assert_equal s(),     s(:x).sexp_body
+    assert_equal s(),     s().sexp_body
+
+    assert_instance_of Sexp, s().sexp_body
+  end
+
   def test_to_a
     @sexp = t(1, 2, 3)
     assert_equal([1, 2, 3], @sexp.to_a)
