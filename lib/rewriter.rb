@@ -3,6 +3,8 @@ require 'sexp'
 require 'sexp_processor'
 require 'unique'
 
+require 'typed_sexp' # ensure @@array_types is defined
+
 class Sexp
   # add arglist because we introduce the new array type in this file
   @@array_types << :arglist

@@ -1,9 +1,20 @@
-
 begin require 'rubygems'; rescue LoadError; end
 require 'sexp'
 require 'type'
 
 $TESTING = false unless defined? $TESTING
+
+class Sexp
+  @@array_types = [ :array, :args ]
+
+  ##
+  # Returns true if the node_type is +array+ or +args+.
+
+  def array_type?
+    type = self.sexp_type
+    @@array_types.include? type
+  end
+end
 
 class TypedSexp < Sexp
   def ==(obj)
@@ -50,16 +61,6 @@ class TypedSexp < Sexp
         q.pp @c_type
       end
     end
-  end
-
-  @@array_types = [ :array, :args ]
-
-  ##
-  # Returns true if the node_type is +array+ or +args+.
-
-  def array_type?
-    type = self.sexp_type
-    @@array_types.include? type
   end
 
   def c_type
