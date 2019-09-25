@@ -1,3 +1,21 @@
+=== 1.1.0 / 2019-09-24
+
+* 4 minor enhancements:
+
+  * Pushed @@array_types and array_type? up to Sexp (in typed_sexp.rb).
+  * Pushed down @@array_types and #array_type? from Sexp to TypedSexp.
+  * Renamed Type to CType
+  * Renamed TypedSexp#sexp_type to c_type to resolve conflict/confusion w/ Sexp.
+
+* 6 bug fixes:
+
+  * Fixed a test file randomization error (yay!) by requiring typed_sexp in rewriter.
+  * Fixed inspect/pretty_print to include line number for typed sexps, just like sexps.
+  * Fixed new ruby 2.5 warnings.
+  * Fixes for changes to sexp_processor, centered aroud maintaining c_type.
+  * Got working with ruby 2.5 parser.
+  * Removed obsolete attrset test
+
 === 1.0.0.9 / 2012-11-09
 
 * 1 bug fix:
