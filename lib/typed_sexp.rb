@@ -7,6 +7,8 @@ $TESTING = false unless defined? $TESTING
 class Sexp
   @@array_types = [ :array, :args ]
 
+  alias array_type? array_type? # shuts up duplicate method warning
+
   ##
   # Returns true if the node_type is +array+ or +args+.
 
