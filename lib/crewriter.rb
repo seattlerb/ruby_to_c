@@ -41,8 +41,8 @@ class CRewriter < SexpProcessor
   #   result
   # end
 
-  def process exp
-    result = super
+  def process exp, _src = nil, _timeout = nil
+    result = super(exp)
     result.c_type ||= exp.c_type if Sexp === exp and exp.c_type
     result
   end

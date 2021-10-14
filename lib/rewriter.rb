@@ -18,6 +18,10 @@ end
 # what it does.
 
 class Rewriter < SexpProcessor
+  def process exp, _src = nil, _timeout = nil
+    super(exp)
+  end
+
   def rewrite_defn(exp)
     case exp.last[0]
     when :ivar then

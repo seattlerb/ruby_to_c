@@ -119,6 +119,10 @@ class TypeChecker < SexpProcessor
     end
   end
 
+  def process exp, _src = nil, _timeout = nil
+    super(exp)
+  end
+
   ##
   # Logical and unifies its two arguments, then returns a bool sexp.
 

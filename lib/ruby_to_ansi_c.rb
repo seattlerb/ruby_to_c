@@ -133,6 +133,10 @@ typedef char * str;
     @prototypes = []
   end
 
+  def process exp, _src = nil, _timeout = nil
+    super(exp)
+  end
+
   ##
   # Logical And. Nothing exciting here
 
