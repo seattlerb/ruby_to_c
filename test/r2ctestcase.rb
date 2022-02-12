@@ -19,7 +19,7 @@ class R2CTestCase < ParseTreeTestCase
   end
 
   def self.add_skipped_tests19 *names
-    add_skipped_tests names.map { |s| "#{s}__19_20_21_22_23_24_25_26_27_30" }
+    add_skipped_tests names.map { |s| "#{s}_#{TEST_SUFFIX}" }
   end
 
   testcase_order.push(*%w(Ruby ParseTree Rewriter TypeChecker
