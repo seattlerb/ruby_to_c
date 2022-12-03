@@ -20,7 +20,7 @@ require 'r2cenvironment'
 
 class RubyToAnsiC < SexpProcessor
 
-  VERSION = '1.1.0'
+  VERSION = '1.1.1'
 
   # TODO: remove me
   def no(exp) # :nodoc:
