@@ -477,7 +477,7 @@ typedef char * str;
   # TODO: figure out array issues and clean up.
 
   def process_lasgn(exp) # TODO: audit against obfuscator
-    out = ""
+    out = []
 
     var = exp.shift
     value = exp.shift
@@ -508,9 +508,7 @@ typedef char * str;
       out << "#{var} = #{process args}"
     end
 
-    out.sub!(/;\n\Z/, '')
-
-    return out
+    out.join.sub(/;\n\Z/, '')
   end
 
   ##

@@ -48,7 +48,7 @@ class TypedSexp < Sexp
     sexp_str = self.map {|x|x.inspect}.join(', ')
     c_type_str = (sexp_str.empty? ? "" : ", ") + "#{array_type? ? c_types.inspect : c_type}" unless c_type.nil?
     nnd = ")"
-    nnd << ".line(#{line})" if line && ENV["VERBOSE"]
+    nnd += ".line(#{line})" if line && ENV["VERBOSE"]
     "t(#{sexp_str}#{c_type_str}#{nnd}"
   end
 
