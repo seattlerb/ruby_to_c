@@ -136,9 +136,9 @@ class CType
   end
 
   def to_s
-    str = "Type.#{self.type.contents}"
+    str = ["Type.#{self.type.contents}"]
     str << "_list" if self.list?
-    str
+    str.join
   end
 
   def inspect

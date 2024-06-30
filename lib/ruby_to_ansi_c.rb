@@ -646,7 +646,7 @@ typedef char * str;
       result = yield
       @env.current.sort_by { |v,_| v.to_s }.each do |var, (type,val)|
         next if outer_scope.include? var
-        decl = "#{self.class.c_type type} #{var}"
+        decl = ["#{self.class.c_type type} #{var}"]
         case val
         when nil then
           # do nothing
@@ -656,7 +656,7 @@ typedef char * str;
           decl << " = #{val}"
         end
         decl << ';'
-        declarations << decl
+        declarations << decl.join
       end
     end
 

@@ -314,7 +314,7 @@ class RubyToRubyC < RubyToAnsiC
       if c_args == '()' then
         c_args = '(VALUE self)'
       else
-        c_args.sub! '(', '(VALUE self, '
+        c_args = c_args.sub '(', '(VALUE self, '
       end
     end
 
