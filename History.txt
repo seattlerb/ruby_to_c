@@ -1,3 +1,12 @@
+=== 1.1.2 / 2024-11-11
+
+* 4 bug fixes:
+
+  * Added license declaration to gemspec.
+  * Added racc as development dependency + isolate plugin.
+  * Fix errors created when string literals are frozen (in 2.7 only??).
+  * Fix errors created when string literals are frozen.
+
 === 1.1.1 / 2022-12-03
 
 * 2 bug fixes:
